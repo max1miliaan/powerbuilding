@@ -140,12 +140,22 @@ body.timer-on #app {
   margin-left: auto; padding: 2px 6px;
   border: 1px solid rgba(208,90,27,0.4); border-radius: 3px;
 }
-.pr-day { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; padding: 14px 0 6px; }
-.pr-day:first-of-type { padding-top: 0; }
-.pr-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-.pr-name { font-size: 12px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
-.pr-val { font-size: 13px; font-weight: 700; color: var(--white); font-variant-numeric: tabular-nums; }
-.pr-none { color: var(--text-dim); font-weight: 400; }
+.pr-grid { display: flex; flex-direction: column; gap: 10px; }
+.pr-card {
+  background: var(--bg); border: 1px solid var(--card-border); border-radius: 10px;
+  padding: 16px; display: flex; align-items: center; justify-content: space-between;
+  transition: border-color 0.2s;
+}
+.pr-card.has-pr { border-color: rgba(208,90,27,0.25); }
+.pr-left { display: flex; flex-direction: column; gap: 2px; }
+.pr-name { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.pr-week { font-size: 10px; color: var(--text-dim); letter-spacing: 0.5px; }
+.pr-val {
+  font-size: 28px; font-weight: 800; color: var(--white);
+  font-variant-numeric: tabular-nums; letter-spacing: -0.5px; line-height: 1;
+}
+.pr-val .pr-unit { font-size: 14px; font-weight: 600; color: var(--text-dim); margin-left: 2px; }
+.pr-none { font-size: 20px; color: var(--card-border); font-weight: 400; }
 
 /* Exercise swap select */
 .ex-select {
@@ -789,7 +799,7 @@ function render() {
   if (state.showPR) {
     h += `<div class="modal-overlay" data-action="closePR">
       <div class="modal" onclick="event.stopPropagation()">
-        <h2>PERSONAL RECORDS</h2>`;
+        <h2>PERSONAL RECORDS</h2><div class="pr-grid">`;
     const prIds = ['squat','bench','deadlift','ohp','boxjump1','boxjump2'];
     const shown = new Set();
     for (let d = 0; d < 5; d++) {
@@ -801,10 +811,13 @@ function render() {
         const p = prs[dex.id];
         const nm = getDisplayName(d, dex);
         const u = dex.unit || 'kg';
-        h += `<div class="pr-row"><span class="pr-name">${nm}</span><span class="pr-val${p ? '' : ' pr-none'}">${p ? p.weight + u : '—'}</span></div>`;
+        h += `<div class="pr-card${p ? ' has-pr' : ''}">
+          <div class="pr-left"><span class="pr-name">${nm}</span>${p ? `<span class="pr-week">Week ${p.week}</span>` : ''}</div>
+          ${p ? `<span class="pr-val">${p.weight}<span class="pr-unit">${u}</span></span>` : '<span class="pr-none">—</span>'}
+        </div>`;
       }
     }
-    h += `</div></div>`;
+    h += `</div></div></div>`;
   }
 
   app.innerHTML = h;

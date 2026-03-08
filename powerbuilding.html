@@ -114,15 +114,19 @@ body.timer-on #app {
 .exercises { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
 .ss-group {
   border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; overflow: hidden;
-  position: relative;
+  background: var(--card);
 }
-.ss-label {
-  position: absolute; top: 7px; right: 10px;
-  font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+.ss-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px 0; font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
   color: rgba(255,255,255,0.3);
 }
-.ss-group .exercise-card { border: none; border-radius: 0; }
-.ss-group .exercise-card + .exercise-card { border-top: 1px dashed rgba(255,255,255,0.08); }
+.ss-header::before, .ss-header::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08);
+}
+.ss-group .exercise-card { border: none; border-radius: 0; background: transparent; padding: 10px 14px; }
+.ss-group .exercise-card + .exercise-card { padding-top: 6px; }
+.ss-divider { height: 1px; margin: 0 14px; background: rgba(255,255,255,0.06); }
 
 .exercise-card {
   background: var(--card); border: 1px solid rgba(255,255,255,0.07);
@@ -678,8 +682,10 @@ function render() {
     const displayName = getDisplayName(state.day, ex);
 
     if (ex.ss && ex.ss !== curSS) {
-      h += '<div class="ss-group"><div class="ss-label">SUPERSET</div>';
+      h += '<div class="ss-group"><div class="ss-header">SUPERSET</div>';
       curSS = ex.ss;
+    } else if (ex.ss && ex.ss === curSS) {
+      h += '<div class="ss-divider"></div>';
     }
 
     let allDone = true;

@@ -172,9 +172,9 @@ body.timer-on #app {
 
 .sets-container { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
 .set-row {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 5px;
   padding: 5px 8px; border-radius: 6px; background: rgba(255,255,255,0.02);
-  transition: background 0.2s; min-height: 40px;
+  transition: background 0.2s; min-height: 40px; flex-wrap: nowrap;
 }
 .set-row.done { background: var(--done-bg); }
 .set-row.done .set-num,
@@ -196,13 +196,14 @@ body.timer-on #app {
 }
 .set-num { width: 16px; font-size: 12px; color: var(--text-dim); text-align: center; font-weight: 600; }
 .w-input, .r-input {
-  width: 56px; height: 34px; background: var(--bg); border: 1px solid var(--card-border);
+  height: 34px; background: var(--bg); border: 1px solid var(--card-border);
   border-radius: 5px; color: var(--text); font-size: 14px; text-align: center;
-  font-weight: 500; outline: none;
+  font-weight: 500; outline: none; flex: 0 0 auto;
 }
+.w-input { width: 54px; }
+.r-input { width: 48px; }
 .w-input:focus, .r-input:focus { border-color: var(--accent); }
-.r-input { width: 44px; }
-.unit, .times { font-size: 11px; color: var(--text-dim); }
+.unit, .times { font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
 .prev { font-size: 10px; color: var(--text-dim); margin-left: auto; white-space: nowrap; opacity: 0.6; }
 
 .modal-overlay {
@@ -293,11 +294,19 @@ body.timer-on #app {
 @keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
 .timer-bar.finished .timer-time { color: var(--accent); animation: timerPulse 1s infinite; }
 
+@media (max-width: 374px) {
+  .set-row { gap: 3px; padding: 4px 6px; }
+  .w-input { width: 48px; font-size: 13px; }
+  .r-input { width: 42px; font-size: 13px; }
+  .checkmark { width: 22px; height: 22px; }
+  .unit, .times { font-size: 10px; }
+  .prev, .pr-badge { font-size: 8px; }
+}
 @media (min-width: 640px) {
   #app { padding-top: 10px; }
   .ex-name, .ex-select { font-size: 15px; }
   .w-input { width: 64px; }
-  .r-input { width: 50px; }
+  .r-input { width: 54px; }
 }
 
 input[type=number]::-webkit-inner-spin-button,
@@ -727,7 +736,7 @@ function render() {
         h += `<input type="number" class="w-input" data-key="${key}" value="${preW}" step="2.5" placeholder="kg" inputmode="decimal">
         <span class="unit">kg</span>
         <span class="times">x</span>
-        <input type="number" class="r-input" data-key="${key}" value="${preR}" step="1" placeholder="${ex.reps}" inputmode="numeric">`;
+        <input type="number" class="r-input" data-key="${key}" value="${preR}" step="1" placeholder="${ex.reps.replace(/\s*\/.*/, '')}" inputmode="numeric">`;
       }
       const isPR = log.done && log.weight != null && pr && log.weight >= pr.weight;
       h += `${isPR ? '<span class="pr-badge">PR</span>' : (pv ? `<span class="prev">${pv}</span>` : '')}

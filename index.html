@@ -790,13 +790,14 @@ function render() {
     h += `<div class="modal-overlay" data-action="closePR">
       <div class="modal" onclick="event.stopPropagation()">
         <h2>PERSONAL RECORDS</h2>`;
+    const prIds = ['squat','bench','deadlift','ohp','boxjump1','boxjump2'];
     const shown = new Set();
     for (let d = 0; d < 5; d++) {
       const dayExs = getExercises(d, state.week, state.maxes);
-      h += `<div class="pr-day">${DAY_LABELS[d].short} — ${DAY_LABELS[d].name}</div>`;
-      for (const dex of dayExs) {
-        if (shown.has(dex.id)) continue;
-        shown.add(dex.id);
+      const hits = dayExs.filter(function(x) { return prIds.includes(x.id) && !shown.has(x.id); });
+      if (!hits.length) continue;
+      hits.forEach(function(x) { shown.add(x.id); });
+      for (const dex of hits) {
         const p = prs[dex.id];
         const nm = getDisplayName(d, dex);
         const u = dex.unit || 'kg';

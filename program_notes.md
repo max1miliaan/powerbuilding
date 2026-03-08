@@ -164,11 +164,14 @@ Chose this over Upper/Lower/Accessories because:
 
 ## Technical Notes (HTML App)
 - File: `powerbuilding.html` — single-file, offline, no dependencies
+- Hosted: https://max1miliaan.github.io/powerbuilding/
 - All barbell weights pre-calculated from 1RMs, rounded to nearest 2.5kg
 - Plate breakdown shown per side (assumes 20kg bar)
-- localStorage key: `pb12wk_v3` — saves week/day selection, all set logs, 1RM settings
+- localStorage key: `pb12wk_v4` — saves week/day selection, all set logs, 1RM settings, exercise swaps
 - 1RM editable via settings modal — all weights recalculate on save
-- Monochrome design (black/white/grey, --bg:#111, --card:#1a1a1a), no emojis, mobile-optimized
+- Design: monochrome base (--bg:#111, --card:#1a1a1a) with burnt orange accent (#D05A1B), no emojis
+- Mobile: viewport-fit=cover, safe-area-insets, apple-mobile-web-app-capable, 44px min touch targets, theme-color
 - Event delegation on #app for efficient DOM handling
 - Week has-data check scans log keys (not exercise regeneration) for performance
 - **Previous data display**: Each set row shows dimmed "prev:" label with weight/reps from the most recent earlier week that has logged data for that same exercise/set. Scans backwards through all prior weeks, so it works across skipped weeks and deloads. Most useful for accessories (double progression tracking).
+- **Exercise swap system**: Native `<select>` dropdowns on each exercise with 2-4 relevant alternatives per slot (e.g., Bench Press can swap to Close-Grip Bench, DB Bench, Floor Press). Swaps stored per-day in state.swaps with key format `dayIdx_exerciseId`. Alternatives defined in ALTS object covering all ~30 exercise slots.

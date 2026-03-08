@@ -33,6 +33,10 @@ body {
   padding-bottom: max(80px, calc(env(safe-area-inset-bottom) + 40px));
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+  transition: padding-bottom 0.25s;
+}
+body.timer-on #app {
+  padding-bottom: max(150px, calc(env(safe-area-inset-bottom) + 110px));
 }
 
 .header {
@@ -242,6 +246,41 @@ body {
 .notes-content h3 { color: var(--text); font-size: 12px; margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 .notes-content h3:first-child { margin-top: 0; }
 
+.timer-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #1c1c1c; border-top: 2px solid var(--card-border);
+  padding: 10px 16px;
+  padding-bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px));
+  z-index: 150;
+  transform: translateY(100%); transition: transform 0.25s ease;
+}
+.timer-bar.visible { transform: translateY(0); }
+.timer-bar.finished { border-top-color: var(--accent); }
+.timer-top { display: flex; align-items: center; gap: 10px; }
+.timer-time {
+  font-size: 32px; font-weight: 700; color: var(--white);
+  font-variant-numeric: tabular-nums; min-width: 80px;
+}
+.timer-label { flex: 1; font-size: 11px; color: var(--text-dim); line-height: 1.3; }
+.timer-btns { display: flex; gap: 6px; }
+.timer-btn {
+  background: none; border: 1px solid var(--card-border); color: var(--text-dim);
+  height: 36px; padding: 0 10px; border-radius: 5px; font-size: 12px;
+  cursor: pointer; font-weight: 600; min-width: 44px; font-family: inherit;
+}
+.timer-btn:active { background: rgba(255,255,255,0.05); }
+.timer-btn.dismiss { color: var(--accent); border-color: rgba(208,90,27,0.4); }
+.timer-track {
+  height: 3px; background: var(--card-border); border-radius: 2px;
+  margin-top: 8px; overflow: hidden;
+}
+.timer-fill {
+  height: 100%; background: var(--accent); border-radius: 2px;
+  transition: width 1s linear;
+}
+@keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.timer-bar.finished .timer-time { color: var(--accent); animation: timerPulse 1s infinite; }
+
 @media (min-width: 640px) {
   #app { padding-top: 10px; }
   .ex-name, .ex-select { font-size: 15px; }
@@ -256,6 +295,18 @@ input[type=number] { -moz-appearance: textfield; }
 </head>
 <body>
 <div id="app"></div>
+<div class="timer-bar" id="timerBar">
+  <div class="timer-top">
+    <span class="timer-time" id="timerTime">0:00</span>
+    <span class="timer-label" id="timerLabel">Rest</span>
+    <div class="timer-btns">
+      <button class="timer-btn" id="timerMinus">-15s</button>
+      <button class="timer-btn" id="timerPlus">+15s</button>
+      <button class="timer-btn dismiss" id="timerDismiss">SKIP</button>
+    </div>
+  </div>
+  <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+</div>
 <script>
 (function() {
 'use strict';
@@ -295,15 +346,15 @@ const ALTS = {
   calfraise: ['Standing Calf Raise','Seated Calf Raise','Leg Press Calf Raise'],
   hlr: ['Hanging Leg Raise','Cable Crunch','Knee Raise'],
   medball: ['Med Ball Chest Throw','Med Ball Slam'],
-  bench: ['Bench Press','Close-Grip Bench','DB Bench Press','Floor Press'],
+  bench: ['Bench Press','Close-Grip Bench Press','DB Bench Press','Floor Press'],
   pullup1: ['Weighted Pull-Ups','Lat Pulldown','Chin-Ups'],
   pullup2: ['Weighted Pull-Ups','Lat Pulldown','Chin-Ups'],
   incline: ['DB Incline Press','Incline Barbell Press','Landmine Press'],
   facepull: ['Face Pulls','Band Pull-Aparts','Reverse Pec Deck'],
-  pushdown: ['Tricep Pushdown','Overhead Extension','Dips'],
+  pushdown: ['Tricep Pushdown','Overhead Tricep Extension','Dips'],
   curl: ['Cable Curl','Barbell Curl','DB Hammer Curl','Preacher Curl'],
   deadlift: ['Deadlift','Sumo Deadlift','Trap Bar Deadlift'],
-  ghd_ext: ['GHD Hip Extension','Cable Pull-Through','45-Deg Back Extension','Hip Thrust'],
+  ghd_ext: ['GHD Hip Extension','Cable Pull-Through','45-Degree Back Extension','Hip Thrust'],
   sealrow: ['Seal DB Row','Chest-Supported Row','DB Row','Pendlay Row'],
   abwheel: ['Ab Wheel Rollout','Plank','TRX Fallout'],
   pallof: ['Pallof Press','Banded Anti-Rotation','Side Plank'],
@@ -428,6 +479,87 @@ function saveState() {
 }
 let state = loadState();
 
+// Timer
+let audioCtx = null;
+const timerEl = {};
+const tmr = { iv: null, rem: 0, total: 0, on: false, done: false };
+
+function ensureAudio() {
+  if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playBeep() {
+  if (!audioCtx) return;
+  try {
+    const t = audioCtx.currentTime;
+    [0, 0.2].forEach(function(d) {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.connect(g); g.connect(audioCtx.destination);
+      o.frequency.value = 880; g.gain.value = 0.3;
+      o.start(t + d); o.stop(t + d + 0.12);
+    });
+  } catch(e) {}
+}
+function getRestSec(ex) {
+  if (ex.type === 'main') return 180;
+  if (ex.ss) return 60;
+  if (ex.eq === 'bw+') return 120;
+  if (['bss1','bss2','pendulum','legpress','sealrow','ghd_ext'].includes(ex.id)) return 90;
+  return 75;
+}
+function fmtTime(s) { return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+function timerTick() {
+  tmr.rem--;
+  if (tmr.rem <= 0) {
+    tmr.rem = 0; tmr.done = true;
+    clearInterval(tmr.iv); tmr.iv = null;
+    timerEl.bar.classList.add('finished');
+    playBeep();
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  }
+  timerDisp();
+}
+function timerStart(sec, label) {
+  ensureAudio();
+  clearInterval(tmr.iv);
+  tmr.total = sec; tmr.rem = sec; tmr.on = true; tmr.done = false;
+  timerEl.bar.classList.add('visible');
+  timerEl.bar.classList.remove('finished');
+  document.body.classList.add('timer-on');
+  timerEl.label.textContent = label || 'Rest';
+  timerDisp();
+  tmr.iv = setInterval(timerTick, 1000);
+}
+function timerDisp() {
+  timerEl.time.textContent = fmtTime(tmr.rem);
+  const pct = tmr.total ? ((tmr.total - tmr.rem) / tmr.total * 100) : 0;
+  timerEl.fill.style.width = pct + '%';
+}
+function timerDismiss() {
+  clearInterval(tmr.iv); tmr.iv = null;
+  tmr.on = false; tmr.done = false;
+  timerEl.bar.classList.remove('visible', 'finished');
+  document.body.classList.remove('timer-on');
+}
+function timerAdjust(delta) {
+  if (!tmr.on) return;
+  tmr.rem = Math.max(0, tmr.rem + delta);
+  tmr.total = Math.max(tmr.total, tmr.rem);
+  if (delta > 0 && tmr.done) {
+    tmr.done = false;
+    timerEl.bar.classList.remove('finished');
+    tmr.iv = setInterval(timerTick, 1000);
+  }
+  if (tmr.rem <= 0 && !tmr.done) {
+    tmr.rem = 0; tmr.done = true;
+    clearInterval(tmr.iv); tmr.iv = null;
+    timerEl.bar.classList.add('finished');
+    playBeep();
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  }
+  timerDisp();
+}
+
 // Render
 const app = document.getElementById('app');
 
@@ -550,7 +682,7 @@ function render() {
 
       h += `<div class="set-row${log.done?' done':''}" data-key="${key}">
         <label class="set-check-label">
-          <input type="checkbox" class="set-check" data-key="${key}"${log.done?' checked':''}>
+          <input type="checkbox" class="set-check" data-key="${key}" data-exid="${ex.id}"${log.done?' checked':''}>
           <span class="checkmark"></span>
         </label>
         <span class="set-num">${si+1}</span>
@@ -671,6 +803,12 @@ app.addEventListener('change', function(e) {
       card.classList.toggle('all-done', Array.from(checks).every(c => c.checked));
     }
     updateProgress();
+    if (e.target.checked) {
+      const exId = e.target.dataset.exid;
+      const exercises = getExercises(state.day, state.week, state.maxes);
+      const ex = exercises.find(function(x) { return x.id === exId; });
+      if (ex) timerStart(getRestSec(ex), getDisplayName(state.day, ex));
+    }
     return;
   }
   // Weight input
@@ -688,6 +826,15 @@ app.addEventListener('change', function(e) {
 });
 
 render();
+
+// Init timer elements
+timerEl.bar = document.getElementById('timerBar');
+timerEl.time = document.getElementById('timerTime');
+timerEl.label = document.getElementById('timerLabel');
+timerEl.fill = document.getElementById('timerFill');
+document.getElementById('timerDismiss').addEventListener('click', timerDismiss);
+document.getElementById('timerPlus').addEventListener('click', function() { timerAdjust(15); });
+document.getElementById('timerMinus').addEventListener('click', function() { timerAdjust(-15); });
 })();
 </script>
 </body>

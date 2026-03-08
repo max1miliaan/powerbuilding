@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>12-Week Powerbuilding</title>
+<style>
+:root {
+  --bg: #111;
+  --card: #1a1a1a;
+  --card-border: #282828;
+  --text: #d4d4d4;
+  --text-dim: #777;
+  --white: #f0f0f0;
+  --done-bg: rgba(255,255,255,0.05);
+  --done-border: #555;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; overflow-x: hidden;
+}
+#app { max-width: 600px; margin: 0 auto; padding-bottom: 80px; }
+
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 8px; position: sticky; top: 0; z-index: 100;
+  background: var(--bg);
+}
+.header h1 { font-size: 17px; letter-spacing: 3px; font-weight: 700; color: var(--white); }
+.settings-btn {
+  background: none; border: 1px solid var(--card-border); color: var(--text-dim);
+  height: 32px; padding: 0 10px; border-radius: 6px; font-size: 11px; cursor: pointer;
+  font-weight: 600; letter-spacing: 1px;
+}
+.settings-btn:hover { border-color: #444; color: var(--text); }
+
+.block-bar {
+  margin: 0 16px 8px; padding: 8px 14px; border-radius: 6px;
+  background: var(--card); border: 1px solid var(--card-border);
+  display: flex; align-items: center; gap: 12px;
+  font-size: 12px; font-weight: 600; color: var(--text); letter-spacing: 0.5px;
+}
+.block-bar .block-name { color: var(--white); text-transform: uppercase; letter-spacing: 1px; }
+.block-bar .block-week { margin-left: auto; color: var(--text-dim); }
+
+.week-bar {
+  display: flex; gap: 5px; padding: 6px 16px; overflow-x: auto;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.week-bar::-webkit-scrollbar { display: none; }
+.week-pill {
+  flex-shrink: 0; width: 38px; height: 32px; border-radius: 6px;
+  border: 1px solid var(--card-border); background: var(--card);
+  color: var(--text-dim); font-size: 13px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.week-pill.has-data { color: #999; }
+.week-pill.active { background: var(--white); color: #000; border-color: var(--white); }
+
+.day-tabs {
+  display: flex; gap: 4px; padding: 8px 16px; overflow-x: auto;
+  scrollbar-width: none;
+}
+.day-tabs::-webkit-scrollbar { display: none; }
+.day-tab {
+  flex: 1; min-width: 0; padding: 8px 4px; border-radius: 6px;
+  border: 1px solid var(--card-border); background: var(--card);
+  color: var(--text-dim); font-size: 10px; font-weight: 500; cursor: pointer;
+  text-align: center; line-height: 1.3; transition: all 0.15s;
+}
+.day-tab.active { background: var(--white); color: #000; border-color: var(--white); }
+.day-tab .day-num { font-weight: 700; font-size: 12px; }
+
+.progress-wrap {
+  margin: 10px 16px 4px; display: flex; align-items: center; gap: 10px;
+}
+.progress-track {
+  flex: 1; height: 4px; background: var(--card-border); border-radius: 2px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: var(--white); border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.progress-text { font-size: 11px; color: var(--text-dim); white-space: nowrap; font-weight: 500; }
+
+.rest-info {
+  margin: 4px 16px 10px; font-size: 11px; color: var(--text-dim);
+  padding: 6px 10px; background: var(--card); border-radius: 6px;
+  border: 1px solid var(--card-border);
+}
+
+.exercises { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.ss-group {
+  border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden;
+  position: relative;
+}
+.ss-label {
+  position: absolute; top: 7px; right: 10px;
+  font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+  color: var(--text-dim);
+}
+.ss-group .exercise-card { border: none; border-radius: 0; }
+.ss-group .exercise-card + .exercise-card { border-top: 1px dashed var(--card-border); }
+
+.exercise-card {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: 10px; padding: 12px 14px; transition: border-color 0.2s;
+}
+.exercise-card.all-done { border-color: var(--done-border); background: var(--done-bg); }
+.ex-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
+.ex-name { font-size: 14px; font-weight: 700; color: var(--white); }
+.ex-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 2px 6px;
+  border-radius: 3px; background: rgba(255,255,255,0.06); color: var(--text-dim);
+}
+.ex-target { font-size: 13px; color: var(--text); margin-bottom: 2px; font-weight: 500; }
+.ex-notes { font-size: 11px; color: var(--text-dim); margin-bottom: 2px; }
+.plates {
+  font-size: 11px; color: var(--text-dim); margin-bottom: 3px;
+  padding: 2px 8px; background: rgba(255,255,255,0.03); border-radius: 4px;
+  display: inline-block;
+}
+
+.sets-container { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.set-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.02);
+  transition: background 0.2s;
+}
+.set-row.done { background: var(--done-bg); }
+.set-row.done .set-num,
+.set-row.done .unit,
+.set-row.done .times { color: #666; }
+
+.set-check-label { display: flex; align-items: center; cursor: pointer; flex-shrink: 0; }
+.set-check { display: none; }
+.checkmark {
+  width: 22px; height: 22px; border-radius: 5px;
+  border: 2px solid var(--card-border); display: flex;
+  align-items: center; justify-content: center; transition: all 0.15s;
+}
+.set-check:checked + .checkmark {
+  background: var(--white); border-color: var(--white);
+}
+.set-check:checked + .checkmark::after {
+  content: '\2713'; color: #000; font-size: 13px; font-weight: 700;
+}
+.set-num { width: 16px; font-size: 12px; color: var(--text-dim); text-align: center; font-weight: 600; }
+.w-input, .r-input {
+  width: 56px; height: 30px; background: var(--bg); border: 1px solid var(--card-border);
+  border-radius: 5px; color: var(--text); font-size: 13px; text-align: center;
+  font-weight: 500; outline: none;
+}
+.w-input:focus, .r-input:focus { border-color: #555; }
+.r-input { width: 44px; }
+.unit, .times { font-size: 11px; color: var(--text-dim); }
+.prev { font-size: 10px; color: var(--text-dim); margin-left: auto; white-space: nowrap; opacity: 0.6; }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200;
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: fadeIn 0.15s;
+}
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes slideUp { from { transform: translateY(100%); } }
+.modal {
+  background: #1c1c1c; border-radius: 14px 14px 0 0; padding: 24px 20px 40px;
+  width: 100%; max-width: 600px; animation: slideUp 0.2s ease-out;
+  border-top: 1px solid var(--card-border);
+}
+.modal h2 { font-size: 16px; margin-bottom: 20px; color: var(--white); letter-spacing: 0.5px; }
+.settings-group { margin-bottom: 14px; }
+.settings-group label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 4px; }
+.settings-group input {
+  width: 100%; height: 40px; background: var(--bg); border: 1px solid var(--card-border);
+  border-radius: 6px; color: var(--text); font-size: 16px; padding: 0 12px;
+}
+.settings-group input:focus { border-color: #555; outline: none; }
+.save-btn {
+  width: 100%; height: 44px; background: var(--white); color: #000;
+  border: none; border-radius: 6px; font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-top: 8px; letter-spacing: 0.5px;
+}
+.save-btn:active { opacity: 0.85; }
+.reset-btn {
+  width: 100%; height: 38px; background: none; color: #666;
+  border: 1px solid var(--card-border); border-radius: 6px; font-size: 12px;
+  font-weight: 600; cursor: pointer; margin-top: 10px;
+}
+.reset-btn:hover { color: #999; border-color: #444; }
+
+.notes-section { margin: 20px 16px; }
+.notes-toggle {
+  width: 100%; padding: 10px 14px; background: var(--card);
+  border: 1px solid var(--card-border); border-radius: 6px;
+  color: var(--text-dim); font-size: 12px; cursor: pointer;
+  text-align: left; display: flex; justify-content: space-between;
+}
+.notes-toggle:hover { border-color: #333; }
+.notes-content {
+  display: none; padding: 14px; background: var(--card);
+  border: 1px solid var(--card-border); border-top: none;
+  border-radius: 0 0 6px 6px; font-size: 12px; color: var(--text-dim);
+  line-height: 1.7;
+}
+.notes-content.open { display: block; }
+.notes-content h3 { color: var(--text); font-size: 12px; margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.notes-content h3:first-child { margin-top: 0; }
+
+@media (min-width: 640px) {
+  #app { padding-top: 10px; }
+  .ex-name { font-size: 15px; }
+  .w-input { width: 64px; }
+  .r-input { width: 50px; }
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function() {
+'use strict';
+
+const WEEKS = [
+  { pct:.70,  s:5, r:5, block:'Accumulation',    rpe:7,   sqVar:'SSB Squat' },
+  { pct:.725, s:5, r:5, block:'Accumulation',    rpe:7.5, sqVar:'SSB Squat' },
+  { pct:.75,  s:5, r:5, block:'Accumulation',    rpe:8,   sqVar:'SSB Squat' },
+  { pct:.60,  s:3, r:5, block:'Deload',          rpe:5,   sqVar:'SSB Squat' },
+  { pct:.80,  s:4, r:4, block:'Intensification',  rpe:8,   sqVar:'Box Squat' },
+  { pct:.825, s:4, r:4, block:'Intensification',  rpe:8.5, sqVar:'Box Squat' },
+  { pct:.85,  s:5, r:3, block:'Intensification',  rpe:9,   sqVar:'Box Squat' },
+  { pct:.65,  s:3, r:4, block:'Deload',          rpe:5,   sqVar:'Box Squat' },
+  { pct:.875, s:4, r:2, block:'Peaking',         rpe:8.5, sqVar:'Back Squat' },
+  { pct:.925, s:3, r:2, block:'Peaking',         rpe:9,   sqVar:'Back Squat' },
+  { pct:.95,  s:3, r:1, block:'Peaking',         rpe:9.5, sqVar:'Back Squat' },
+  { pct:.70,  s:3, r:3, block:'Test Week',       rpe:5,   sqVar:'Back Squat' },
+];
+
+const DAY_LABELS = [
+  { short:'D1', name:'Lower Strength' },
+  { short:'D2', name:'Upper Strength' },
+  { short:'D3', name:'Pull / Hinge' },
+  { short:'D4', name:'Lower Hypertrophy' },
+  { short:'D5', name:'Upper Hypertrophy' },
+];
+
+const STORAGE_KEY = 'pb12wk_v3';
+
+function round25(kg) { return Math.round(kg / 2.5) * 2.5; }
+
+function plates(total) {
+  if (!total || total <= 20) return null;
+  const perSide = (total - 20) / 2;
+  const avail = [25, 20, 15, 10, 5, 2.5, 1.25];
+  const used = [];
+  let rem = perSide;
+  for (const p of avail) {
+    while (rem >= p - 0.001) { used.push(p); rem -= p; }
+  }
+  return used.length ? used.join(' + ') : null;
+}
+
+function lk(w, d, eid, si) { return w+'_'+d+'_'+eid+'_'+si; }
+function getLog(key) { return state.log[key] || {}; }
+function isDl(wIdx) { return WEEKS[wIdx].block === 'Deload' || WEEKS[wIdx].block === 'Test Week'; }
+
+function getExercises(dayIdx, weekIdx, maxes) {
+  const wk = WEEKS[weekIdx];
+  const dl = isDl(weekIdx);
+  const r = round25;
+  const sq = r(maxes.squat * wk.pct);
+  const bp = r(maxes.bench * wk.pct);
+  const dlw = r(maxes.deadlift * wk.pct);
+  const oh = r(maxes.ohp * wk.pct);
+  const pct = Math.round(wk.pct * 100);
+  const rpe = 'RPE ' + wk.rpe;
+  const ds = dl ? 2 : null;
+
+  switch(dayIdx) {
+  case 0: // Day 1 — Lower Strength
+    return [
+      { id:'boxjump1', name:'Box Jumps — Max Height', type:'plyo', eq:'bw', sets:dl?2:4, reps:'1-2', wt:null, notes:'Build up height each set, step down' },
+      { id:'squat', name:wk.sqVar, type:'main', eq:'barbell', sets:wk.s, reps:''+wk.r, wt:sq, notes:pct+'% / '+rpe },
+      { id:'bss1', name:'DB Bulgarian Split Squat', type:'accessory', eq:'dumbbell', sets:ds||3, reps:'8-10 /leg', wt:null, notes:'Per hand' },
+      { id:'legcurl1', name:'Leg Curl', type:'accessory', eq:'machine', sets:ds||3, reps:'10-12', wt:null, notes:'', ss:'A' },
+      { id:'calfraise', name:'Standing Calf Raise', type:'accessory', eq:'machine', sets:ds||3, reps:'12-15', wt:null, notes:'', ss:'A' },
+      { id:'hlr', name:'Hanging Leg Raise', type:'core', eq:'bw', sets:ds||3, reps:'10-15', wt:null, notes:'' },
+    ];
+  case 1: // Day 2 — Upper Strength
+    return [
+      { id:'medball', name:'Med Ball Chest Throw', type:'plyo', eq:'bw', sets:dl?2:3, reps:dl?'3':'5', wt:null, notes:'Explosive' },
+      { id:'bench', name:'Bench Press', type:'main', eq:'barbell', sets:wk.s, reps:''+wk.r, wt:bp, notes:pct+'% / '+rpe },
+      { id:'pullup1', name:'Weighted Pull-Ups', type:'accessory', eq:'bw+', sets:dl?2:4, reps:'5-8', wt:null, notes:'Log added weight' },
+      { id:'incline', name:'DB Incline Press', type:'accessory', eq:'dumbbell', sets:ds||3, reps:'8-10', wt:null, notes:'Per hand', ss:'A' },
+      { id:'facepull', name:'Face Pulls', type:'accessory', eq:'cable', sets:ds||3, reps:'15', wt:null, notes:'', ss:'A' },
+      { id:'pushdown', name:'Tricep Pushdown', type:'accessory', eq:'cable', sets:ds||3, reps:'12-15', wt:null, notes:'', ss:'B' },
+      { id:'curl', name:'Cable Curl', type:'accessory', eq:'cable', sets:ds||3, reps:'12-15', wt:null, notes:'', ss:'B' },
+    ];
+  case 2: // Day 3 — Pull / Hinge + Core
+    return [
+      { id:'deadlift', name:'Deadlift', type:'main', eq:'barbell', sets:wk.s, reps:''+wk.r, wt:dlw, notes:pct+'% / '+rpe },
+      { id:'ghd_ext', name:'GHD Hip Extension', type:'accessory', eq:'bw', sets:ds||3, reps:'10-12', wt:null, notes:'Replaces RDLs' },
+      { id:'sealrow', name:'Seal DB Row', type:'accessory', eq:'dumbbell', sets:ds||3, reps:'8-10', wt:null, notes:'Per hand, chest-supported' },
+      { id:'facepull', name:'Face Pulls', type:'accessory', eq:'cable', sets:ds||3, reps:'15', wt:null, notes:'Rear delt / rotator cuff' },
+      { id:'abwheel', name:'Ab Wheel Rollout', type:'core', eq:'bw', sets:ds||3, reps:'8-10', wt:null, notes:'', ss:'A' },
+      { id:'pallof', name:'Pallof Press', type:'core', eq:'cable', sets:ds||3, reps:'10 /side', wt:null, notes:'', ss:'A' },
+    ];
+  case 3: // Day 4 — Lower Hypertrophy + Plyos + Core
+    return [
+      { id:'boxjump2', name:'Box Jumps — Max Height', type:'plyo', eq:'bw', sets:dl?2:3, reps:'1-2', wt:null, notes:'Build height, step down, manage knees' },
+      { id:'pendulum', name:'Pendulum Squat', type:'accessory', eq:'machine', sets:dl?2:4, reps:'10-12', wt:null, notes:'' },
+      { id:'legpress', name:'Leg Press', type:'accessory', eq:'machine', sets:ds||3, reps:'10-12', wt:null, notes:'' },
+      { id:'bss2', name:'DB Bulgarian Split Squat', type:'accessory', eq:'dumbbell', sets:ds||3, reps:'10-12 /leg', wt:null, notes:'Per hand' },
+      { id:'legext', name:'Leg Extension', type:'accessory', eq:'machine', sets:ds||3, reps:'12-15', wt:null, notes:'Keep light for knees', ss:'A' },
+      { id:'legcurl2', name:'Leg Curl', type:'accessory', eq:'machine', sets:ds||3, reps:'10-12', wt:null, notes:'', ss:'A' },
+      { id:'ghdsitup', name:'GHD Sit-Ups', type:'core', eq:'bw', sets:ds||3, reps:'12-15', wt:null, notes:'', ss:'B' },
+      { id:'deadbug', name:'Dead Bugs', type:'core', eq:'bw', sets:ds||3, reps:'10 /side', wt:null, notes:'', ss:'B' },
+    ];
+  case 4: // Day 5 — Upper Hypertrophy + Plyos + Core
+    return [
+      { id:'plyopush', name:'Plyo Push-Ups', type:'plyo', eq:'bw', sets:dl?2:3, reps:dl?'3':'5-8', wt:null, notes:'Explosive' },
+      { id:'ohp', name:'OHP', type:'main', eq:'barbell', sets:wk.s, reps:''+wk.r, wt:oh, notes:pct+'% / '+rpe },
+      { id:'pullup2', name:'Weighted Pull-Ups', type:'accessory', eq:'bw+', sets:ds||3, reps:'6-10', wt:null, notes:'Log added weight' },
+      { id:'hamfly', name:'Hammer Strength Fly', type:'accessory', eq:'machine', sets:ds||3, reps:'10-15', wt:null, notes:'', ss:'A' },
+      { id:'rearfly', name:'Cable Rear Delt Fly', type:'accessory', eq:'cable', sets:ds||3, reps:'12-15', wt:null, notes:'', ss:'A' },
+      { id:'latraise', name:'Cable Lateral Raise', type:'accessory', eq:'cable', sets:ds||3, reps:'12-15', wt:null, notes:'', ss:'B' },
+      { id:'woodchop', name:'Cable Woodchop', type:'core', eq:'cable', sets:ds||3, reps:'10 /side', wt:null, notes:'Rotational core', ss:'B' },
+    ];
+  }
+  return [];
+}
+
+// State
+function defaultState() {
+  return { week:0, day:0, maxes:{squat:180, bench:125, deadlift:200, ohp:80}, log:{}, showSettings:false };
+}
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (s) { const d = defaultState(); return { ...d, ...s, maxes:{ ...d.maxes, ...(s.maxes||{}) } }; }
+  } catch(e) {}
+  return defaultState();
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ week:state.week, day:state.day, maxes:state.maxes, log:state.log }));
+}
+let state = loadState();
+
+// Render
+const app = document.getElementById('app');
+
+function render() {
+  const wk = WEEKS[state.week];
+  const exercises = getExercises(state.day, state.week, state.maxes);
+  const totalSets = exercises.reduce((s,e) => s + e.sets, 0);
+  let doneSets = 0;
+  exercises.forEach(e => { for (let i = 0; i < e.sets; i++) { if (getLog(lk(state.week, state.day, e.id, i)).done) doneSets++; } });
+  const pct = totalSets ? Math.round(doneSets/totalSets*100) : 0;
+
+  let h = '';
+
+  h += `<div class="header">
+    <h1>POWERBUILDING</h1>
+    <button class="settings-btn" data-action="openSettings">1RM</button>
+  </div>`;
+
+  h += `<div class="block-bar">
+    <span class="block-name">${wk.block}</span>
+    <span>RPE ${wk.rpe}</span>
+    <span class="block-week">Week ${state.week+1} / 12</span>
+  </div>`;
+
+  h += '<div class="week-bar">';
+  for (let i = 0; i < 12; i++) {
+    const act = i === state.week ? ' active' : '';
+    let hd = '';
+    const pfx = i + '_';
+    for (const k in state.log) { if (k.startsWith(pfx) && state.log[k].done) { hd = ' has-data'; break; } }
+    h += `<button class="week-pill${act}${hd}" data-action="week" data-val="${i}">${i+1}</button>`;
+  }
+  h += '</div>';
+
+  h += '<div class="day-tabs">';
+  DAY_LABELS.forEach((d, i) => {
+    h += `<button class="day-tab${i===state.day?' active':''}" data-action="day" data-val="${i}">
+      <div class="day-num">${d.short}</div>${d.name}</button>`;
+  });
+  h += '</div>';
+
+  h += `<div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="pFill" style="width:${pct}%"></div></div>
+    <span class="progress-text" id="pText">${doneSets}/${totalSets} sets</span>
+  </div>`;
+
+  const restMap = {
+    0: 'Rest: 2.5-3 min (squat) / 60-90s (isolation, SS)',
+    1: 'Rest: 2.5-3 min (bench) / 2 min (pull-ups) / 60-90s (SS)',
+    2: 'Rest: 2.5-3 min (deadlift) / 90s (seal rows, face pulls) / 60-90s (core SS)',
+    3: 'Rest: 60-90s (hypertrophy) / 60s between supersets',
+    4: 'Rest: 2-2.5 min (OHP) / 60-90s (isolation, SS)',
+  };
+  h += `<div class="rest-info">${restMap[state.day]}</div>`;
+
+  h += '<div class="exercises">';
+  let curSS = null;
+  for (let ei = 0; ei < exercises.length; ei++) {
+    const ex = exercises[ei];
+    const nx = exercises[ei + 1];
+
+    if (ex.ss && ex.ss !== curSS) {
+      h += '<div class="ss-group"><div class="ss-label">SUPERSET</div>';
+      curSS = ex.ss;
+    }
+
+    let allDone = true;
+    for (let i = 0; i < ex.sets; i++) if (!getLog(lk(state.week, state.day, ex.id, i)).done) { allDone = false; break; }
+
+    h += `<div class="exercise-card ${allDone?'all-done':''}">`;
+    h += `<div class="ex-header">
+      <span class="ex-name">${ex.name}</span>
+      <span class="ex-badge">${ex.type.toUpperCase()}</span>
+    </div>`;
+
+    const tgt = ex.wt ? `${ex.sets} x ${ex.reps} @ ${ex.wt}kg` : `${ex.sets} x ${ex.reps}`;
+    h += `<div class="ex-target">${tgt}</div>`;
+
+    if (ex.eq === 'barbell' && ex.wt) {
+      const pl = plates(ex.wt);
+      if (pl) h += `<div class="plates">${pl} /side</div>`;
+    }
+
+    if (ex.notes) h += `<div class="ex-notes">${ex.notes}</div>`;
+
+    h += '<div class="sets-container">';
+    for (let si = 0; si < ex.sets; si++) {
+      const key = lk(state.week, state.day, ex.id, si);
+      const log = getLog(key);
+      let preW = '';
+      if (ex.wt) preW = log.weight != null ? log.weight : ex.wt;
+      else if (log.weight != null) preW = log.weight;
+      let preR = '';
+      const exact = /^\d+$/.test(ex.reps);
+      if (exact && ex.type === 'main') preR = log.reps != null ? log.reps : ex.reps;
+      else if (log.reps != null) preR = log.reps;
+
+      let pv = '';
+      for (let pw = state.week - 1; pw >= 0; pw--) {
+        const pl = getLog(lk(pw, state.day, ex.id, si));
+        if (pl.weight != null || pl.reps != null) {
+          const pp = [];
+          if (pl.weight != null) pp.push(pl.weight + 'kg');
+          if (pl.reps != null) pp.push('x ' + pl.reps);
+          pv = pp.join(' ');
+          break;
+        }
+      }
+
+      h += `<div class="set-row${log.done?' done':''}" data-key="${key}">
+        <label class="set-check-label">
+          <input type="checkbox" class="set-check" data-key="${key}"${log.done?' checked':''}>
+          <span class="checkmark"></span>
+        </label>
+        <span class="set-num">${si+1}</span>
+        <input type="number" class="w-input" data-key="${key}" value="${preW}" step="2.5" placeholder="kg" inputmode="decimal">
+        <span class="unit">kg</span>
+        <span class="times">x</span>
+        <input type="number" class="r-input" data-key="${key}" value="${preR}" step="1" placeholder="${ex.reps}" inputmode="numeric">
+        ${pv ? `<span class="prev">${pv}</span>` : ''}
+      </div>`;
+    }
+    h += '</div></div>';
+
+    if (curSS && (!nx || nx.ss !== curSS)) { h += '</div>'; curSS = null; }
+  }
+  h += '</div>';
+
+  h += `<div class="notes-section">
+    <button class="notes-toggle" data-action="toggleNotes">
+      <span>Notes + Injury Management</span><span id="notesArrow">V</span>
+    </button>
+    <div class="notes-content" id="notesContent">
+      <h3>Autoregulation</h3>
+      If a set hits RPE 10 before planned reps, stop and drop weight 5%.
+      <h3>Patellar Tendonitis</h3>
+      Box squats preferred when knees flare up. Keep leg extensions light. Box jumps: always step down, no rebound.
+      <h3>Lower Back</h3>
+      RDLs replaced with GHD hip extensions, cable pull-throughs, or 45-degree back extensions.
+      <h3>Progression (Accessories)</h3>
+      Double progression: hit top of rep range for all sets, then add 2.5kg (upper) or 5kg (lower). Deload weeks: 2 sets at same weight.
+      <h3>Week 12 — Test Option</h3>
+      Option A: Deload (3x3 @ 70%). Option B: Work up to a new 1RM.<br>
+      Warm-up: Bar x10, 40% x5, 60% x3, 75% x2, 85% x1, 92.5% x1, then attempt.
+    </div>
+  </div>`;
+
+  if (state.showSettings) {
+    h += `<div class="modal-overlay" data-action="closeSettings">
+      <div class="modal" onclick="event.stopPropagation()">
+        <h2>1RM MAXES</h2>
+        <div class="settings-group"><label>Squat (kg)</label>
+          <input type="number" id="inSquat" value="${state.maxes.squat}" step="2.5" inputmode="decimal"></div>
+        <div class="settings-group"><label>Bench Press (kg)</label>
+          <input type="number" id="inBench" value="${state.maxes.bench}" step="2.5" inputmode="decimal"></div>
+        <div class="settings-group"><label>Deadlift (kg)</label>
+          <input type="number" id="inDead" value="${state.maxes.deadlift}" step="2.5" inputmode="decimal"></div>
+        <div class="settings-group"><label>OHP (kg)</label>
+          <input type="number" id="inOHP" value="${state.maxes.ohp}" step="2.5" inputmode="decimal"></div>
+        <button class="save-btn" data-action="saveSettings">SAVE + RECALCULATE</button>
+        <button class="reset-btn" data-action="resetProgress">Reset All Progress</button>
+      </div>
+    </div>`;
+  }
+
+  app.innerHTML = h;
+}
+
+function updateProgress() {
+  const exercises = getExercises(state.day, state.week, state.maxes);
+  const totalSets = exercises.reduce((s,e) => s + e.sets, 0);
+  let doneSets = 0;
+  exercises.forEach(e => { for (let i = 0; i < e.sets; i++) if (getLog(lk(state.week, state.day, e.id, i)).done) doneSets++; });
+  const fill = document.getElementById('pFill');
+  const text = document.getElementById('pText');
+  if (fill) fill.style.width = (totalSets ? Math.round(doneSets/totalSets*100) : 0) + '%';
+  if (text) text.textContent = doneSets + '/' + totalSets + ' sets';
+}
+
+// Events
+app.addEventListener('click', function(e) {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const a = el.dataset.action;
+  if (a === 'week') { state.week = parseInt(el.dataset.val); saveState(); render(); }
+  if (a === 'day') { state.day = parseInt(el.dataset.val); saveState(); render(); }
+  if (a === 'openSettings') { state.showSettings = true; render(); }
+  if (a === 'closeSettings') { state.showSettings = false; render(); }
+  if (a === 'saveSettings') {
+    state.maxes.squat = parseFloat(document.getElementById('inSquat').value) || 180;
+    state.maxes.bench = parseFloat(document.getElementById('inBench').value) || 125;
+    state.maxes.deadlift = parseFloat(document.getElementById('inDead').value) || 200;
+    state.maxes.ohp = parseFloat(document.getElementById('inOHP').value) || 80;
+    state.showSettings = false; saveState(); render();
+  }
+  if (a === 'resetProgress') {
+    if (confirm('Reset ALL logged sets and weights?')) { state.log = {}; state.showSettings = false; saveState(); render(); }
+  }
+  if (a === 'toggleNotes') {
+    const c = document.getElementById('notesContent'), ar = document.getElementById('notesArrow');
+    if (c) { c.classList.toggle('open'); if (ar) ar.textContent = c.classList.contains('open') ? '^' : 'V'; }
+  }
+});
+
+app.addEventListener('change', function(e) {
+  if (e.target.classList.contains('set-check')) {
+    const key = e.target.dataset.key;
+    state.log[key] = { ...(state.log[key]||{}), done: e.target.checked };
+    saveState();
+    const row = e.target.closest('.set-row');
+    if (row) row.classList.toggle('done', e.target.checked);
+    const card = row && row.closest('.exercise-card');
+    if (card) {
+      const checks = card.querySelectorAll('.set-check');
+      card.classList.toggle('all-done', Array.from(checks).every(c => c.checked));
+    }
+    updateProgress();
+  }
+  if (e.target.classList.contains('w-input')) {
+    const key = e.target.dataset.key;
+    state.log[key] = { ...(state.log[key]||{}), weight: e.target.value ? parseFloat(e.target.value) : null };
+    saveState();
+  }
+  if (e.target.classList.contains('r-input')) {
+    const key = e.target.dataset.key;
+    state.log[key] = { ...(state.log[key]||{}), reps: e.target.value ? parseInt(e.target.value) : null };
+    saveState();
+  }
+});
+
+render();
+})();
+</script>
+</body>
+</html>

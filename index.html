@@ -218,6 +218,7 @@ body.timer-on #app {
   padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 20px));
   width: 100%; max-width: 600px; animation: slideUp 0.2s ease-out;
   border-top: 1px solid var(--card-border);
+  max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
 .modal h2 { font-size: 16px; margin-bottom: 20px; color: var(--white); letter-spacing: 0.5px; }
 .settings-group { margin-bottom: 14px; }

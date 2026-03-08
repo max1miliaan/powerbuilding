@@ -636,11 +636,11 @@ function render() {
   h += `<div class="block-bar">
     <span class="block-name">${wk.block}</span>
     <span>RPE ${wk.rpe}</span>
-    <span class="block-week">Week ${state.week+1} / 12</span>
+    <span class="block-week">Week ${state.week+1} / ${WEEKS.length}</span>
   </div>`;
 
   h += '<div class="week-bar">';
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < WEEKS.length; i++) {
     const act = i === state.week ? ' active' : '';
     let hd = '';
     const pfx = i + '_';

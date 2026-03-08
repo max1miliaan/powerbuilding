@@ -336,8 +336,8 @@ const DAY_LABELS = [
 
 // Exercise alternatives for each slot
 const ALTS = {
-  boxjump1: ['Box Jumps — Max Height','Broad Jumps','Vertical Jumps'],
-  boxjump2: ['Box Jumps — Max Height','Broad Jumps','Vertical Jumps'],
+  boxjump1: ['Box Jump','Broad Jump','Vertical Jump'],
+  boxjump2: ['Box Jump','Broad Jump','Vertical Jump'],
   squat: ['SSB Squat','Box Squat','Back Squat','Front Squat'],
   bss1: ['DB Bulgarian Split Squat','Walking Lunges','Step-Ups'],
   bss2: ['DB Bulgarian Split Squat','Walking Lunges','Step-Ups'],
@@ -410,7 +410,7 @@ function getExercises(dayIdx, weekIdx, maxes) {
   switch(dayIdx) {
   case 0:
     return [
-      { id:'boxjump1', name:'Box Jumps — Max Height', type:'plyo', eq:'bw', sets:dl?2:4, reps:'1-2', wt:null, notes:'Build up height each set, step down' },
+      { id:'boxjump1', name:'Box Jump', type:'plyo', eq:'bw', sets:dl?2:4, reps:'1-2', wt:null, unit:'cm', notes:'Log height per set, step down' },
       { id:'squat', name:wk.sqVar, type:'main', eq:'barbell', sets:wk.s, reps:''+wk.r, wt:sq, notes:pct+'% / '+rpe },
       { id:'bss1', name:'DB Bulgarian Split Squat', type:'accessory', eq:'dumbbell', sets:ds||3, reps:'8-10 /leg', wt:null, notes:'Per hand' },
       { id:'legcurl1', name:'Leg Curl (Lying)', type:'accessory', eq:'machine', sets:ds||3, reps:'10-12', wt:null, notes:'', ss:'A' },
@@ -438,7 +438,7 @@ function getExercises(dayIdx, weekIdx, maxes) {
     ];
   case 3:
     return [
-      { id:'boxjump2', name:'Box Jumps — Max Height', type:'plyo', eq:'bw', sets:dl?2:3, reps:'1-2', wt:null, notes:'Build height, step down, manage knees' },
+      { id:'boxjump2', name:'Box Jump', type:'plyo', eq:'bw', sets:dl?2:3, reps:'1-2', wt:null, unit:'cm', notes:'Log height per set, step down' },
       { id:'pendulum', name:'Pendulum Squat', type:'accessory', eq:'machine', sets:dl?2:4, reps:'10-12', wt:null, notes:'' },
       { id:'legpress', name:'Leg Press', type:'accessory', eq:'machine', sets:ds||3, reps:'10-12', wt:null, notes:'' },
       { id:'bss2', name:'DB Bulgarian Split Squat', type:'accessory', eq:'dumbbell', sets:ds||3, reps:'10-12 /leg', wt:null, notes:'Per hand' },
@@ -673,8 +673,8 @@ function render() {
         const pl = getLog(lk(pw, state.day, ex.id, si));
         if (pl.weight != null || pl.reps != null) {
           const pp = [];
-          if (pl.weight != null) pp.push(pl.weight + 'kg');
-          if (pl.reps != null) pp.push('x ' + pl.reps);
+          if (pl.weight != null) pp.push(pl.weight + (ex.unit || 'kg'));
+          if (!ex.unit && pl.reps != null) pp.push('x ' + pl.reps);
           pv = pp.join(' ');
           break;
         }
@@ -685,12 +685,17 @@ function render() {
           <input type="checkbox" class="set-check" data-key="${key}" data-exid="${ex.id}"${log.done?' checked':''}>
           <span class="checkmark"></span>
         </label>
-        <span class="set-num">${si+1}</span>
-        <input type="number" class="w-input" data-key="${key}" value="${preW}" step="2.5" placeholder="kg" inputmode="decimal">
+        <span class="set-num">${si+1}</span>`;
+      if (ex.unit) {
+        h += `<input type="number" class="w-input" data-key="${key}" value="${preW}" step="1" placeholder="${ex.unit}" inputmode="numeric">
+        <span class="unit">${ex.unit}</span>`;
+      } else {
+        h += `<input type="number" class="w-input" data-key="${key}" value="${preW}" step="2.5" placeholder="kg" inputmode="decimal">
         <span class="unit">kg</span>
         <span class="times">x</span>
-        <input type="number" class="r-input" data-key="${key}" value="${preR}" step="1" placeholder="${ex.reps}" inputmode="numeric">
-        ${pv ? `<span class="prev">${pv}</span>` : ''}
+        <input type="number" class="r-input" data-key="${key}" value="${preR}" step="1" placeholder="${ex.reps}" inputmode="numeric">`;
+      }
+      h += `${pv ? `<span class="prev">${pv}</span>` : ''}
       </div>`;
     }
     h += '</div></div>';

@@ -24,8 +24,12 @@ Static HTML powerbuilding tracker. Predecessor to the React Native workout-app.
 
 ## Key Context
 
-- 12-week powerbuilding program: 5x/week, 60min sessions
+- 12-week powerbuilding program: 4+1 days/week (4 main + 1 accessories), ~35-40min sessions
+- Top set + back-off periodization (replaces 5x5): 1 top set then drop weight for back-off volume
+- D1 alternates squat/deadlift weekly (even weeks = squat, odd = deadlift)
+- Squat variant rotates by block: SSB (wk 1-4), Box (wk 5-8), Back Squat (wk 9-12)
 - Current 1RMs: Squat 180kg, Bench 125kg, Deadlift 200kg, OHP 80kg
-- Injuries: patellar tendonitis (no rebound plyos, light leg ext), lower back (no RDLs, use GHD)
+- Injuries: patellar tendonitis (no rebound plyos, light leg ext, squat every other week), lower back (no RDLs, use GHD)
+- localStorage key: `pb12wk_v5` (bumped from v4 for schema change)
 - **Read `program_notes.md` before making any program changes**
 - **Read `APP_TEMPLATE.md` before building a new program into the tracker**

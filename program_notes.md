@@ -28,50 +28,44 @@
 
 ## Program Design Decisions
 
-### Philosophy: Conjugate-Inspired Powerbuilding
-Classic conjugate method rotates exercise variants to prevent accommodation and build max strength across movement patterns. This program applies that principle across all four main lifts (squat, bench, deadlift, OHP) with 2-week rotations.
+### Philosophy: Wendler 5/3/1 + Conjugate Rotation
+Wendler's 5/3/1 provides the periodization: 3 working sets per main lift with an AMRAP top set, cycling through 5s/3s/1s rep targets each 3-week cycle. Training Max (TM) starts conservative and escalates per cycle. Combined with conjugate-style exercise rotation (variant changes every cycle), this gives:
+- Built-in fatigue management through submaximal TM percentages
+- Progressive overload via AMRAP top sets (push when feeling good)
+- Reduced accommodation from exercise variety across cycles
+- Specificity ramp: competition lifts in final cycle for the peak
 
-Combined with wave periodization (alternating volume and intensity weeks), this gives:
-- Frequent exposure to heavy loads via ramping intensity weeks
-- Volume accumulation via 5x5 weeks
-- Reduced repetitive strain from exercise variety
-- Built-in specificity ramp (competition lifts in final rotation)
+### 12-Week Structure: 4 Cycles x 3 Weeks + Deload
 
-### 12-Week Structure: 6 Rotations x 2 Weeks
+| Wk | Phase | Sets (% of TM) | TM | Cycle | Block |
+|----|-------|----------------|-----|-------|-------|
+| 1 | 5s | 5@65%, 5@75%, 5+@85% | 85% | 1 | 5s Week |
+| 2 | 3s | 3@70%, 3@80%, 3+@90% | 85% | 1 | 3s Week |
+| 3 | 1s | 1@75%, 1@85%, 1+@95% | 85% | 1 | 1s Week |
+| 4 | 5s | 5@65%, 5@75%, 5+@85% | 87.5% | 2 | 5s Week |
+| 5 | 3s | 3@70%, 3@80%, 3+@90% | 87.5% | 2 | 3s Week |
+| 6 | 1s | 1@75%, 1@85%, 1+@95% | 87.5% | 2 | 1s Week |
+| 7 | Deload | 5@60%, 5@60%, 5@60% | 85% | 3 | Deload |
+| 8 | 3s | 3@70%, 3@80%, 3+@90% | 90% | 3 | 3s Week |
+| 9 | 1s | 1@75%, 1@85%, 1+@95% | 90% | 3 | 1s Week |
+| 10 | 5s | 5@65%, 5@75%, 5+@85% | 92.5% | 4 | 5s Week |
+| 11 | 3s | 3@70%, 3@80%, 3+@90% | 92.5% | 4 | 3s Week |
+| 12 | 1s | 1@75%, 1@85%, 1+@95% | 92.5% | 4 | 1s Week |
 
-| Wk | Type | Main Scheme | % / Target | Rotation | Block |
-|----|------|------------|------------|----------|-------|
-| 1 | Volume | 5x5 | 70% | 1 | Volume |
-| 2 | Intensity | Ramp to heavy | Heavy 5 @ 85% | 1 | Heavy 5s |
-| 3 | Volume | 5x5 | 72.5% | 2 | Volume |
-| 4 | Intensity | Ramp to heavy | Heavy 5 @ 87.5% | 2 | Heavy 5s |
-| 5 | Volume | 5x5 | 75% | 3 | Volume |
-| 6 | Intensity | Ramp to heavy | Heavy 3 @ 90% | 3 | Heavy 3s |
-| 7 | Deload | 3x5 | 65% | 4 | Deload |
-| 8 | Intensity | Ramp to heavy | Heavy 3 @ 92.5% | 4 | Heavy 3s |
-| 9 | Volume | 5x5 | 75% | 5 | Volume |
-| 10 | Intensity | Ramp to heavy | Heavy 2 @ 95% | 5 | Heavy 2s |
-| 11 | Volume | 5x5 | 77.5% | 6 | Volume |
-| 12 | Intensity | Ramp to heavy | Heavy 1 @ 97.5% | 6 | Heavy 1s |
+**Training Max (TM)**: Percentage of 1RM used as the basis for all working weights. Starts at 85% and escalates per cycle (85% -> 87.5% -> 90% -> 92.5%). This ensures you're never grinding near failure on prescribed reps -- the AMRAP provides the intensity.
 
-**Volume weeks**: 5 sets x 5 reps at a single percentage (auto-calculated from 1RM). Percentage increases across the program (70% -> 77.5%), capped to keep 5x5 manageable.
+**AMRAP (+)**: Last set of each main lift is As Many Reps As Possible. Hit the minimum (5, 3, or 1), then push for more. This is where PRs happen and progressive overload is driven.
 
-**Deload week (week 7)**: 3 sets x 5 reps at 65%. Placed before the heavy 2s and 1s phase to manage fatigue accumulation.
+**Deload (week 7)**: 3x5 at 60% TM. Placed after 2 full cycles to manage fatigue before the peak cycles.
 
-**Intensity weeks**: 4 ramping working sets (5 on test week) building to the top set. Per-set weights and reps displayed individually.
+### Predicted Top Set Weights
 
-### Intensity Week Ramp Structures
-
-Each intensity week has ascending working sets:
-
-| Block | Ramp Sets (reps @ %1RM) |
-|-------|-------------------------|
-| Heavy 5 (wk 2) | 5@70%, 5@77%, 5@82%, 5@85% |
-| Heavy 5 (wk 4) | 5@72%, 5@80%, 5@85%, 5@87.5% |
-| Heavy 3 (wk 6) | 5@65%, 3@77%, 3@85%, 3@90% |
-| Heavy 3 (wk 8) | 5@67%, 3@80%, 3@87%, 3@92.5% |
-| Heavy 2 (wk 10) | 3@70%, 2@80%, 2@90%, 2@95% |
-| Heavy 1 (wk 12) | 3@65%, 2@77%, 1@87%, 1@95%, 1@97.5% |
+| Lift | Wk 1 (5+) | Wk 3 (1+) | Wk 6 (1+) | Wk 9 (1+) | Wk 12 (1+) |
+|------|-----------|-----------|-----------|-----------|------------|
+| Squat (180) | 130kg | 145kg | 150kg | 152.5kg | 157.5kg |
+| Bench (125) | 90kg | 100kg | 105kg | 107.5kg | 110kg |
+| Deadlift (200) | 142.5kg | 160kg | 165kg | 170kg | 175kg |
+| OHP (80) | 57.5kg | 65kg | 67.5kg | 67.5kg | 70kg |
 
 ### Split: 5-Day Upper/Lower A/B + Accessories
 
@@ -92,18 +86,16 @@ Each intensity week has ascending working sets:
 
 ### Exercise Rotation Schedule
 
-Each lift rotates its variant every 2 weeks. 6 rotations = 6 variants per lift.
+Each lift rotates its variant every 3-week cycle. 4 cycles = 4 variants per lift. Cycle 4 uses competition lifts for the peak.
 
-| Rot | Squat (D1) | Bench (D2) | Deadlift (D3) | OHP (D4) |
-|-----|-----------|-----------|---------------|---------|
-| 1 | SSB Squat | Wide Grip Bench | Trap Bar Deadlift | Push Press |
-| 2 | Box Squat | Close Grip Bench | Deficit Deadlift | Seated OHP |
-| 3 | Pause Squat | Pause Bench | Banded Deadlift | Z Press |
-| 4 | High Bar Squat | Bench Press | Deadlift | OHP |
-| 5 | Banded Squat | Banded Bench | Paused Deadlift | DB Shoulder Press |
-| 6 | Back Squat | Bench Press | Deadlift | OHP |
+| Cycle | Squat (D1) | Bench (D2) | Deadlift (D3) | OHP (D4) |
+|-------|-----------|-----------|---------------|---------|
+| 1 | SSB Squat | Close Grip Bench | Trap Bar Deadlift | Push Press |
+| 2 | Box Squat | Pause Bench | Deficit Deadlift | Z Press |
+| 3 | Pause Squat | Banded Bench | Paused Deadlift | DB Shoulder Press |
+| 4 | Back Squat | Bench Press | Deadlift | OHP |
 
-Rotation 6 uses competition lifts for the test week (Heavy 1 @ 97.5%). Each variant is swappable via dropdown in the app.
+Each variant is swappable via dropdown in the app.
 
 ---
 
@@ -111,26 +103,26 @@ Rotation 6 uses competition lifts for the test week (Heavy 1 @ 97.5%). Each vari
 
 ### Day 1 -- Lower A
 1. Box Jump -- 3x1-2 (max height, step down)
-2. Squat variant -- 5x5 or heavy ramp (periodized)
+2. Squat variant -- 5/3/1 (3 working sets, AMRAP top set)
 3. GHD Hip Extension -- 3x10-12
 4. Leg Curl SS Standing Calf Raise -- 3x10-12 / 3x12-15
 5. Hanging Leg Raise -- 3x10-15
 
 ### Day 2 -- Upper A
 1. Plyo Push-Ups -- 3x3-5 (explosive)
-2. Bench variant -- 5x5 or heavy ramp (periodized)
+2. Bench variant -- 5/3/1 (3 working sets, AMRAP top set)
 3. Weighted Pull-Ups -- 4x5-8
 4. Cable Row SS Face Pulls -- 3x8-12 / 3x15
 5. Pallof Press -- 3x10 /side
 
 ### Day 3 -- Lower B
-1. Deadlift variant -- 5x5 or heavy ramp (periodized)
+1. Deadlift variant -- 5/3/1 (3 working sets, AMRAP top set)
 2. Pendulum Squat -- 3x10-12
 3. Leg Extension SS Leg Curl -- 3x12-15 / 3x10-12 (light ext for knees)
 4. GHD Sit-Ups SS Dead Bugs -- 3x12-15 / 3x10 /side
 
 ### Day 4 -- Upper B
-1. OHP variant -- 5x5 or heavy ramp (periodized)
+1. OHP variant -- 5/3/1 (3 working sets, AMRAP top set)
 2. Weighted Pull-Ups -- 3x6-10
 3. Seal DB Row -- 3x8-10
 4. Cable Lateral Raise SS Cable Rear Delt Fly -- 3x12-15 / 3x12-15
@@ -187,13 +179,14 @@ Rotation 6 uses competition lifts for the test week (Heavy 1 @ 97.5%). Each vari
 | Plyos | 60-90s |
 
 ## Autoregulation
-- If a set hits RPE 10 before planned reps, stop and drop weight 5%
-- Volume weeks should feel like RPE 7-8
-- Intensity weeks: ramp sets are submaximal, only top set is RPE 9-10
+- First 2 sets of each 5/3/1 workout are prescribed reps -- hit them and move on
+- AMRAP top set: push for reps but stop 1-2 reps short of failure (leave 1-2 in the tank)
+- If you can't hit the minimum reps on the AMRAP, your TM is too high -- lower 1RM in settings
 
 ## Week 12 Test Protocol
-- Intensity week ramp: 3@65%, 2@77%, 1@87%, 1@95%, 1@97.5%
-- Option to attempt new 1RM after completing prescribed ramp
+- 1s week at TM 92.5%: prescribed ramp is 1@75%, 1@85%, 1+@95% TM
+- Top set is ~87.5% of 1RM -- go for max reps on the AMRAP
+- Option to attempt new 1RM after completing prescribed sets
 - Warm-up: Bar x10 -> 40% x5 -> 60% x3 -> 75% x2 -> 85% x1 -> 92.5% x1 -> Attempt
 
 ---
@@ -202,9 +195,10 @@ Rotation 6 uses competition lifts for the test week (Heavy 1 @ 97.5%). Each vari
 - File: `powerbuilding.html` -- single-file, offline, no dependencies
 - Hosted: https://max1miliaan.github.io/powerbuilding/
 - localStorage key: `pb12wk_v6` -- saves week/day selection, all set logs, 1RM settings, exercise swaps
-- Two rendering modes: 5x5 (scalar weight, "5" reps) and ramp (per-set weight array, comma-separated reps)
-- ROTATIONS object maps rotation index (0-5) to exercise variant per lift type
-- PR tracking IDs: all variant IDs from ROTATIONS (~22 unique IDs)
+- Two rendering modes: deload (scalar weight, "5" reps) and 5/3/1 (per-set weight array, comma-separated reps with AMRAP)
+- ROTATIONS object maps rotation index (0-3) to exercise variant per lift type
+- PR tracking IDs: all variant IDs from ROTATIONS (~16 unique IDs)
+- AMRAP sets: last set rep target ends with "+" (e.g., "5+"), shown as placeholder, user enters actual reps
 - Exercise swap keyed by `dayIdx_exerciseId` -- old swaps ignored when variant changes
 - Block bar shows: BLOCK_NAME | Variant Name | Rot N | Week X/12
 - Design: monochrome base (--bg:#111, --card:#1a1a1a) with burnt orange accent (#D05A1B), no emojis

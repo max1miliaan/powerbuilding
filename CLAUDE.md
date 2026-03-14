@@ -24,12 +24,12 @@ Static HTML conjugate-inspired powerbuilding tracker. Predecessor to the React N
 
 ## Key Context
 
-- 12-week conjugate powerbuilding: 5 days/week (Lower A / Upper A / Lower B / Upper B / Accessories)
-- Wave periodization: odd weeks = 5x5 volume, even weeks = build-to-heavy-set intensity ramps
-- Exercise rotation every 2 weeks across all 4 main lifts (squat, bench, deadlift, OHP variants)
-- 6 rotations x 2 weeks = 12 weeks; rotation 6 = competition lifts for test week
-- ROTATIONS object maps rotation index (0-5) to variant per lift type
-- Intensity ramps: heavy 5s -> heavy 3s -> heavy 2s -> heavy 1s (ascending across program)
+- 12-week Wendler 5/3/1 + conjugate rotation: 5 days/week (Lower A / Upper A / Lower B / Upper B / Accessories)
+- 5/3/1 periodization: 3 working sets per main lift (5s/3s/1s weeks), AMRAP on top set
+- Training Max (TM) escalates per cycle: 85% -> 87.5% -> 90% -> 92.5% of 1RM
+- Exercise rotation every 3-week cycle across all 4 main lifts (squat, bench, deadlift, OHP variants)
+- 4 cycles x 3 weeks = 12 weeks; cycle 4 = competition lifts for peak; deload at week 7
+- ROTATIONS object maps rotation index (0-3) to variant per lift type
 - Current 1RMs: Squat 180kg, Bench 125kg, Deadlift 200kg, OHP 80kg
 - Injuries: patellar tendonitis (no rebound plyos, light leg ext), lower back (no RDLs, use GHD)
 - localStorage key: `pb12wk_v6` (bumped from v5 for schema change)

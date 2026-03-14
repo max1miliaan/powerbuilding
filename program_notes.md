@@ -47,14 +47,16 @@ Combined with wave periodization (alternating volume and intensity weeks), this 
 | 4 | Intensity | Ramp to heavy | Heavy 5 @ 87.5% | 2 | Heavy 5s |
 | 5 | Volume | 5x5 | 75% | 3 | Volume |
 | 6 | Intensity | Ramp to heavy | Heavy 3 @ 90% | 3 | Heavy 3s |
-| 7 | Volume | 5x5 | 77.5% | 4 | Volume |
+| 7 | Deload | 3x5 | 65% | 4 | Deload |
 | 8 | Intensity | Ramp to heavy | Heavy 3 @ 92.5% | 4 | Heavy 3s |
-| 9 | Volume | 5x5 | 80% | 5 | Volume |
+| 9 | Volume | 5x5 | 75% | 5 | Volume |
 | 10 | Intensity | Ramp to heavy | Heavy 2 @ 95% | 5 | Heavy 2s |
-| 11 | Volume | 5x5 | 82.5% | 6 | Volume |
+| 11 | Volume | 5x5 | 77.5% | 6 | Volume |
 | 12 | Intensity | Ramp to heavy | Heavy 1 @ 97.5% | 6 | Heavy 1s |
 
-**Volume weeks**: 5 sets x 5 reps at a single percentage (auto-calculated from 1RM). Percentage increases every 2 weeks (70% -> 82.5%).
+**Volume weeks**: 5 sets x 5 reps at a single percentage (auto-calculated from 1RM). Percentage increases across the program (70% -> 77.5%), capped to keep 5x5 manageable.
+
+**Deload week (week 7)**: 3 sets x 5 reps at 65%. Placed before the heavy 2s and 1s phase to manage fatigue accumulation.
 
 **Intensity weeks**: 4 ramping working sets (5 on test week) building to the top set. Per-set weights and reps displayed individually.
 
@@ -118,7 +120,7 @@ Rotation 6 uses competition lifts for the test week (Heavy 1 @ 97.5%). Each vari
 1. Plyo Push-Ups -- 3x3-5 (explosive)
 2. Bench variant -- 5x5 or heavy ramp (periodized)
 3. Weighted Pull-Ups -- 4x5-8
-4. Hammer Strength Fly SS Face Pulls -- 3x10-15 / 3x15
+4. Cable Row SS Face Pulls -- 3x8-12 / 3x15
 5. Pallof Press -- 3x10 /side
 
 ### Day 3 -- Lower B
@@ -155,8 +157,8 @@ Rotation 6 uses competition lifts for the test week (Heavy 1 @ 97.5%). Each vari
 | Quads | ~8-13 | Squat 5 (weekly), Pendulum 3, Leg Ext 3 |
 | Hamstrings | ~8-11 | Deadlift 4-5, GHD 3, Leg Curl 3+3 |
 | Glutes | ~8-11 | Squat 5, Deadlift 4-5, GHD 3 |
-| Chest | ~11-14 | Bench 4-5, Hammer Fly 3, Hammer Chest Press 3 |
-| Back | ~13 | Pull-Ups 4+3, Seal Row 3, Face Pulls 3 |
+| Chest | ~8-11 | Bench 4-5, Hammer Chest Press 3 |
+| Back | ~16 | Pull-Ups 4+3, Cable Row 3, Seal Row 3, Face Pulls 3 |
 | Shoulders | ~10-14 | OHP 4-5, Lat Raise 3+3, Face Pulls 3 |
 | Biceps | ~13 | Pull-Ups 7, Preacher 3, Hammer Curl 3 |
 | Triceps | ~13 | Bench 4-5, OHP 4-5, Pushdown 3, Tri Ext 3 |

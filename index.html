@@ -358,11 +358,11 @@ var WEEKS = [
   { vol:false, ramp:[{p:.72,r:5},{p:.80,r:5},{p:.85,r:5},{p:.875,r:5}], block:'Heavy 5s',  rotation:1 },
   { vol:true,  pct:.75,  block:'Volume',   rotation:2 },
   { vol:false, ramp:[{p:.65,r:5},{p:.77,r:3},{p:.85,r:3},{p:.90,r:3}],  block:'Heavy 3s',  rotation:2 },
-  { vol:true,  pct:.775, block:'Volume',   rotation:3 },
+  { deload:true, pct:.65, block:'Deload',   rotation:3 },
   { vol:false, ramp:[{p:.67,r:5},{p:.80,r:3},{p:.87,r:3},{p:.925,r:3}], block:'Heavy 3s',  rotation:3 },
-  { vol:true,  pct:.80,  block:'Volume',   rotation:4 },
+  { vol:true,  pct:.75,  block:'Volume',   rotation:4 },
   { vol:false, ramp:[{p:.70,r:3},{p:.80,r:2},{p:.90,r:2},{p:.95,r:2}],  block:'Heavy 2s',  rotation:4 },
-  { vol:true,  pct:.825, block:'Volume',   rotation:5 },
+  { vol:true,  pct:.775, block:'Volume',   rotation:5 },
   { vol:false, ramp:[{p:.65,r:3},{p:.77,r:2},{p:.87,r:1},{p:.95,r:1},{p:.975,r:1}], block:'Heavy 1s', rotation:5 },
 ];
 
@@ -429,7 +429,7 @@ var ALTS = {
   hlr: ['Hanging Leg Raise','Cable Crunch','Knee Raise'],
   pullup1: ['Weighted Pull-Ups','Lat Pulldown','Chin-Ups'],
   pullup2: ['Weighted Pull-Ups','Lat Pulldown','Chin-Ups'],
-  hamfly: ['Hammer Strength Fly','Pec Deck','Cable Fly','DB Fly'],
+  cablerow: ['Cable Row','Chest-Supported Row','DB Row','Hammer Strength Row'],
   facepull: ['Face Pulls','Band Pull-Aparts','Reverse Pec Deck'],
   pallof: ['Pallof Press','Banded Anti-Rotation','Side Plank'],
   pendulum: ['Pendulum Squat','Hack Squat','V-Squat'],
@@ -485,9 +485,10 @@ var PR_NAMES = {};
 })();
 
 function mainLift(id, name, max1rm, wk) {
-  if (wk.vol) {
+  if (wk.vol || wk.deload) {
     var w = round25(max1rm * wk.pct);
-    return { id:id, name:name, type:'main', eq:'barbell', sets:5, reps:'5', wt:w, notes:'5x5 @ ' + Math.round(wk.pct*100) + '%' };
+    var s = wk.deload ? 3 : 5;
+    return { id:id, name:name, type:'main', eq:'barbell', sets:s, reps:'5', wt:w, notes:s + 'x5 @ ' + Math.round(wk.pct*100) + '%' };
   }
   var ramp = wk.ramp;
   var repsArr = ramp.map(function(s) { return s.r; });
@@ -531,7 +532,7 @@ function getExercises(dayIdx, weekIdx, maxes) {
       { id:'plyopush', name:'Plyo Push-Ups', type:'plyo', eq:'bw', sets:3, reps:'3-5', wt:null, notes:'Explosive' },
       main,
       { id:'pullup1', name:'Weighted Pull-Ups', type:'accessory', eq:'bw+', sets:4, reps:'5-8', wt:null, notes:'Log added weight' },
-      { id:'hamfly', name:'Hammer Strength Fly', type:'accessory', eq:'machine', sets:3, reps:'10-15', wt:null, notes:'', ss:'A' },
+      { id:'cablerow', name:'Cable Row', type:'accessory', eq:'cable', sets:3, reps:'8-12', wt:null, notes:'', ss:'A' },
       { id:'facepull', name:'Face Pulls', type:'accessory', eq:'cable', sets:3, reps:'15', wt:null, notes:'', ss:'A' },
       { id:'pallof', name:'Pallof Press', type:'core', eq:'cable', sets:3, reps:'10 /side', wt:null, notes:'' },
     ];
@@ -856,7 +857,7 @@ function render() {
   h += '</div>';
 
   // Notes
-  h += '<div class="notes-section">\n    <button class="notes-toggle" data-action="toggleNotes">\n      <span>Notes + Injury Management</span><span id="notesArrow">V</span>\n    </button>\n    <div class="notes-content" id="notesContent">\n      <h3>Conjugate Rotation</h3>\n      Exercise variants rotate every 2 weeks (6 rotations across 12 weeks). Each lift has 6 variants progressing from specialty movements to competition lifts. All variants swappable via dropdown.\n      <h3>Wave Periodization</h3>\n      Odd weeks = 5x5 volume at fixed percentage. Even weeks = build to heavy set with ramping weights. Heavy rep target decreases: 5s &rarr; 3s &rarr; 2s &rarr; 1s.\n      <h3>Patellar Tendonitis</h3>\n      Box squats and pause squats are knee-friendly variants. Leg extensions kept light. Box jumps on D1 only, always step down.\n      <h3>Lower Back</h3>\n      No RDLs. GHD hip extensions used instead. Trap bar deadlift available as a reduced-stress variant.\n      <h3>Progression (Accessories)</h3>\n      Double progression: hit top of rep range for all sets, then add 2.5kg (upper) or 5kg (lower).\n      <h3>Week 12 -- Test Option</h3>\n      Option A: Heavy singles as prescribed. Option B: Work up to new 1RM.<br>\n      Warm-up: Bar x10, 40% x5, 60% x3, 75% x2, 85% x1, 92.5% x1, then attempt.\n    </div>\n  </div>';
+  h += '<div class="notes-section">\n    <button class="notes-toggle" data-action="toggleNotes">\n      <span>Notes + Injury Management</span><span id="notesArrow">V</span>\n    </button>\n    <div class="notes-content" id="notesContent">\n      <h3>Conjugate Rotation</h3>\n      Exercise variants rotate every 2 weeks (6 rotations across 12 weeks). Each lift has 6 variants progressing from specialty movements to competition lifts. All variants swappable via dropdown.\n      <h3>Wave Periodization</h3>\n      Odd weeks = 5x5 volume at fixed percentage. Even weeks = build to heavy set with ramping weights. Heavy rep target decreases: 5s &rarr; 3s &rarr; 2s &rarr; 1s. Week 7 is a deload (3x5 @ 65%) before the heavy 2s and 1s phase.\n      <h3>Patellar Tendonitis</h3>\n      Box squats and pause squats are knee-friendly variants. Leg extensions kept light. Box jumps on D1 only, always step down.\n      <h3>Lower Back</h3>\n      No RDLs. GHD hip extensions used instead. Trap bar deadlift available as a reduced-stress variant.\n      <h3>Progression (Accessories)</h3>\n      Double progression: hit top of rep range for all sets, then add 2.5kg (upper) or 5kg (lower).\n      <h3>Week 12 -- Test Option</h3>\n      Option A: Heavy singles as prescribed. Option B: Work up to new 1RM.<br>\n      Warm-up: Bar x10, 40% x5, 60% x3, 75% x2, 85% x1, 92.5% x1, then attempt.\n    </div>\n  </div>';
 
   // Settings modal
   if (state.showSettings) {

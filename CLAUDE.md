@@ -24,11 +24,12 @@ Static HTML conjugate-inspired powerbuilding tracker. Predecessor to the React N
 
 ## Key Context
 
-- 12-week Wendler 5/3/1 + conjugate rotation: 5 days/week (Lower A / Upper A / Lower B / Upper B / Accessories)
+- 12-week Wendler 5/3/1 + FSL + conjugate rotation: 5 days/week (Lower A / Upper A / Lower B / Upper B / Accessories)
 - 5/3/1 periodization: 3 working sets per main lift (5s/3s/1s weeks), AMRAP on top set
+- First Set Last (FSL): 3x5 supplemental sets at first working set weight after main sets (skipped on deload)
 - Training Max (TM) escalates per cycle: 85% -> 87.5% -> 90% -> 92.5% of 1RM
 - Exercise rotation every 3-week cycle across all 4 main lifts (squat, bench, deadlift, OHP variants)
-- 4 cycles x 3 weeks = 12 weeks; cycle 4 = competition lifts for peak; deload at week 7
+- 4 cycles x 3 weeks = 12 weeks; cycle 4 = competition lifts (2-week peak); deload at week 7
 - ROTATIONS object maps rotation index (0-3) to variant per lift type
 - Current 1RMs: Squat 180kg, Bench 125kg, Deadlift 200kg, OHP 80kg
 - Injuries: patellar tendonitis (no rebound plyos, light leg ext), lower back (no RDLs, use GHD)

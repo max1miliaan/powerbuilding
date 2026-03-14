@@ -28,10 +28,11 @@
 
 ## Program Design Decisions
 
-### Philosophy: Wendler 5/3/1 + Conjugate Rotation
-Wendler's 5/3/1 provides the periodization: 3 working sets per main lift with an AMRAP top set, cycling through 5s/3s/1s rep targets each 3-week cycle. Training Max (TM) starts conservative and escalates per cycle. Combined with conjugate-style exercise rotation (variant changes every cycle), this gives:
+### Philosophy: Wendler 5/3/1 + FSL + Conjugate Rotation
+Wendler's 5/3/1 provides the periodization: 3 working sets per main lift with an AMRAP top set, cycling through 5s/3s/1s rep targets each 3-week cycle. First Set Last (FSL) adds 3x5 supplemental sets at the first working set weight, building volume on the main lift pattern. Training Max (TM) starts conservative and escalates per cycle. Combined with conjugate-style exercise rotation (variant changes every cycle), this gives:
 - Built-in fatigue management through submaximal TM percentages
 - Progressive overload via AMRAP top sets (push when feeling good)
+- Supplemental volume through FSL without excessive fatigue
 - Reduced accommodation from exercise variety across cycles
 - Specificity ramp: competition lifts in final cycle for the peak
 
@@ -71,18 +72,19 @@ Wendler's 5/3/1 provides the periodization: 3 working sets per main lift with an
 
 | Day | Focus | Primary Lift | Est. Duration |
 |-----|-------|-------------|---------------|
-| D1 | Lower A | Squat variant (rotates) | ~40 min |
-| D2 | Upper A | Bench variant (rotates) | ~35 min |
-| D3 | Lower B | Deadlift variant (rotates) | ~35 min |
-| D4 | Upper B | OHP variant (rotates) | ~35 min |
+| D1 | Lower A | Squat variant + FSL (rotates) | ~40 min |
+| D2 | Upper A | Bench variant + FSL (rotates) | ~40 min |
+| D3 | Lower B | Deadlift variant + FSL (rotates) | ~40 min |
+| D4 | Upper B | OHP variant + FSL (rotates) | ~35 min |
 | D5 | Accessories / Pump | -- (machines, cables, arms) | ~30 min |
 
 **Why this works:**
 - Each main lift gets its own day = full energy for the primary compound
+- FSL adds 3x5 supplemental volume at first-set weight = more practice with the lift pattern
 - Lower A + Lower B separates squat and deadlift = better recovery
 - Upper A + Upper B separates bench and OHP = better recovery
-- Every session: 1 main compound + 2-3 accessories + core = stays under 40 min
-- Accessories day adds direct arm/shoulder volume without fatiguing main lifts
+- Every session: 1 main compound + FSL + 2-3 accessories = stays under 40 min
+- Accessories day adds direct arm/shoulder/chest volume without fatiguing main lifts
 
 ### Exercise Rotation Schedule
 
@@ -104,36 +106,44 @@ Each variant is swappable via dropdown in the app.
 ### Day 1 -- Lower A
 1. Box Jump -- 3x1-2 (max height, step down)
 2. Squat variant -- 5/3/1 (3 working sets, AMRAP top set)
-3. GHD Hip Extension -- 3x10-12
-4. Leg Curl SS Standing Calf Raise -- 3x10-12 / 3x12-15
-5. Hanging Leg Raise -- 3x10-15
+3. Squat variant (FSL) -- 3x5 (First Set Last weight)
+4. Leg Press -- 3x10-12
+5. Leg Curl SS Hanging Leg Raise -- 3x10-12 / 3x10-15
 
 ### Day 2 -- Upper A
 1. Plyo Push-Ups -- 3x3-5 (explosive)
 2. Bench variant -- 5/3/1 (3 working sets, AMRAP top set)
-3. Weighted Pull-Ups -- 4x5-8
-4. Cable Row SS Face Pulls -- 3x8-12 / 3x15
-5. Pallof Press -- 3x10 /side
+3. Bench variant (FSL) -- 3x5 (First Set Last weight)
+4. Weighted Pull-Ups -- 4x5-8
+5. Hammer Strength Fly SS Cable Row -- 3x10-15 / 3x8-12
 
 ### Day 3 -- Lower B
 1. Deadlift variant -- 5/3/1 (3 working sets, AMRAP top set)
-2. Pendulum Squat -- 3x10-12
-3. Leg Extension SS Leg Curl -- 3x12-15 / 3x10-12 (light ext for knees)
-4. GHD Sit-Ups SS Dead Bugs -- 3x12-15 / 3x10 /side
+2. Deadlift variant (FSL) -- 3x5 (First Set Last weight)
+3. Pendulum Squat -- 3x10-12
+4. Leg Extension SS Leg Curl -- 3x12-15 / 3x10-12 (light ext for knees)
+5. GHD Hip Extension SS GHD Sit-Ups -- 3x10-12 / 3x12-15
 
 ### Day 4 -- Upper B
 1. OHP variant -- 5/3/1 (3 working sets, AMRAP top set)
-2. Weighted Pull-Ups -- 3x6-10
-3. Seal DB Row -- 3x8-10
-4. Cable Lateral Raise SS Cable Rear Delt Fly -- 3x12-15 / 3x12-15
-5. Cable Woodchop -- 3x10 /side
+2. OHP variant (FSL) -- 3x5 (First Set Last weight)
+3. Weighted Pull-Ups -- 3x6-10
+4. Seal DB Row -- 3x8-10
+5. Cable Lateral Raise SS Cable Rear Delt Fly -- 3x12-15 / 3x12-15
 
 ### Day 5 -- Accessories / Pump (all machines/cables)
 1. Hammer Strength Chest Press -- 3x10-12
-2. Preacher Curl SS Overhead Tricep Extension -- 3x10-12 / 3x10-12
-3. DB Hammer Curl SS Tricep Pushdown -- 3x12-15 / 3x12-15
-4. Cable Lateral Raise SS Face Pulls -- 3x15-20 / 3x15-20
-5. Cable Crunch SS Pallof Press -- 3x12-15 / 3x10 /side
+2. Hammer Strength Incline Press -- 3x10-12
+3. Preacher Curl SS Overhead Tricep Extension -- 3x10-12 / 3x10-12
+4. DB Hammer Curl SS Tricep Pushdown -- 3x12-15 / 3x12-15
+5. Cable Lateral Raise SS Face Pulls -- 3x15-20 / 3x15-20
+6. Cable Crunch -- 3x12-15
+
+### First Set Last (FSL) Protocol
+- After completing the 3 main 5/3/1 sets, do 3x5 at the first working set weight
+- Adds supplemental volume for the main lift pattern without excessive fatigue
+- Already warmed up from the main sets, so FSL sets are fast (2 min rest)
+- Skipped on deload weeks
 
 ### Accessories Protocol
 - Double progression: hit top of rep range for all sets, then add 2.5kg (upper) or 5kg (lower)
@@ -146,26 +156,26 @@ Each variant is swappable via dropdown in the app.
 
 | Muscle | Sets/Week | Sources |
 |--------|-----------|---------|
-| Quads | ~8-13 | Squat 5 (weekly), Pendulum 3, Leg Ext 3 |
-| Hamstrings | ~8-11 | Deadlift 4-5, GHD 3, Leg Curl 3+3 |
-| Glutes | ~8-11 | Squat 5, Deadlift 4-5, GHD 3 |
-| Chest | ~8-11 | Bench 4-5, Hammer Chest Press 3 |
-| Back | ~16 | Pull-Ups 4+3, Cable Row 3, Seal Row 3, Face Pulls 3 |
-| Shoulders | ~10-14 | OHP 4-5, Lat Raise 3+3, Face Pulls 3 |
+| Quads | ~15 | Squat 3+3 FSL, Leg Press 3, Pendulum 3, Leg Ext 3 |
+| Hamstrings | ~15 | Deadlift 3+3 FSL, Leg Curl 3+3, GHD Hip Ext 3 |
+| Glutes | ~12 | Squat 3+3 FSL, Deadlift 3+3 FSL, GHD Hip Ext 3 |
+| Chest | ~15 | Bench 3+3 FSL, Hammer Fly 3, Hammer Press 3+3 |
+| Back | ~13 | Pull-Ups 4+3, Cable Row 3, Seal Row 3 |
+| Shoulders | ~12 | OHP 3+3 FSL, Lat Raise 3+3, Face Pulls 3 |
 | Biceps | ~13 | Pull-Ups 7, Preacher 3, Hammer Curl 3 |
-| Triceps | ~13 | Bench 4-5, OHP 4-5, Pushdown 3, Tri Ext 3 |
-| Core | ~15 | HLR 3, GHD Sit-Ups 3, Dead Bugs 3, Woodchop 3, Crunch 3, Pallof 3+3 |
-| Calves | ~3 | Calf Raise 3 |
+| Triceps | ~15 | Bench 3+3 FSL, OHP 3+3 FSL, Pushdown 3, Tri Ext 3 |
+| Core | ~9 | HLR 3, GHD Sit-Ups 3, Cable Crunch 3 |
 
 ---
 
 ## Patella Management
-- Exercise variety reduces repetitive stress (6 different squat variants across 12 weeks)
+- Exercise variety reduces repetitive stress (4 different squat variants across 12 weeks)
 - Box squats and pause squats are knee-friendly variants
 - No rebound plyos -- box jumps step down only, on lower A day only
 - Leg extensions kept light (noted in app)
-- Pendulum squat on machine day is easier on knees than barbell squats
-- Lower B has no additional squat barbell work
+- Leg press on D1 provides quad volume with less knee shear than barbell squats
+- Pendulum squat on D3 is machine-based and easier on knees
+- Lower B has no additional barbell squat work
 
 ---
 
@@ -173,6 +183,7 @@ Each variant is swappable via dropdown in the app.
 | Type | Rest |
 |---|---|
 | Main compound (squat/dead/bench/OHP) | 3 min |
+| FSL supplemental sets | 2 min |
 | Heavy accessories (pull-ups, seal rows) | 90s-2 min |
 | Hypertrophy / isolation | 60-75s |
 | Supersets | 60s between exercises |
@@ -197,7 +208,8 @@ Each variant is swappable via dropdown in the app.
 - localStorage key: `pb12wk_v6` -- saves week/day selection, all set logs, 1RM settings, exercise swaps
 - Two rendering modes: deload (scalar weight, "5" reps) and 5/3/1 (per-set weight array, comma-separated reps with AMRAP)
 - ROTATIONS object maps rotation index (0-3) to exercise variant per lift type
-- PR tracking IDs: all variant IDs from ROTATIONS (~16 unique IDs)
+- PR tracking IDs: all variant IDs from ROTATIONS (~16 unique IDs) + FSL IDs (fsl_sq, fsl_bp, fsl_dl, fsl_oh)
+- FSL exercises: `fslLift()` returns null on deload weeks; `.filter(null)` removes from array
 - AMRAP sets: last set rep target ends with "+" (e.g., "5+"), shown as placeholder, user enters actual reps
 - Exercise swap keyed by `dayIdx_exerciseId` -- old swaps ignored when variant changes
 - Block bar shows: BLOCK_NAME | Variant Name | Rot N | Week X/12

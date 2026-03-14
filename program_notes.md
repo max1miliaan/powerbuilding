@@ -107,8 +107,7 @@ Each variant is swappable via dropdown in the app.
 1. Box Jump -- 3x1-2 (max height, step down)
 2. Squat variant -- 5/3/1 (3 working sets, AMRAP top set)
 3. Squat variant (FSL) -- 3x5 (First Set Last weight)
-4. Leg Press -- 3x10-12
-5. Leg Curl SS Hanging Leg Raise -- 3x10-12 / 3x10-15
+4. Leg Curl SS Hanging Leg Raise -- 3x10-12 / 3x10-15
 
 ### Day 2 -- Upper A
 1. Plyo Push-Ups -- 3x3-5 (explosive)
@@ -156,7 +155,7 @@ Each variant is swappable via dropdown in the app.
 
 | Muscle | Sets/Week | Sources |
 |--------|-----------|---------|
-| Quads | ~15 | Squat 3+3 FSL, Leg Press 3, Pendulum 3, Leg Ext 3 |
+| Quads | ~12 | Squat 3+3 FSL, Pendulum 3, Leg Ext 3 |
 | Hamstrings | ~15 | Deadlift 3+3 FSL, Leg Curl 3+3, GHD Hip Ext 3 |
 | Glutes | ~12 | Squat 3+3 FSL, Deadlift 3+3 FSL, GHD Hip Ext 3 |
 | Chest | ~15 | Bench 3+3 FSL, Hammer Fly 3, Hammer Press 3+3 |

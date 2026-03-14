@@ -530,7 +530,6 @@ function getExercises(dayIdx, weekIdx, maxes) {
       { id:'boxjump1', name:'Box Jump', type:'plyo', eq:'bw', sets:3, reps:'1-2', wt:null, unit:'cm', notes:'Max height, step down' },
       main,
       fsl,
-      { id:'legpress', name:'Leg Press', type:'accessory', eq:'machine', sets:3, reps:'10-12', wt:null, notes:'' },
       { id:'legcurl1', name:'Leg Curl (Lying)', type:'accessory', eq:'machine', sets:3, reps:'10-12', wt:null, notes:'', ss:'A' },
       { id:'hlr', name:'Hanging Leg Raise', type:'core', eq:'bw', sets:3, reps:'10-15', wt:null, notes:'', ss:'A' },
     ].filter(function(x) { return x != null; });
@@ -751,7 +750,7 @@ function render() {
   h += '<div class="progress-wrap">\n    <div class="progress-track"><div class="progress-fill" id="pFill" style="width:' + pct + '%"></div></div>\n    <span class="progress-text" id="pText">' + doneSets + '/' + totalSets + ' sets</span>\n  </div>';
 
   var restMap = {
-    0: 'Rest: 3 min (squat) / 2 min (FSL) / 75s (accessories) / 60s (SS)',
+    0: 'Rest: 3 min (squat) / 2 min (FSL) / 60s (SS)',
     1: 'Rest: 3 min (bench) / 2 min (FSL/pull-ups) / 75s (accessories) / 60s (SS)',
     2: 'Rest: 3 min (deadlift) / 2 min (FSL) / 90s (pendulum) / 60s (SS)',
     3: 'Rest: 3 min (OHP) / 2 min (FSL/pull-ups) / 90s (rows) / 60s (SS)',

@@ -110,11 +110,11 @@ Each variant is swappable via dropdown in the app.
 4. Leg Curl SS Hanging Leg Raise -- 3x10-12 / 3x10-15
 
 ### Day 2 -- Upper A
-1. Plyo Push-Ups -- 3x3-5 (explosive)
-2. Bench variant -- 5/3/1 (3 working sets, AMRAP top set)
-3. Bench variant (FSL) -- 3x5 (First Set Last weight)
-4. Weighted Pull-Ups -- 4x5-8
-5. Hammer Strength Fly SS Cable Row -- 3x10-15 / 3x8-12
+1. Bench variant -- 5/3/1 (3 working sets, AMRAP top set)
+2. Bench variant (FSL) -- 3x5 (First Set Last weight)
+3. Weighted Pull-Ups -- 4x5-8
+4. Hammer Strength Fly SS Cable Row -- 3x10-15 / 3x8-12
+5. Face Pulls -- 3x15 (shoulder health)
 
 ### Day 3 -- Lower B
 1. Deadlift variant -- 5/3/1 (3 working sets, AMRAP top set)
@@ -134,7 +134,7 @@ Each variant is swappable via dropdown in the app.
 1. Hammer Strength Chest Press -- 3x10-12
 2. Hammer Strength Incline Press -- 3x10-12
 3. Preacher Curl SS Overhead Tricep Extension -- 3x10-12 / 3x10-12
-4. DB Hammer Curl SS Tricep Pushdown -- 3x12-15 / 3x12-15
+4. DB Hammer Curl -- 3x12-15
 5. Cable Lateral Raise SS Face Pulls -- 3x15-20 / 3x15-20
 6. Cable Crunch -- 3x12-15
 
@@ -160,9 +160,9 @@ Each variant is swappable via dropdown in the app.
 | Glutes | ~12 | Squat 3+3 FSL, Deadlift 3+3 FSL, GHD Hip Ext 3 |
 | Chest | ~15 | Bench 3+3 FSL, Hammer Fly 3, Hammer Press 3+3 |
 | Back | ~13 | Pull-Ups 4+3, Cable Row 3, Seal Row 3 |
-| Shoulders | ~12 | OHP 3+3 FSL, Lat Raise 3+3, Face Pulls 3 |
+| Shoulders | ~15 | OHP 3+3 FSL, Lat Raise 3+3, Face Pulls 3+3, Rear Fly 3 |
 | Biceps | ~13 | Pull-Ups 7, Preacher 3, Hammer Curl 3 |
-| Triceps | ~15 | Bench 3+3 FSL, OHP 3+3 FSL, Pushdown 3, Tri Ext 3 |
+| Triceps | ~15 | Bench 3+3 FSL, OHP 3+3 FSL, Tri Ext 3 |
 | Core | ~9 | HLR 3, GHD Sit-Ups 3, Cable Crunch 3 |
 
 ---

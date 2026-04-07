@@ -556,7 +556,6 @@ function getExercises(dayIdx, weekIdx, maxes) {
     var main = mainLift(sv.id, sv.name, maxes.squat, wk);
     var fsl = fslLift('fsl_sq', sv.name, maxes.squat, wk);
     return [
-      { id:'prehab', name:'Wall Sit (Iso) + Band Lateral Walk', type:'prehab', eq:'bw', sets:1, reps:'45s + 15/side', wt:null, notes:'Patellar rehab + hip stability. Every session.' },
       { id:'boxjump1', name:'Box Jump', type:'plyo', eq:'bw', sets:dl?2:3, reps:'2', wt:null, unit:'cm', notes:'Max height, step down only' },
       main,
       fsl,
@@ -572,7 +571,6 @@ function getExercises(dayIdx, weekIdx, maxes) {
     var main = mainLift(bv.id, bv.name, maxes.bench, wk);
     var fsl = fslLift('fsl_bp', bv.name, maxes.bench, wk);
     return [
-      { id:'prehab', name:'Wall Sit (Iso) + Band Lateral Walk', type:'prehab', eq:'bw', sets:1, reps:'45s + 15/side', wt:null, notes:'Patellar rehab + hip stability' },
       { id:'medbslam', name:'Med Ball Slam', type:'plyo', eq:'bw', sets:dl?2:3, reps:'5', wt:null, notes:'Explosive -- full intent' },
       main,
       fsl,
@@ -588,7 +586,6 @@ function getExercises(dayIdx, weekIdx, maxes) {
     var main = mainLift(dv.id, dv.name, maxes.deadlift, wk);
     var fsl = fslLift('fsl_dl', dv.name, maxes.deadlift, wk);
     return [
-      { id:'prehab', name:'Wall Sit (Iso) + Band Lateral Walk', type:'prehab', eq:'bw', sets:1, reps:'45s + 15/side', wt:null, notes:'Patellar rehab + hip stability' },
       { id:'seatedbox', name:'Seated Box Jump', type:'plyo', eq:'bw', sets:dl?2:3, reps:'2', wt:null, unit:'cm', notes:'Explosive hip extension, no landing impact' },
       main,
       fsl,
@@ -604,7 +601,6 @@ function getExercises(dayIdx, weekIdx, maxes) {
     var main = mainLift(ov.id, ov.name, maxes.ohp, wk);
     var fsl = fslLift('fsl_oh', ov.name, maxes.ohp, wk);
     return [
-      { id:'prehab', name:'Wall Sit (Iso) + Band Lateral Walk', type:'prehab', eq:'bw', sets:1, reps:'45s + 15/side', wt:null, notes:'Patellar rehab + hip stability' },
       { id:'plyopush', name:'Plyo Push-Ups', type:'plyo', eq:'bw', sets:dl?2:3, reps:'3', wt:null, notes:'Explosive -- max hand height' },
       main,
       fsl,
@@ -918,7 +914,7 @@ function render() {
   h += '</div>';
 
   // Notes
-  h += '<div class="notes-section">\n    <button class="notes-toggle" data-action="toggleNotes">\n      <span>Notes + Injury Management</span><span id="notesArrow">V</span>\n    </button>\n    <div class="notes-content" id="notesContent">\n      <h3>Leader / Anchor (Wendler Forever)</h3>\n      Weeks 1-3 (Leader 1): 5s PRO -- all working sets for 5 reps, no AMRAP. FSL 5x5. Builds base.\n      Weeks 4-6 (Leader 2): Standard 5/3/1 with AMRAP top set (+). FSL 5x5. Intensity expression.\n      Week 7: 7th Week Protocol -- TM test (70% x5, 80% x3, 90% x1, 100% TM x1). If TM single grinds, reduce 1RM by 5%.\n      Weeks 8-12 (Anchors): Standard 5/3/1 with AMRAP. FSL 3x5. Express strength + peak.\n      <h3>CNS Load Order</h3>\n      Every session: Prehab (wall sit + band walks) &rarr; Plyos (power, fresh CNS) &rarr; Main compound (strength) &rarr; FSL (volume) &rarr; 3 Accessories (pyramid/drop sets).\n      <h3>Pyramid Sets</h3>\n      Ascending load: 12 reps (light) &rarr; 10 reps (medium) &rarr; 8 reps (heavy). Add weight each set. Log weight per set.\n      <h3>Drop Sets</h3>\n      One continuous set: ~10 reps at working weight, strip 25%, ~8 reps, strip 25%, ~8 reps. Machines/cables only. Log total reps.\n      <h3>Prehab (Every Session)</h3>\n      Isometric wall sit (45s, 70-degree knee angle) + banded lateral walks (15/side). Patellar tendon rehab + hip stability. Do before plyos.\n      <h3>Plyometrics</h3>\n      D1: Box jumps (max height, step down). D2: Med ball slams. D3: Seated box jumps (no landing impact). D4: Plyo push-ups. Low volume, max intent.\n      <h3>Patellar Tendonitis</h3>\n      No front squats. No rebound plyos. No broad jumps (eccentric landing). Isometric wall sits for tendon rehab every session. Box squats (vertical shins) in cycle 2.\n      <h3>Lower Back</h3>\n      No RDLs. No deficit deadlifts. No paused deadlifts. Banded deadlift in cycle 3 (deloads bottom, overloads lockout). Dead bugs for core on lower days (no lumbar stress).\n      <h3>Week 12 -- Test Option</h3>\n      1s week at TM 92.5%: prescribed 95% TM x1+. Option to attempt new 1RM after AMRAP if 3+ reps achieved.\n    </div>\n  </div>';
+  h += '<div class="notes-section">\n    <button class="notes-toggle" data-action="toggleNotes">\n      <span>Notes + Injury Management</span><span id="notesArrow">V</span>\n    </button>\n    <div class="notes-content" id="notesContent">\n      <h3>Leader / Anchor (Wendler Forever)</h3>\n      Weeks 1-3 (Leader 1): 5s PRO -- all working sets for 5 reps, no AMRAP. FSL 5x5. Builds base.\n      Weeks 4-6 (Leader 2): Standard 5/3/1 with AMRAP top set (+). FSL 5x5. Intensity expression.\n      Week 7: 7th Week Protocol -- TM test (70% x5, 80% x3, 90% x1, 100% TM x1). If TM single grinds, reduce 1RM by 5%.\n      Weeks 8-12 (Anchors): Standard 5/3/1 with AMRAP. FSL 3x5. Express strength + peak.\n      <h3>CNS Load Order</h3>\n      Every session: Prehab (wall sit + band walks) &rarr; Plyos (power, fresh CNS) &rarr; Main compound (strength) &rarr; FSL (volume) &rarr; 3 Accessories (pyramid/drop sets).\n      <h3>Pyramid Sets</h3>\n      Ascending load: 12 reps (light) &rarr; 10 reps (medium) &rarr; 8 reps (heavy). Add weight each set. Log weight per set.\n      <h3>Drop Sets</h3>\n      One continuous set: ~10 reps at working weight, strip 25%, ~8 reps, strip 25%, ~8 reps. Machines/cables only. Log total reps.\n      <h3>Plyometrics</h3>\n      D1: Box jumps (max height, step down). D2: Med ball slams. D3: Seated box jumps (no landing impact). D4: Plyo push-ups. Low volume, max intent.\n      <h3>Patellar Tendonitis</h3>\n      No front squats. No rebound plyos. No broad jumps (eccentric landing). Isometric wall sits for tendon rehab every session. Box squats (vertical shins) in cycle 2.\n      <h3>Lower Back</h3>\n      No RDLs. No deficit deadlifts. No paused deadlifts. Banded deadlift in cycle 3 (deloads bottom, overloads lockout). Dead bugs for core on lower days (no lumbar stress).\n      <h3>Week 12 -- Test Option</h3>\n      1s week at TM 92.5%: prescribed 95% TM x1+. Option to attempt new 1RM after AMRAP if 3+ reps achieved.\n    </div>\n  </div>';
 
   // Settings modal
   if (state.showSettings) {

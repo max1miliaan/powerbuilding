@@ -350,27 +350,30 @@ input[type=number] { -moz-appearance: textfield; }
 (function() {
 'use strict';
 
-// 12 weeks: 4 cycles x 3 weeks (Wendler 5/3/1) + deload at week 7
-// TM (Training Max) escalates per cycle: 85% -> 87.5% -> 90% -> 92.5%
-// AMRAP on last set of each workout (marked with +)
+// 12 weeks: Wendler Forever Leader/Anchor + Conjugate Rotation
+// Leader (wk 1-6): 5s PRO (all x5, no AMRAP) + FSL 5x5
+// Deload (wk 7): 7th Week Protocol TM test
+// Anchor (wk 8-12): Standard 5/3/1 with AMRAP + FSL 3x5
+// TM escalates per cycle: 85% -> 87.5% -> 90% -> 92.5%
+// CNS order each session: Sled/Plyo -> Main compound -> FSL -> Accessories (pyramid/drop)
 var WEEKS = [
-  // Cycle 1 (TM 85%, rotation 0)
-  { tm:.85,  sets:[{p:.65,r:'5'},{p:.75,r:'5'},{p:.85,r:'5+'}], block:'5s Week', rotation:0 },
-  { tm:.85,  sets:[{p:.70,r:'3'},{p:.80,r:'3'},{p:.90,r:'3+'}], block:'3s Week', rotation:0 },
-  { tm:.85,  sets:[{p:.75,r:'1'},{p:.85,r:'1'},{p:.95,r:'1+'}], block:'1s Week', rotation:0 },
-  // Cycle 2 (TM 87.5%, rotation 1)
-  { tm:.875, sets:[{p:.65,r:'5'},{p:.75,r:'5'},{p:.85,r:'5+'}], block:'5s Week', rotation:1 },
-  { tm:.875, sets:[{p:.70,r:'3'},{p:.80,r:'3'},{p:.90,r:'3+'}], block:'3s Week', rotation:1 },
-  { tm:.875, sets:[{p:.75,r:'1'},{p:.85,r:'1'},{p:.95,r:'1+'}], block:'1s Week', rotation:1 },
-  // Deload (rotation 2)
-  { deload:true, tm:.85, block:'Deload', rotation:2 },
-  // Cycle 3 (TM 90%, rotation 2) -- full cycle after deload
-  { tm:.90,  sets:[{p:.65,r:'5'},{p:.75,r:'5'},{p:.85,r:'5+'}], block:'5s Week', rotation:2 },
-  { tm:.90,  sets:[{p:.70,r:'3'},{p:.80,r:'3'},{p:.90,r:'3+'}], block:'3s Week', rotation:2 },
-  { tm:.90,  sets:[{p:.75,r:'1'},{p:.85,r:'1'},{p:.95,r:'1+'}], block:'1s Week', rotation:2 },
-  // Cycle 4 - Peak (TM 92.5%, rotation 3) -- competition lifts, 2-week peak
-  { tm:.925, sets:[{p:.70,r:'3'},{p:.80,r:'3'},{p:.90,r:'3+'}], block:'3s Week', rotation:3 },
-  { tm:.925, sets:[{p:.75,r:'1'},{p:.85,r:'1'},{p:.95,r:'1+'}], block:'1s Week', rotation:3 },
+  // Leader 1 (TM 85%, rotation 0)
+  { tm:.85,  phase:'leader', sets:[{p:.65,r:'5'},{p:.75,r:'5'},{p:.85,r:'5'}], fslSets:5, block:'Leader 5s', rotation:0 },
+  { tm:.85,  phase:'leader', sets:[{p:.70,r:'5'},{p:.80,r:'5'},{p:.90,r:'5'}], fslSets:5, block:'Leader 3s', rotation:0 },
+  { tm:.85,  phase:'leader', sets:[{p:.75,r:'5'},{p:.85,r:'5'},{p:.95,r:'5'}], fslSets:5, block:'Leader 1s', rotation:0 },
+  // Leader 2 (TM 87.5%, rotation 1)
+  { tm:.875, phase:'leader', sets:[{p:.65,r:'5'},{p:.75,r:'5'},{p:.85,r:'5'}], fslSets:5, block:'Leader 5s', rotation:1 },
+  { tm:.875, phase:'leader', sets:[{p:.70,r:'5'},{p:.80,r:'5'},{p:.90,r:'5'}], fslSets:5, block:'Leader 3s', rotation:1 },
+  { tm:.875, phase:'leader', sets:[{p:.75,r:'5'},{p:.85,r:'5'},{p:.95,r:'5'}], fslSets:5, block:'Leader 1s', rotation:1 },
+  // 7th Week Protocol / Deload
+  { deload:true, tm:.875, phase:'deload', block:'Deload', rotation:2 },
+  // Anchor 1 (TM 90%, rotation 2) -- AMRAP on top sets
+  { tm:.90,  phase:'anchor', sets:[{p:.65,r:'5'},{p:.75,r:'5'},{p:.85,r:'5+'}], fslSets:3, block:'Anchor 5s', rotation:2 },
+  { tm:.90,  phase:'anchor', sets:[{p:.70,r:'3'},{p:.80,r:'3'},{p:.90,r:'3+'}], fslSets:3, block:'Anchor 3s', rotation:2 },
+  { tm:.90,  phase:'anchor', sets:[{p:.75,r:'5'},{p:.85,r:'3'},{p:.95,r:'1+'}], fslSets:3, block:'Anchor 1s', rotation:2 },
+  // Anchor 2 - Peak (TM 92.5%, rotation 3) -- competition lifts
+  { tm:.925, phase:'anchor', sets:[{p:.65,r:'5'},{p:.75,r:'5'},{p:.85,r:'5+'}], fslSets:3, block:'Peak 5s', rotation:3 },
+  { tm:.925, phase:'anchor', sets:[{p:.75,r:'5'},{p:.85,r:'3'},{p:.95,r:'1+'}], fslSets:3, block:'Peak 1s', rotation:3 },
 ];
 
 // Exercise variant rotation: 4 variants per lift (1 per cycle)
@@ -390,12 +393,12 @@ var ROTATIONS = {
   ],
   deadlift: [
     { id:'trap_bar',  name:'Trap Bar Deadlift' },
-    { id:'deficit_dl',name:'Deficit Deadlift' },
+    { id:'block_pull',name:'Block Pull' },
     { id:'pause_dl',  name:'Paused Deadlift' },
     { id:'deadlift',  name:'Deadlift' },
   ],
   ohp: [
-    { id:'push_press', name:'Push Press' },
+    { id:'seated_ohp', name:'Seated Barbell OHP' },
     { id:'z_press',    name:'Z Press' },
     { id:'db_press',   name:'DB Shoulder Press' },
     { id:'ohp',        name:'OHP' },
@@ -413,44 +416,49 @@ var DAY_LABELS = [
 // ALTS: all variants for each lift type + accessories
 var SQ_ALTS = ['SSB Squat','Box Squat','Pause Squat','High Bar Squat','Banded Squat','Back Squat'];
 var BP_ALTS = ['Wide Grip Bench','Close Grip Bench','Pause Bench','Bench Press','Banded Bench','Floor Press','DB Bench Press'];
-var DL_ALTS = ['Trap Bar Deadlift','Deficit Deadlift','Banded Deadlift','Deadlift','Paused Deadlift','Sumo Deadlift'];
-var OH_ALTS = ['Push Press','Seated OHP','Z Press','OHP','DB Shoulder Press','Banded OHP','Pause OHP'];
+var DL_ALTS = ['Trap Bar Deadlift','Block Pull','Banded Deadlift','Deadlift','Paused Deadlift','Sumo Deadlift'];
+var OH_ALTS = ['Seated Barbell OHP','Z Press','OHP','DB Shoulder Press','Viking Press','Pause OHP'];
 
 var ALTS = {
   ssb_squat:SQ_ALTS, box_squat:SQ_ALTS, pause_squat:SQ_ALTS, back_squat:SQ_ALTS,
   close_bench:BP_ALTS, pause_bench:BP_ALTS, banded_bench:BP_ALTS, bench:BP_ALTS,
-  trap_bar:DL_ALTS, deficit_dl:DL_ALTS, pause_dl:DL_ALTS, deadlift:DL_ALTS,
-  push_press:OH_ALTS, z_press:OH_ALTS, db_press:OH_ALTS, ohp:OH_ALTS,
-  boxjump1: ['Box Jump','Broad Jump','Vertical Jump'],
-  legpress: ['Leg Press','Hack Squat','Belt Squat'],
-  legcurl1: ['Leg Curl (Lying)','Leg Curl (Seated)','Nordic Curl'],
-  hlr: ['Hanging Leg Raise','Cable Crunch','Knee Raise'],
-  plyopush: ['Plyo Push-Ups','Clap Push-Ups','Med Ball Chest Throw'],
+  trap_bar:DL_ALTS, block_pull:DL_ALTS, pause_dl:DL_ALTS, deadlift:DL_ALTS,
+  seated_ohp:OH_ALTS, z_press:OH_ALTS, db_press:OH_ALTS, ohp:OH_ALTS,
+  sled1: ['Sled Push','Sled Pull','Prowler Push'],
+  boxjump1: ['Box Jump','Seated Box Jump','Broad Jump'],
+  broadjump: ['Broad Jump','Box Jump','Seated Box Jump'],
+  medbslam: ['Med Ball Slam','Med Ball Chest Throw','Plyo Push-Ups'],
+  plyopush: ['Plyo Push-Ups','Med Ball Chest Throw','Med Ball Slam'],
   pullup1: ['Weighted Pull-Ups','Lat Pulldown','Chin-Ups'],
-  hamfly: ['Hammer Strength Fly','Pec Deck','Cable Fly'],
+  cablefly: ['Cable Fly','Pec Deck','Hammer Strength Fly'],
   cablerow: ['Cable Row','Chest-Supported Row','DB Row','Hammer Strength Row'],
   facepull: ['Face Pulls','Band Pull-Aparts','Reverse Pec Deck'],
-  pendulum: ['Pendulum Squat','Hack Squat','V-Squat'],
-  legext: ['Leg Extension','Sissy Squat','Spanish Squat'],
-  legcurl2: ['Leg Curl (Lying)','Leg Curl (Seated)','Nordic Curl'],
-  ghd_ext: ['GHD Hip Extension','Cable Pull-Through','45-Degree Back Extension','Hip Thrust'],
-  ghdsitup: ['GHD Sit-Ups','Cable Crunch','Decline Sit-Ups'],
-  pullup2: ['Weighted Pull-Ups','Lat Pulldown','Chin-Ups'],
-  sealrow: ['Seal DB Row','Chest-Supported Row','DB Row','Pendlay Row'],
   latraise: ['Cable Lateral Raise','DB Lateral Raise','Machine Lateral Raise'],
-  rearfly: ['Cable Rear Delt Fly','Reverse Pec Deck','Band Pull-Aparts'],
-  hampress: ['Hammer Strength Chest Press','Hammer Strength Incline Press','DB Bench Press'],
-  haminc: ['Hammer Strength Incline Press','Incline DB Press','Incline Smith Press'],
-  preacher: ['Preacher Curl','EZ Bar Curl','Spider Curl'],
-  triext: ['Overhead Tricep Extension','Skull Crushers','French Press'],
-  hammercurl: ['DB Hammer Curl','Cable Hammer Curl','Cross-Body Curl'],
-  pushdown: ['Tricep Pushdown','Cable Kickback','Dips'],
-  latraise2: ['Cable Lateral Raise','DB Lateral Raise','Machine Lateral Raise'],
-  facepull2: ['Face Pulls','Band Pull-Aparts','Reverse Pec Deck'],
+  ezcurl: ['EZ Bar Curl','Barbell Curl','Cable Curl'],
+  pushdown: ['Tricep Pushdown','Cable Kickback','Rope Pushdown'],
+  pendulum: ['Pendulum Squat','Hack Squat','Leg Press','V-Squat'],
+  legcurl1: ['Leg Curl (Lying)','Leg Curl (Seated)','Nordic Curl'],
+  ghd_ext: ['GHD Hip Extension','45-Degree Back Extension','Cable Pull-Through','Hip Thrust'],
   cablecrunch: ['Cable Crunch','Ab Wheel Rollout','Decline Sit-Ups'],
+  chinup1: ['Chin-Ups','Weighted Pull-Ups','Lat Pulldown'],
+  machrow: ['Chest-Supported Machine Row','Hammer Strength Row','Cable Row'],
+  rearfly: ['Cable Rear Delt Fly','Reverse Pec Deck','Band Pull-Aparts'],
+  inccurl: ['Incline DB Curl','EZ Bar Curl','Spider Curl'],
+  triext: ['Overhead Tricep Extension','Skull Crushers','French Press'],
+  hipthrust: ['Hip Thrust','Cable Pull-Through','GHD Hip Extension'],
+  hlr: ['Hanging Leg Raise','Knee Raise','Cable Crunch'],
+  haminc: ['Hammer Strength Incline Press','Incline DB Press','Incline Smith Press'],
+  latpd: ['Lat Pulldown','Neutral Grip Pulldown','Single Arm Pulldown'],
+  cablerow2: ['Cable Seated Row','Hammer Strength Row','Chest-Supported Row'],
+  preacher: ['Preacher Curl','Spider Curl','Machine Curl'],
+  hammercurl: ['DB Hammer Curl','Cable Hammer Curl','Cross-Body Curl'],
+  pushdown2: ['Tricep Pushdown','Rope Pushdown','Cable Kickback'],
+  triext2: ['Overhead Tricep Extension','Skull Crushers','French Press'],
+  latraise2: ['Cable Lateral Raise','DB Lateral Raise','Machine Lateral Raise'],
+  facepull2: ['Face Pulls','Reverse Pec Deck','Band Pull-Aparts'],
 };
 
-var STORAGE_KEY = 'pb12wk_v6';
+var STORAGE_KEY = 'pb12wk_v8';
 
 function round25(kg) { return Math.round(kg / 2.5) * 2.5; }
 
@@ -480,31 +488,38 @@ var PR_NAMES = {};
     ROTATIONS[lift].forEach(function(v) { if (!PR_NAMES[v.id]) PR_NAMES[v.id] = v.name; });
   }
   PR_NAMES['boxjump1'] = 'Box Jump';
+  PR_NAMES['broadjump'] = 'Broad Jump';
   PR_NAMES['fsl_sq'] = 'Squat (FSL)';
   PR_NAMES['fsl_bp'] = 'Bench (FSL)';
   PR_NAMES['fsl_dl'] = 'Deadlift (FSL)';
   PR_NAMES['fsl_oh'] = 'OHP (FSL)';
+  PR_NAMES['pullup1'] = 'Pull-Ups';
+  PR_NAMES['chinup1'] = 'Chin-Ups';
+  PR_NAMES['hipthrust'] = 'Hip Thrust';
 })();
 
 function mainLift(id, name, max1rm, wk) {
   var tmWt = max1rm * wk.tm;
   if (wk.deload) {
-    var w = round25(tmWt * 0.60);
-    return { id:id, name:name, type:'main', eq:'barbell', sets:3, reps:'5', wt:w, notes:'Deload 3x5 @ 60% TM' };
+    // 7th Week Protocol: 70% x5, 80% x3, 90% x1, 100% TM x1
+    var wtArr = [round25(tmWt*0.70), round25(tmWt*0.80), round25(tmWt*0.90), round25(tmWt)];
+    return { id:id, name:name, type:'main', eq:'barbell', sets:4, reps:'5,3,1,1', wt:wtArr, notes:'7th Week Protocol -- TM test' };
   }
   var sets = wk.sets;
   var repsArr = sets.map(function(s) { return s.r; });
   var wtArr = sets.map(function(s) { return round25(tmWt * s.p); });
   var topSet = sets[sets.length-1];
   var topPctOf1rm = Math.round(topSet.p * wk.tm * 100);
-  return { id:id, name:name, type:'main', eq:'barbell', sets:sets.length, reps:repsArr.join(','), wt:wtArr, notes:topSet.r + ' @ ' + topPctOf1rm + '% 1RM' };
+  var phaseNote = wk.phase === 'leader' ? '5s PRO' : (topSet.r.indexOf('+') >= 0 ? 'AMRAP' : '');
+  return { id:id, name:name, type:'main', eq:'barbell', sets:sets.length, reps:repsArr.join(','), wt:wtArr, notes:phaseNote + ' @ ' + topPctOf1rm + '% 1RM' };
 }
 
 function fslLift(fslId, name, max1rm, wk) {
   if (wk.deload) return null;
+  var nSets = wk.fslSets || 3;
   var w = round25(max1rm * wk.tm * wk.sets[0].p);
   var pct = Math.round(wk.sets[0].p * wk.tm * 100);
-  return { id:fslId, name:name + ' (FSL)', type:'supplemental', eq:'barbell', sets:3, reps:'5', wt:w, notes:'First Set Last 3x5 @ ' + pct + '%' };
+  return { id:fslId, name:name + ' (FSL)', type:'supplemental', eq:'barbell', sets:nSets, reps:'5', wt:w, notes:'FSL ' + nSets + 'x5 @ ' + pct + '%' };
 }
 
 function getCurrentVariant(dayIdx, weekIdx) {
@@ -518,74 +533,99 @@ function getCurrentVariant(dayIdx, weekIdx) {
   }
 }
 
+// CNS order: Sled/Warmup -> Plyos -> Main compound -> FSL -> Accessories (pyramid/drop)
+// No supersets. Only drop sets and pyramid sets for intensity techniques.
+// No hang cleans / power cleans. No front squats. No RDLs.
 function getExercises(dayIdx, weekIdx, maxes) {
   var wk = WEEKS[weekIdx];
   var rot = wk.rotation;
+  var dl = wk.deload;
+  var ds = dl ? 2 : null; // deload sets
 
   switch(dayIdx) {
+  // D1 LOWER A -- Squat Focus
   case 0: {
     var sv = ROTATIONS.squat[rot];
     var main = mainLift(sv.id, sv.name, maxes.squat, wk);
     var fsl = fslLift('fsl_sq', sv.name, maxes.squat, wk);
     return [
-      { id:'boxjump1', name:'Box Jump', type:'plyo', eq:'bw', sets:3, reps:'1-2', wt:null, unit:'cm', notes:'Max height, step down' },
+      { id:'sled1', name:'Sled Push', type:'conditioning', eq:'machine', sets:dl?2:3, reps:'20m', wt:null, notes:'GPP warmup -- moderate pace' },
+      { id:'boxjump1', name:'Box Jump', type:'plyo', eq:'bw', sets:dl?2:3, reps:'2', wt:null, unit:'cm', notes:'Max height, step down only. CNS primer.' },
       main,
       fsl,
-      { id:'legcurl1', name:'Leg Curl (Lying)', type:'accessory', eq:'machine', sets:3, reps:'10-12', wt:null, notes:'', ss:'A' },
-      { id:'hlr', name:'Hanging Leg Raise', type:'core', eq:'bw', sets:3, reps:'10-15', wt:null, notes:'', ss:'A' },
+      { id:'pendulum', name:'Pendulum Squat', type:'accessory', eq:'machine', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'legcurl1', name:'Leg Curl (Lying)', type:'accessory', eq:'machine', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set -- strip 25% twice' },
+      { id:'ghd_ext', name:'GHD Hip Extension', type:'accessory', eq:'bw', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- hold plate to add load' },
+      { id:'cablecrunch', name:'Cable Crunch', type:'core', eq:'cable', sets:ds||3, reps:'12-15', wt:null, notes:'' },
     ].filter(function(x) { return x != null; });
   }
+  // D2 UPPER A -- Bench Focus
   case 1: {
     var bv = ROTATIONS.bench[rot];
     var main = mainLift(bv.id, bv.name, maxes.bench, wk);
     var fsl = fslLift('fsl_bp', bv.name, maxes.bench, wk);
     return [
+      { id:'medbslam', name:'Med Ball Slam', type:'plyo', eq:'bw', sets:dl?2:3, reps:'5', wt:null, notes:'Explosive -- full intent. Upper body power.' },
       main,
       fsl,
-      { id:'pullup1', name:'Weighted Pull-Ups', type:'accessory', eq:'bw+', sets:4, reps:'5-8', wt:null, notes:'Log added weight' },
-      { id:'hamfly', name:'Hammer Strength Fly', type:'accessory', eq:'machine', sets:3, reps:'10-15', wt:null, notes:'', ss:'A' },
-      { id:'cablerow', name:'Cable Row', type:'accessory', eq:'cable', sets:3, reps:'8-12', wt:null, notes:'', ss:'A' },
-      { id:'facepull', name:'Face Pulls', type:'accessory', eq:'cable', sets:3, reps:'15', wt:null, notes:'Shoulder health' },
+      { id:'pullup1', name:'Weighted Pull-Ups', type:'accessory', eq:'bw+', sets:ds||3, reps:'8, 6, 5', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'cablefly', name:'Cable Fly', type:'accessory', eq:'cable', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set' },
+      { id:'cablerow', name:'Cable Row', type:'accessory', eq:'cable', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'latraise', name:'Cable Lateral Raise', type:'accessory', eq:'cable', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set' },
+      { id:'ezcurl', name:'EZ Bar Curl', type:'accessory', eq:'barbell', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'pushdown', name:'Tricep Pushdown', type:'accessory', eq:'cable', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set' },
     ].filter(function(x) { return x != null; });
   }
+  // D3 LOWER B -- Deadlift Focus
   case 2: {
     var dv = ROTATIONS.deadlift[rot];
     var main = mainLift(dv.id, dv.name, maxes.deadlift, wk);
     var fsl = fslLift('fsl_dl', dv.name, maxes.deadlift, wk);
     return [
+      { id:'sled1', name:'Sled Pull', type:'conditioning', eq:'machine', sets:dl?2:3, reps:'20m', wt:null, notes:'GPP warmup -- hand-over-hand or harness' },
+      { id:'broadjump', name:'Broad Jump', type:'plyo', eq:'bw', sets:dl?2:3, reps:'2', wt:null, notes:'Max distance, soft landing, reset each rep' },
       main,
       fsl,
-      { id:'pendulum', name:'Pendulum Squat', type:'accessory', eq:'machine', sets:3, reps:'10-12', wt:null, notes:'' },
-      { id:'legext', name:'Leg Extension', type:'accessory', eq:'machine', sets:3, reps:'12-15', wt:null, notes:'Keep light for knees', ss:'A' },
-      { id:'legcurl2', name:'Leg Curl (Lying)', type:'accessory', eq:'machine', sets:3, reps:'10-12', wt:null, notes:'', ss:'A' },
-      { id:'ghd_ext', name:'GHD Hip Extension', type:'accessory', eq:'bw', sets:3, reps:'10-12', wt:null, notes:'', ss:'B' },
-      { id:'ghdsitup', name:'GHD Sit-Ups', type:'core', eq:'bw', sets:3, reps:'12-15', wt:null, notes:'', ss:'B' },
+      { id:'pendulum', name:'Pendulum Squat', type:'accessory', eq:'machine', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'hipthrust', name:'Hip Thrust', type:'accessory', eq:'barbell', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- direct glute work' },
+      { id:'legcurl1', name:'Leg Curl (Lying)', type:'accessory', eq:'machine', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set' },
+      { id:'hlr', name:'Hanging Leg Raise', type:'core', eq:'bw', sets:ds||3, reps:'10-15', wt:null, notes:'' },
     ].filter(function(x) { return x != null; });
   }
+  // D4 UPPER B -- OHP Focus
   case 3: {
     var ov = ROTATIONS.ohp[rot];
     var main = mainLift(ov.id, ov.name, maxes.ohp, wk);
     var fsl = fslLift('fsl_oh', ov.name, maxes.ohp, wk);
     return [
+      { id:'plyopush', name:'Plyo Push-Ups', type:'plyo', eq:'bw', sets:dl?2:3, reps:'3', wt:null, notes:'Explosive -- max hand height. Upper body power.' },
       main,
       fsl,
-      { id:'pullup2', name:'Weighted Pull-Ups', type:'accessory', eq:'bw+', sets:3, reps:'6-10', wt:null, notes:'Log added weight' },
-      { id:'sealrow', name:'Seal DB Row', type:'accessory', eq:'dumbbell', sets:3, reps:'8-10', wt:null, notes:'Per hand, chest-supported' },
-      { id:'latraise', name:'Cable Lateral Raise', type:'accessory', eq:'cable', sets:3, reps:'12-15', wt:null, notes:'', ss:'A' },
-      { id:'rearfly', name:'Cable Rear Delt Fly', type:'accessory', eq:'cable', sets:3, reps:'12-15', wt:null, notes:'', ss:'A' },
+      { id:'chinup1', name:'Chin-Ups', type:'accessory', eq:'bw+', sets:ds||3, reps:'8, 6, 5', wt:null, notes:'Pyramid (supinated grip) -- add weight each set' },
+      { id:'machrow', name:'Chest-Supported Machine Row', type:'accessory', eq:'machine', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'rearfly', name:'Cable Rear Delt Fly', type:'accessory', eq:'cable', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set' },
+      { id:'latraise', name:'Cable Lateral Raise', type:'accessory', eq:'cable', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set' },
+      { id:'inccurl', name:'Incline DB Curl', type:'accessory', eq:'dumbbell', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'triext', name:'Overhead Tricep Extension', type:'accessory', eq:'cable', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set' },
     ].filter(function(x) { return x != null; });
   }
-  case 4:
+  // D5 ACCESSORIES / PUMP -- all machines/cables, drop + pyramid sets
+  case 4: {
     return [
-      { id:'hampress', name:'Hammer Strength Chest Press', type:'accessory', eq:'machine', sets:3, reps:'10-12', wt:null, notes:'' },
-      { id:'haminc', name:'Hammer Strength Incline Press', type:'accessory', eq:'machine', sets:3, reps:'10-12', wt:null, notes:'' },
-      { id:'preacher', name:'Preacher Curl', type:'accessory', eq:'machine', sets:3, reps:'10-12', wt:null, notes:'', ss:'A' },
-      { id:'triext', name:'Overhead Tricep Extension', type:'accessory', eq:'cable', sets:3, reps:'10-12', wt:null, notes:'', ss:'A' },
-      { id:'hammercurl', name:'DB Hammer Curl', type:'accessory', eq:'dumbbell', sets:3, reps:'12-15', wt:null, notes:'' },
-      { id:'latraise2', name:'Cable Lateral Raise', type:'accessory', eq:'cable', sets:3, reps:'15-20', wt:null, notes:'', ss:'C' },
-      { id:'facepull2', name:'Face Pulls', type:'accessory', eq:'cable', sets:3, reps:'15-20', wt:null, notes:'', ss:'C' },
-      { id:'cablecrunch', name:'Cable Crunch', type:'core', eq:'cable', sets:3, reps:'12-15', wt:null, notes:'' },
+      { id:'sled1', name:'Sled Push', type:'conditioning', eq:'machine', sets:3, reps:'20m', wt:null, notes:'Conditioning -- harder pace than lower days' },
+      { id:'haminc', name:'Hammer Strength Incline Press', type:'accessory', eq:'machine', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'cablefly', name:'Cable Fly', type:'accessory', eq:'cable', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set' },
+      { id:'latpd', name:'Lat Pulldown', type:'accessory', eq:'cable', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'cablerow2', name:'Cable Seated Row', type:'accessory', eq:'cable', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set' },
+      { id:'preacher', name:'Preacher Curl', type:'accessory', eq:'machine', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'hammercurl', name:'DB Hammer Curl', type:'accessory', eq:'dumbbell', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set -- use 3 pairs of DBs' },
+      { id:'pushdown2', name:'Tricep Pushdown', type:'accessory', eq:'cable', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'triext2', name:'Overhead Tricep Extension', type:'accessory', eq:'cable', sets:1, reps:'10+8+8', wt:null, notes:'Triple drop set' },
+      { id:'latraise2', name:'Cable Lateral Raise', type:'accessory', eq:'cable', sets:ds||3, reps:'12, 10, 8', wt:null, notes:'Pyramid -- add weight each set' },
+      { id:'facepull2', name:'Face Pulls', type:'accessory', eq:'cable', sets:ds||3, reps:'15', wt:null, notes:'Shoulder health' },
+      { id:'hlr', name:'Hanging Leg Raise', type:'core', eq:'bw', sets:ds||3, reps:'10-15', wt:null, notes:'' },
     ];
+  }
   }
   return [];
 }
@@ -632,9 +672,12 @@ function playBeep() {
 function getRestSec(ex) {
   if (ex.type === 'main') return 180;
   if (ex.type === 'supplemental') return 120;
-  if (ex.ss) return 60;
+  if (ex.type === 'plyo') return 60;
+  if (ex.type === 'conditioning') return 45;
   if (ex.eq === 'bw+') return 120;
-  if (['pendulum','sealrow','ghd_ext'].indexOf(ex.id) >= 0) return 90;
+  if (['pendulum','machrow','ghd_ext','hipthrust'].indexOf(ex.id) >= 0) return 90;
+  // Drop sets: no rest needed (it's one continuous set), but give 60s after
+  if (ex.reps && ex.reps.indexOf('+') >= 0 && ex.sets === 1) return 60;
   return 75;
 }
 function fmtTime(s) { return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
@@ -728,7 +771,8 @@ function render() {
   if (variant) {
     h += '<span>' + variant + '</span>';
   }
-  h += '<span>Cycle ' + (wk.rotation + 1) + '</span>';
+  var phaseLabel = wk.phase === 'leader' ? 'LEADER' : (wk.phase === 'anchor' ? 'ANCHOR' : 'DELOAD');
+  h += '<span>' + phaseLabel + '</span>';
   h += '<span class="block-week">Week ' + (state.week+1) + ' / ' + WEEKS.length + '</span>\n  </div>';
 
   h += '<div class="week-bar">';
@@ -750,11 +794,11 @@ function render() {
   h += '<div class="progress-wrap">\n    <div class="progress-track"><div class="progress-fill" id="pFill" style="width:' + pct + '%"></div></div>\n    <span class="progress-text" id="pText">' + doneSets + '/' + totalSets + ' sets</span>\n  </div>';
 
   var restMap = {
-    0: 'Rest: 3 min (squat) / 2 min (FSL) / 60s (SS)',
-    1: 'Rest: 3 min (bench) / 2 min (FSL/pull-ups) / 75s (accessories) / 60s (SS/face pulls)',
-    2: 'Rest: 3 min (deadlift) / 2 min (FSL) / 90s (pendulum) / 60s (SS)',
-    3: 'Rest: 3 min (OHP) / 2 min (FSL/pull-ups) / 90s (rows) / 60s (SS)',
-    4: 'Rest: 60-75s (isolation) / 60s (SS)',
+    0: 'Rest: 3 min (squat) / 2 min (FSL) / 90s (pyramid) / 60s (drop set/plyo)',
+    1: 'Rest: 3 min (bench) / 2 min (FSL/pull-ups) / 75s (pyramid) / 60s (drop set/plyo)',
+    2: 'Rest: 3 min (deadlift) / 2 min (FSL) / 90s (pyramid) / 60s (drop set/plyo)',
+    3: 'Rest: 3 min (OHP) / 2 min (FSL/chin-ups) / 90s (pyramid) / 60s (drop set/plyo)',
+    4: 'Rest: 75s (pyramid) / 60s (drop set) / 45s (sled)',
   };
   h += '<div class="rest-info">' + restMap[state.day] + '</div>';
 
@@ -871,7 +915,7 @@ function render() {
   h += '</div>';
 
   // Notes
-  h += '<div class="notes-section">\n    <button class="notes-toggle" data-action="toggleNotes">\n      <span>Notes + Injury Management</span><span id="notesArrow">V</span>\n    </button>\n    <div class="notes-content" id="notesContent">\n      <h3>Wendler 5/3/1</h3>\n      3 working sets per main lift. Each 3-week cycle: 5s week (65/75/85% TM), 3s week (70/80/90% TM), 1s week (75/85/95% TM). Training Max escalates per cycle: 85% &rarr; 87.5% &rarr; 90% &rarr; 92.5% of 1RM. Week 7 is a deload (3x5 @ 60% TM).\n      <h3>First Set Last (FSL)</h3>\n      After the 3 main sets, do 3x5 at the first working set weight. Builds volume on the main lift pattern without excessive fatigue. Skipped on deload weeks.\n      <h3>AMRAP</h3>\n      Last set each workout is As Many Reps As Possible (marked +). Hit the minimum, then keep going. Log actual reps achieved.\n      <h3>Conjugate Rotation</h3>\n      Exercise variants rotate every 3-week cycle (4 rotations across 12 weeks). Cycle 4 uses competition lifts for the peak. All variants swappable via dropdown.\n      <h3>Patellar Tendonitis</h3>\n      Box squats and pause squats are knee-friendly variants. Leg extensions kept light. Box jumps on D1 only, always step down.\n      <h3>Lower Back</h3>\n      No RDLs. GHD hip extensions used instead. Trap bar deadlift available as a reduced-stress variant.\n      <h3>Progression (Accessories)</h3>\n      Double progression: hit top of rep range for all sets, then add 2.5kg (upper) or 5kg (lower).\n      <h3>Week 12 -- Test Option</h3>\n      Option A: Heavy singles as prescribed. Option B: Work up to new 1RM.<br>\n      Warm-up: Bar x10, 40% x5, 60% x3, 75% x2, 85% x1, 92.5% x1, then attempt.\n    </div>\n  </div>';
+  h += '<div class="notes-section">\n    <button class="notes-toggle" data-action="toggleNotes">\n      <span>Notes + Injury Management</span><span id="notesArrow">V</span>\n    </button>\n    <div class="notes-content" id="notesContent">\n      <h3>Leader / Anchor (Wendler Forever)</h3>\n      Weeks 1-6 (Leaders): 5s PRO -- all working sets for 5 reps, no AMRAP. Higher supplemental volume (FSL 5x5). Builds base.\n      Weeks 8-12 (Anchors): Standard 5/3/1 with AMRAP top set (+). Lower supplemental (FSL 3x5). Express strength.\n      Week 7: 7th Week Protocol -- TM test (70% x5, 80% x3, 90% x1, 100% TM x1). If TM single grinds, reduce 1RM by 5%.\n      <h3>CNS Load Order</h3>\n      Every session follows: Sled warmup / Plyos (power, fresh CNS) &rarr; Main compound (strength) &rarr; FSL (volume) &rarr; Accessories (hypertrophy, pyramid/drop sets).\n      <h3>Pyramid Sets</h3>\n      Ascending load: 12 reps (light) &rarr; 10 reps (medium) &rarr; 8 reps (heavy). Add weight each set. Log the weight used per set.\n      <h3>Drop Sets</h3>\n      One continuous set: ~10 reps at working weight, strip 25%, ~8 reps, strip 25%, ~8 reps. Machines/cables only. Log total reps.\n      <h3>Plyometrics</h3>\n      D1: Box jumps (max height, step down). D2: Med ball slams. D3: Broad jumps. D4: Plyo push-ups. Low volume, max intent.\n      <h3>Sled Work</h3>\n      Start of every lower day + D5. GPP, conditioning, blood flow. Moderate load, not a max effort.\n      <h3>Patellar Tendonitis</h3>\n      No front squats. No rebound plyos -- step down only. Leg ext removed. Box squats (vertical shins) preferred. Sled push is default single-leg work.\n      <h3>Lower Back</h3>\n      No RDLs. No deficit deadlifts -- block pull used instead. GHD hip extensions for posterior chain. No hang cleans.\n      <h3>Week 12 -- Test Option</h3>\n      1s week at TM 92.5%: prescribed 95% TM x1+. Option to attempt new 1RM after AMRAP if 3+ reps achieved.\n    </div>\n  </div>';
 
   // Settings modal
   if (state.showSettings) {

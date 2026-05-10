@@ -1,5 +1,19 @@
 # Changelog
 
+## [2026-05-10b] -- weakpoint patches
+### What changed
+- Wk1 of every cycle is now 5/5/5 (no AMRAP) -- Leader-style fatigue management. AMRAP only on Wk2 (3+) and Wk3 (1+)
+- D1 leg extension dropped from 3 sets to 2 (patellar quad volume cap: 17 -> 14)
+- D2 added Incline DB Press 3x8-10 as 4th accessory (chest volume 11 -> 14)
+- D5 swapped Cable Lateral Raise for Cable Rear Delt Fly (rear delt + upper back volume up; side delt unaffected, still hit on D2 + D4)
+- New AMRAP -> 1RM bump suggestion: when an AMRAP top set is logged with reps that imply a higher 1RM (Epley), the app surfaces a banner with the new estimate and an "Update 1RM" button. Confirms before writing to maxes.
+- Notes section updated to reflect Wk1 no-AMRAP and the 1RM auto-suggest behaviour
+- Storage key unchanged (pb12wk_v10) -- no schema change to logged data
+
+### Why
+- Self-audit identified weak points: quad volume slightly over patellar cap, chest borderline, AMRAP every working week compounds CNS fatigue for advanced lifter, manual TM/1RM bumps easy to miss
+- These 4 patches address the highest-value items without restructuring the program
+
 ## [2026-05-10]
 ### What changed
 - Replaced Wendler Forever Leader/Anchor + conjugate program with simple Wendler 5/3/1 + FSL 5x5

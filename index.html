@@ -410,8 +410,8 @@ var DAY_LABELS = [
   { short:'D1', name:'Squat' },
   { short:'D2', name:'Upper A' },
   { short:'D3', name:'Deadlift' },
-  { short:'D4', name:'Upper B' },
-  { short:'D5', name:'Pump' },
+  { short:'D4', name:'Pump' },
+  { short:'D5', name:'Upper B' },
 ];
 
 // Swap menus
@@ -575,8 +575,23 @@ function getExercises(dayIdx, weekIdx, maxes) {
     ];
   }
 
-  // D4 UPPER B -- heavy OHP 5x5 + incline DB + pull volume
+  // D4 PUMP -- weak-point day: rear delts, side delts, arms (no barbell main, no
+  // duplicate pressing -- that work lives on D2/D5). Sits between deadlift and OHP.
   case 3: {
+    return [
+      { id:'bandpa', name:'Band Pull-Apart', type:'primer', eq:'bw', sets:2, reps:'15', wt:null, notes:'Primer -- scap / RC activation' },
+      { id:'rearfly', name:'Cable Rear Delt Fly', type:'accessory', eq:'cable', sets:dl?2:4, reps:'12-15', wt:null, notes:'Rear delts -- lagging muscle, prioritized first' + dlNote },
+      { id:'latraise', name:'DB Lateral Raise', type:'accessory', eq:'dumbbell', sets:dl?2:4, reps:'12-15', wt:null, notes:'Side delts -- high volume to reach MAV' + dlNote },
+      { id:'latpd', name:'Lat Pulldown', type:'accessory', eq:'cable', sets:ds, reps:'10-12', wt:null, notes:'Vertical pull -- lats / upper back' + dlNote },
+      { id:'csrow', name:'Chest-Supported Row', type:'accessory', eq:'machine', sets:ds, reps:'10-12', wt:null, notes:'Horizontal pull -- mid-back, rear delt' + dlNote },
+      { id:'ezcurl_pd', name:'EZ Curl', type:'accessory', eq:'barbell', sets:ds, reps:'12-15', wt:null, ss:'A', notes:'Superset with pushdown -- arm frequency' + dlNote },
+      { id:'pushdown_pd', name:'Tricep Pushdown', type:'accessory', eq:'cable', sets:ds, reps:'12-15', wt:null, ss:'A', notes:'Superset with curl' + dlNote },
+      { id:'cablecrunch', name:'Cable Crunch', type:'core', eq:'cable', sets:ds, reps:'12-15', wt:null, notes:'' },
+    ];
+  }
+
+  // D5 UPPER B -- heavy OHP 5x5 + incline DB + pull volume (last upper day of week)
+  case 4: {
     return [
       { id:'facepull', name:'Face Pull', type:'primer', eq:'cable', sets:2, reps:'15', wt:null, notes:'Primer -- light cable, rear delt / RC' },
       mainLift('ohp', weekIdx, maxes, { note:'Fixed 5x5' }),
@@ -586,22 +601,6 @@ function getExercises(dayIdx, weekIdx, maxes) {
       { id:'latraise', name:'DB Lateral Raise', type:'accessory', eq:'dumbbell', sets:ds, reps:'12-15', wt:null, notes:'RPE 8 -- side delts' + dlNote },
       { id:'ezcurl_pd', name:'EZ Curl', type:'accessory', eq:'barbell', sets:ds, reps:'10-12', wt:null, ss:'A', notes:'Superset with pushdown' + dlNote },
       { id:'pushdown_pd', name:'Tricep Pushdown', type:'accessory', eq:'cable', sets:ds, reps:'10-12', wt:null, ss:'A', notes:'Superset with curl' + dlNote },
-      { id:'cablecrunch', name:'Cable Crunch', type:'core', eq:'cable', sets:ds, reps:'12-15', wt:null, notes:'' },
-    ];
-  }
-
-  // D5 PUMP -- no barbell main; dumbbell + cable hypertrophy (chest, shoulders, arms)
-  case 4: {
-    return [
-      { id:'bandpa', name:'Band Pull-Apart', type:'primer', eq:'bw', sets:2, reps:'15', wt:null, notes:'Primer -- scap / RC activation' },
-      { id:'inclinedb', name:'Incline DB Press', type:'accessory', eq:'dumbbell', sets:ds, reps:'10-12', wt:null, notes:'RPE 8 -- upper chest, higher rep' + dlNote },
-      { id:'db_ohp', name:'Seated DB Shoulder Press', type:'accessory', eq:'dumbbell', sets:ds, reps:'10-12', wt:null, notes:'RPE 8 -- delts, higher rep' + dlNote },
-      { id:'latpd', name:'Lat Pulldown', type:'accessory', eq:'cable', sets:ds, reps:'10-12', wt:null, notes:'Vertical pull -- balances pressing volume' + dlNote },
-      { id:'csrow', name:'Chest-Supported Row', type:'accessory', eq:'machine', sets:ds, reps:'10-12', wt:null, notes:'Horizontal pull -- mid-back' + dlNote },
-      { id:'latraise', name:'DB Lateral Raise', type:'accessory', eq:'dumbbell', sets:dl?2:3, reps:'12-15', wt:null, notes:'RPE 8 -- side delts' + dlNote },
-      { id:'rearfly', name:'Cable Rear Delt Fly', type:'accessory', eq:'cable', sets:ds, reps:'12-15', wt:null, notes:'Rear delts + upper back' + dlNote },
-      { id:'ezcurl_pd', name:'EZ Curl', type:'accessory', eq:'barbell', sets:ds, reps:'12-15', wt:null, ss:'A', notes:'Superset with pushdown' + dlNote },
-      { id:'pushdown_pd', name:'Tricep Pushdown', type:'accessory', eq:'cable', sets:ds, reps:'12-15', wt:null, ss:'A', notes:'Superset with curl' + dlNote },
       { id:'cablecrunch', name:'Cable Crunch', type:'core', eq:'cable', sets:ds, reps:'12-15', wt:null, notes:'' },
     ];
   }
@@ -777,8 +776,8 @@ function render() {
     0: 'Rest: 3 min (squat 5x5) / 90s (BSS) / 75s (leg curl, core)',
     1: 'Rest: 3 min (bench 5x5) / 90s (DB shoulder press, DB row) / 75s (fly, lateral, core)',
     2: 'Rest: 3 min (deadlift 5x3) / 90s (FFESS, GHD med) / 75s (leg curl, core)',
-    3: 'Rest: 3 min (OHP 5x5) / 90s (incline DB, seal row) / 2 min (pull-up) / 60s (curl/pushdown SS) / 75s (core)',
-    4: 'Rest: 75s (all pump work) / 60s (curl/pushdown SS) -- keep it moving, chase the pump',
+    3: 'Rest: 75s (delts, rows) / 60s (curl/pushdown SS) -- keep it moving, chase the pump',
+    4: 'Rest: 3 min (OHP 5x5) / 90s (incline DB, seal row) / 2 min (pull-up) / 60s (curl/pushdown SS) / 75s (core)',
   };
   h += '<div class="rest-info">' + restMap[state.day] + '</div>';
 
@@ -922,7 +921,7 @@ function render() {
   h += '</div>';
 
   // Notes
-  h += '<div class="notes-section">\n    <button class="notes-toggle" data-action="toggleNotes">\n      <span>Notes + Injury Management</span><span id="notesArrow">V</span>\n    </button>\n    <div class="notes-content" id="notesContent">\n      <h3>5x5 Structure</h3>\n      12 weeks = 2 blocks &times; 5 training weeks + a deload (weeks 6 and 12). Main lifts run a flat 5&times;5 at a fixed working weight each week -- no AMRAP, no ramp, no max-outs. Working weight = 1RM &times; start% + weekly increment. Deload weeks: 3&times;5 @ 60% 1RM.\n      <h3>Weekly Progression</h3>\n      Each block is a self-contained 5-week wave: weight starts ~75% of 1RM and climbs +5kg/week (squat &amp; deadlift) / +2.5kg/week (bench &amp; OHP) to ~86%, then deloads. Block 2 resets and starts one step heavier than Block 1. Weight never climbs into un-hittable territory. The 1RMs in settings drive every working weight -- update them to recompute the whole plan.\n      <h3>5-Day Split</h3>\n      D1 Squat (squat 5x5 + quad/ham accessories), D2 Upper A (bench 5x5 + DB shoulder press + back/delts), D3 Deadlift (deadlift 5x3 + posterior chain), D4 Upper B (OHP 5x5 + incline DB + pull/arms), D5 Pump (no barbell -- DB + cable chest/shoulders/arms). Squat and deadlift never share a day. Barbell bench &amp; OHP each pressed heavy 1&times;/week (5x5); every other pressing exposure is dumbbell for variety and joint-friendly volume.\n      <h3>Deadlift &amp; Squat Separate</h3>\n      Deadlift gets its own day (5&times;3, lower-rep/heavier to spare the back) -- squatting and deadlifting heavy in the same session is excessive lower-back and recovery load. Posterior chain volume comes from GHD back ext + med ball on deadlift day.\n      <h3>Stall &rarr; Deload</h3>\n      Log your actual reps. If you miss the target reps on a main barbell lift three training weeks in a row, the app surfaces a banner to cut that 1RM by 10% (which recomputes its working weights). Run linear progression until you stall, then deload.\n      <h3>Patellar Tendonitis</h3>\n      No front squats, no rebound plyos. Squat is one heavy day only; Bulgarian + FFE split squats are the unilateral quad work.\n      <h3>Lower Back</h3>\n      No RDLs, no deficit pulls. Deadlift on its own day at 5x3; GHD back ext + med ball covers the hip hinge with minimal lumbar flexion.\n      <h3>Previous Week</h3>\n      Inputs pre-fill with the previous week logged value (in orange). Adjust if you progressed; otherwise log as is. The "wkN: Xkg x R" label shows which week the prefill came from.\n    </div>\n  </div>';
+  h += '<div class="notes-section">\n    <button class="notes-toggle" data-action="toggleNotes">\n      <span>Notes + Injury Management</span><span id="notesArrow">V</span>\n    </button>\n    <div class="notes-content" id="notesContent">\n      <h3>5x5 Structure</h3>\n      12 weeks = 2 blocks &times; 5 training weeks + a deload (weeks 6 and 12). Main lifts run a flat 5&times;5 at a fixed working weight each week -- no AMRAP, no ramp, no max-outs. Working weight = 1RM &times; start% + weekly increment. Deload weeks: 3&times;5 @ 60% 1RM.\n      <h3>Weekly Progression</h3>\n      Each block is a self-contained 5-week wave: weight starts ~75% of 1RM and climbs +5kg/week (squat &amp; deadlift) / +2.5kg/week (bench &amp; OHP) to ~86%, then deloads. Block 2 resets and starts one step heavier than Block 1. Weight never climbs into un-hittable territory. The 1RMs in settings drive every working weight -- update them to recompute the whole plan.\n      <h3>5-Day Split</h3>\n      D1 Squat (squat 5x5 + quad/ham accessories), D2 Upper A (bench 5x5 + DB shoulder press + back/delts), D3 Deadlift (deadlift 5x3 + posterior chain), D4 Pump (no barbell -- rear/side delts, arms, pulls -- weak-point day), D5 Upper B (OHP 5x5 + incline DB + pull/arms). Squat and deadlift never share a day. Order keeps the two barbell-press days (D2 bench, D5 OHP) non-adjacent, with the Pump day sitting between deadlift and OHP so no muscle is hammered on back-to-back days. Barbell bench &amp; OHP each pressed heavy 1&times;/week (5x5); every other pressing exposure is dumbbell.\n      <h3>Deadlift &amp; Squat Separate</h3>\n      Deadlift gets its own day (5&times;3, lower-rep/heavier to spare the back) -- squatting and deadlifting heavy in the same session is excessive lower-back and recovery load. Posterior chain volume comes from GHD back ext + med ball on deadlift day.\n      <h3>Stall &rarr; Deload</h3>\n      Log your actual reps. If you miss the target reps on a main barbell lift three training weeks in a row, the app surfaces a banner to cut that 1RM by 10% (which recomputes its working weights). Run linear progression until you stall, then deload.\n      <h3>Patellar Tendonitis</h3>\n      No front squats, no rebound plyos. Squat is one heavy day only; Bulgarian + FFE split squats are the unilateral quad work.\n      <h3>Lower Back</h3>\n      No RDLs, no deficit pulls. Deadlift on its own day at 5x3; GHD back ext + med ball covers the hip hinge with minimal lumbar flexion.\n      <h3>Previous Week</h3>\n      Inputs pre-fill with the previous week logged value (in orange). Adjust if you progressed; otherwise log as is. The "wkN: Xkg x R" label shows which week the prefill came from.\n    </div>\n  </div>';
 
   // Settings modal
   if (state.showSettings) {

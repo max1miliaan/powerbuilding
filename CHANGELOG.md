@@ -1,5 +1,26 @@
 # Changelog
 
+## [2026-05-31e] -- D5 rebuild + week reorder (expert-panel HIGH)
+
+### What changed
+- Reordered the 5-day split so the two barbell-press days are non-adjacent: Squat / Upper A (bench) / Deadlift / Pump / Upper B (OHP). Pump now sits at index 3 (between deadlift and OHP), Upper B/OHP at index 4
+- Rebuilt the Pump day from a redundant "Upper C" (it duplicated 6-7 of the OHP day's movements) into a weak-point day: Band Pull-Apart, Cable Rear Delt Fly 4x12-15, DB Lateral Raise 4x12-15, Lat Pulldown 3, Chest-Supported Row 3, EZ Curl SS Tricep Pushdown 3, Cable Crunch 3
+- Cut from Pump: Incline DB Press + Seated DB Shoulder Press (both duplicated other days); kept one vertical + one horizontal pull; bumped rear delts and side delts to 4 sets each
+- Updated DAY_LABELS, restMap, and the notes section to the new order
+
+### Why
+- A 4-agent expert review (strength / hypertrophy / physio / recovery) reached consensus on two HIGH items: (1) the Pump day was largely a fatigued-state copy of the OHP day -- junk volume; (2) front delts and triceps were trained 4 of 5 days with the Pump day landing immediately after the heavy OHP day
+- Reordering removes the back-to-back press stacking; rebuilding Pump fixes the rear-delt deficit (was 3 sets, below MEV) and stops the duplication
+
+### Result (weekly working sets)
+- Rear delts 3 -> ~5, side delts ~9 -> ~10, chest ~17 -> ~11 (removed duplicate Pump pressing), back ~22, push:pull ~1:1
+- No muscle group trained on consecutive days; both barbell-press days have 2+ days between them
+
+### Deferred (from the same review, not in this change)
+- Intensity curve top weeks still reach 86-91% 1RM (5x5 ceiling ~83%) -- recommend cutting lower-body increment +5->+2.5kg/wk
+- Anti-flexion core swap (cable crunch -> McGill big-3) for the lower-back history
+- Calves (currently 0), patellar isometrics, one of BSS/FFESS to cut knee volume
+
 ## [2026-05-31d] -- push/pull balance (red-team HIGH)
 
 ### What changed

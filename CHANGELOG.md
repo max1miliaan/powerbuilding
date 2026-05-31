@@ -1,5 +1,23 @@
 # Changelog
 
+## [2026-05-31d] -- push/pull balance (red-team HIGH)
+
+### What changed
+- Added back volume to fix the ~2:1 push:pull imbalance flagged in the red-team audit
+- D1 Squat: added Lat Pulldown (vertical pull)
+- D3 Deadlift: added Chest-Supported Row (horizontal pull, no lumbar load)
+- D5 Pump: dropped Cable Fly (chest was over-covered at 3x/week), added Lat Pulldown + Chest-Supported Row; trimmed DB Lateral Raise from 4 sets to 3
+- New accessory IDs `latpd` (Lat Pulldown) and `csrow` (Chest-Supported Row) with ALTS + PR_NAMES entries
+
+### Why
+- Audit found push ~34 sets vs pull ~19 (nearly 2:1); D5 was 100% push with zero back work; vertical pulling was only 4 sets/week
+- Imbalance is a posture / shoulder-health risk over a 12-week block
+
+### Result (weekly working sets)
+- Chest 17, back (rows+verticals) 22, rear delt 3, side delt 9
+- Push:pull now ~1.2:1 (with rear delts ~1.1:1); back now exceeds chest
+- Verticals 10 (pull-up + lat pulldown), horizontals 12 (DB row + seal row + chest-supp row)
+
 ## [2026-05-31c] -- progression curve fix (red-team CRITICAL)
 
 ### What changed

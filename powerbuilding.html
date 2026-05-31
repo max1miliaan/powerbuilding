@@ -434,6 +434,8 @@ var ALTS = {
   ghd_med:   ['GHD Back Ext + Med Ball','GHD Back Ext (weighted)','45-Deg Back Ext + Plate'],
   // Upper accessories
   dbrow:     ['DB Row','Chest-Supported Row','Cable Row','Hammer Strength Row'],
+  latpd:     ['Lat Pulldown','Pull-Up','Neutral-Grip Pulldown','Assisted Pull-Up'],
+  csrow:     ['Chest-Supported Row','Seal Row (DB)','Cable Row','Hammer Strength Row'],
   cablefly:  ['Cable Fly','Pec Deck','DB Fly'],
   latraise:  ['DB Lateral Raise','Cable Lateral Raise','Machine Lateral Raise'],
   inclinedb: ['Incline DB Press','Hammer Strength Incline','Incline Smith Press','DB Bench Press'],
@@ -478,6 +480,7 @@ var PR_NAMES = {
   wpullup:'Weighted Pull-Up',
   bss:'Bulgarian Split Squat', ffess:'FFE Split Squat',
   dbrow:'DB Row', sealrow:'Seal Row', cablefly:'Cable Fly', latraise:'DB Lateral Raise',
+  latpd:'Lat Pulldown', csrow:'Chest-Supported Row',
   legcurl:'Seated Leg Curl', ghd_med:'GHD + Med Ball',
   ezcurl_pd:'EZ Curl', pushdown_pd:'Tricep Pushdown',
   hlr:'Hanging Leg Raise', cablecrunch:'Cable Crunch', inclinedb:'Incline DB Press',
@@ -542,6 +545,7 @@ function getExercises(dayIdx, weekIdx, maxes) {
       mainLift('squat', weekIdx, maxes, { note:'Fixed 5x5' }),
       { id:'bss', name:'Bulgarian Split Squat', type:'accessory', eq:'dumbbell', sets:ds, reps:'8-10 /leg', wt:null, notes:'RPE 8 -- knee-friendly quad' + dlNote },
       { id:'legcurl', name:'Seated Leg Curl', type:'accessory', eq:'machine', sets:ds, reps:'10-12', wt:null, notes:'Hams -- slow eccentric' + dlNote },
+      { id:'latpd', name:'Lat Pulldown', type:'accessory', eq:'cable', sets:ds, reps:'8-12', wt:null, notes:'Vertical pull -- lats / upper back' + dlNote },
       { id:'hlr', name:'Hanging Leg Raise', type:'core', eq:'bw', sets:ds, reps:'10-15', wt:null, notes:'' },
     ];
   }
@@ -566,7 +570,7 @@ function getExercises(dayIdx, weekIdx, maxes) {
       mainLift('deadlift', weekIdx, maxes, { sets:5, reps:'3', note:'Fixed 5x3 -- lower rep, heavier; spares the back vs 5x5' }),
       { id:'ffess', name:'Front Foot Elevated Split Squat', type:'accessory', eq:'dumbbell', sets:ds, reps:'8-10 /leg', wt:null, notes:'RPE 8 -- knee-friendly quad/glute' + dlNote },
       { id:'ghd_med', name:'GHD Back Ext + Med Ball', type:'accessory', eq:'bw+', sets:ds, reps:'10-12', wt:null, notes:'Posterior chain -- back-safe hinge (no RDL)' + dlNote },
-      { id:'legcurl', name:'Seated Leg Curl', type:'accessory', eq:'machine', sets:ds, reps:'10-12', wt:null, notes:'Hams -- slow eccentric' + dlNote },
+      { id:'csrow', name:'Chest-Supported Row', type:'accessory', eq:'machine', sets:ds, reps:'8-12', wt:null, notes:'Horizontal pull -- mid-back, no lumbar load' + dlNote },
       { id:'hlr', name:'Hanging Leg Raise', type:'core', eq:'bw', sets:ds, reps:'10-15', wt:null, notes:'' },
     ];
   }
@@ -592,8 +596,9 @@ function getExercises(dayIdx, weekIdx, maxes) {
       { id:'bandpa', name:'Band Pull-Apart', type:'primer', eq:'bw', sets:2, reps:'15', wt:null, notes:'Primer -- scap / RC activation' },
       { id:'inclinedb', name:'Incline DB Press', type:'accessory', eq:'dumbbell', sets:ds, reps:'10-12', wt:null, notes:'RPE 8 -- upper chest, higher rep' + dlNote },
       { id:'db_ohp', name:'Seated DB Shoulder Press', type:'accessory', eq:'dumbbell', sets:ds, reps:'10-12', wt:null, notes:'RPE 8 -- delts, higher rep' + dlNote },
-      { id:'cablefly', name:'Cable Fly', type:'accessory', eq:'cable', sets:ds, reps:'12-15', wt:null, notes:'Squeeze, slow eccentric' + dlNote },
-      { id:'latraise', name:'DB Lateral Raise', type:'accessory', eq:'dumbbell', sets:dl?2:4, reps:'12-15', wt:null, notes:'RPE 8 -- side delts, high volume' + dlNote },
+      { id:'latpd', name:'Lat Pulldown', type:'accessory', eq:'cable', sets:ds, reps:'10-12', wt:null, notes:'Vertical pull -- balances pressing volume' + dlNote },
+      { id:'csrow', name:'Chest-Supported Row', type:'accessory', eq:'machine', sets:ds, reps:'10-12', wt:null, notes:'Horizontal pull -- mid-back' + dlNote },
+      { id:'latraise', name:'DB Lateral Raise', type:'accessory', eq:'dumbbell', sets:dl?2:3, reps:'12-15', wt:null, notes:'RPE 8 -- side delts' + dlNote },
       { id:'rearfly', name:'Cable Rear Delt Fly', type:'accessory', eq:'cable', sets:ds, reps:'12-15', wt:null, notes:'Rear delts + upper back' + dlNote },
       { id:'ezcurl_pd', name:'EZ Curl', type:'accessory', eq:'barbell', sets:ds, reps:'12-15', wt:null, ss:'A', notes:'Superset with pushdown' + dlNote },
       { id:'pushdown_pd', name:'Tricep Pushdown', type:'accessory', eq:'cable', sets:ds, reps:'12-15', wt:null, ss:'A', notes:'Superset with curl' + dlNote },

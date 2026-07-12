@@ -297,6 +297,12 @@ input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type=number] { -moz-appearance: textfield; }
 /* --- v12: session estimate, RPE input, ramp + top-set cards --- */
+.var-lift { font-size:10px; letter-spacing:2px; color:var(--accent); margin:14px 0 6px; }
+.var-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.var-row label { flex:1; margin:0; font-size:12px; display:flex; flex-direction:column; gap:2px; }
+.var-est { color:var(--text-dim); font-size:9px; letter-spacing:0.5px; }
+.var-input { width:64px; }
+.var-pct { color:var(--text-dim); font-size:11px; }
 .sess-bar { display:flex; align-items:center; justify-content:space-between; padding:9px 12px;
   margin-bottom:10px; border:1px solid var(--border); background:var(--bg-alt);
   font-size:11px; letter-spacing:0.5px; }
@@ -597,6 +603,25 @@ var VARIANTS = {
   'Z Press':            { scale:0.75 },
 };
 
+// The defaults above are population averages, not YOUR ratios. state.vscale
+// overrides them per variation; the settings modal edits it. If your pause squat
+// is 80% rather than 85% of your back squat, set it once and every downstream
+// number follows.
+function variantScale(name) {
+  if (state.vscale && state.vscale[name] != null) return state.vscale[name];
+  var v = VARIANTS[name];
+  return v && v.scale != null ? v.scale : 1;
+}
+// Every non-base option across the four main lifts, for the settings UI.
+function variantList() {
+  var out = [];
+  for (var k in MAIN_LIFTS) {
+    var alts = ALTS[MAIN_LIFTS[k].id] || [];
+    for (var i = 1; i < alts.length; i++) out.push({ lift: MAIN_LIFTS[k].name, name: alts[i] });
+  }
+  return out;
+}
+
 function mainBlock(liftKey, weekIdx) {
   var m = MAIN_LIFTS[liftKey];
   var wk = WAVE[weekIdx];
@@ -612,7 +637,7 @@ function mainBlock(liftKey, weekIdx) {
   // without this they would keep the base lift's name AND its weight after a swap.
   var chosen = state.swaps[swapKey(MAIN_DAY[liftKey], m.id)] || m.name;
   var v = VARIANTS[chosen] || {};
-  var scale = v.scale || 1;
+  var scale = variantScale(chosen);
   var eq = v.eq || 'barbell';
   var vNote = v.note ? ' ' + v.note : '';
   var vTag = scale !== 1 ? ' (' + Math.round(scale * 100) + '% of ' + m.name + ')' : '';
@@ -912,7 +937,7 @@ function defaultState() {
   return {
     week: 0, day: 0,
     maxes: { squat:180, bench:125, deadlift:200, ohp:80 },
-    log: {}, swaps: {},
+    log: {}, swaps: {}, vscale: {},
     showSettings: false, showPR: false,
   };
 }
@@ -933,10 +958,11 @@ function loadState() {
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     week: state.week, day: state.day, maxes: state.maxes,
-    log: state.log, swaps: state.swaps,
+    log: state.log, swaps: state.swaps, vscale: state.vscale,
   }));
 }
 var state = loadState();
+if (!state.vscale) state.vscale = {};
 if (state.day > 4 || state.day < 0) state.day = 0;
 if (state.week >= WAVE.length || state.week < 0) state.week = 0;
 
@@ -1163,16 +1189,27 @@ function render() {
     + '    </div>\n  </div>';
 
   if (state.showSettings) {
-    h += '<div class="modal-overlay" data-action="closeSettings">\n      <div class="modal" onclick="event.stopPropagation()">\n        <h2>1RM SEEDS</h2>\n        <div style="color:var(--text-dim);font-size:11px;margin-bottom:14px;line-height:1.5">These seed the e1RM. After that your logged RPE drives the weights -- you should rarely need to touch these.</div>\n'
+    h += '<div class="modal-overlay" data-action="closeSettings">\n      <div class="modal" onclick="if(!event.target.closest(\'.modal [data-action]\')) event.stopPropagation()">\n        <h2>1RM SEEDS</h2>\n        <div style="color:var(--text-dim);font-size:11px;margin-bottom:14px;line-height:1.5">These seed the e1RM. After that your logged RPE drives the weights -- you should rarely need to touch these.</div>\n'
       + '        <div class="settings-group"><label>Squat (kg)</label>\n          <input type="number" id="inSquat" value="' + state.maxes.squat + '" step="2.5" inputmode="decimal"></div>\n'
       + '        <div class="settings-group"><label>Bench Press (kg)</label>\n          <input type="number" id="inBench" value="' + state.maxes.bench + '" step="2.5" inputmode="decimal"></div>\n'
       + '        <div class="settings-group"><label>Deadlift (kg)</label>\n          <input type="number" id="inDead" value="' + state.maxes.deadlift + '" step="2.5" inputmode="decimal"></div>\n'
       + '        <div class="settings-group"><label>OHP (kg)</label>\n          <input type="number" id="inOHP" value="' + state.maxes.ohp + '" step="1" inputmode="decimal"></div>\n'
-      + '        <button class="save-btn" data-action="saveSettings">SAVE + RECALCULATE</button>\n        <button class="reset-btn" data-action="resetProgress">Reset All Progress</button>\n      </div>\n    </div>';
+      + '        <h2 style="margin-top:22px">LIFT VARIATIONS</h2>\n'
+      + '        <div style="color:var(--text-dim);font-size:11px;margin-bottom:14px;line-height:1.5">Each variation as a percent of the base lift. These start as averages -- set YOUR ratios. Changing one rescales its top set, backoffs and ramp together.</div>';
+    var vl = variantList(), curLift = null;
+    for (var vi = 0; vi < vl.length; vi++) {
+      if (vl[vi].lift !== curLift) { curLift = vl[vi].lift; h += '<div class="var-lift">' + curLift + '</div>'; }
+      var dflt = Math.round(((VARIANTS[vl[vi].name] && VARIANTS[vl[vi].name].scale) || 1) * 100);
+      var cur = Math.round(variantScale(vl[vi].name) * 100);
+      h += '<div class="settings-group var-row"><label>' + vl[vi].name
+         + '<span class="var-est">est. ' + dflt + '%' + (cur !== dflt ? ' &middot; yours ' + cur + '%' : '') + '</span></label>'
+         + '<input type="number" class="var-input" data-var="' + vl[vi].name + '" value="' + cur + '" step="1" min="30" max="130" inputmode="numeric"><span class="var-pct">%</span></div>';
+    }
+    h += '<button class="save-btn" data-action="saveSettings">SAVE + RECALCULATE</button>\n        <button class="reset-btn" data-action="resetProgress">Reset All Progress</button>\n      </div>\n    </div>';
   }
 
   if (state.showPR) {
-    h += '<div class="modal-overlay" data-action="closePR">\n      <div class="modal" onclick="event.stopPropagation()">\n        <h2>PERSONAL RECORDS</h2><div class="pr-grid">';
+    h += '<div class="modal-overlay" data-action="closePR">\n      <div class="modal" onclick="if(!event.target.closest(\'.modal [data-action]\')) event.stopPropagation()">\n        <h2>PERSONAL RECORDS</h2><div class="pr-grid">';
     var prData = computePRs();
     var prEntries = Object.keys(prData).sort(function(a, b) { return prData[b].weight - prData[a].weight; });
     if (prEntries.length) {
@@ -1221,11 +1258,16 @@ app.addEventListener('click', function(e) {
     state.maxes.bench = parseFloat(document.getElementById('inBench').value) || 125;
     state.maxes.deadlift = parseFloat(document.getElementById('inDead').value) || 200;
     state.maxes.ohp = parseFloat(document.getElementById('inOHP').value) || 80;
+    var vins = document.querySelectorAll('.var-input');
+    for (var vj = 0; vj < vins.length; vj++) {
+      var pctVal = parseFloat(vins[vj].value);
+      if (pctVal > 0) state.vscale[vins[vj].dataset.var] = pctVal / 100;
+    }
     state.showSettings = false; saveState(); render();
   }
   if (a === 'resetProgress') {
     if (confirm('Reset ALL logged sets, weights, RPEs and swaps?')) {
-      state.log = {}; state.swaps = {}; state.showSettings = false; saveState(); render();
+      state.log = {}; state.swaps = {}; state.vscale = {}; state.showSettings = false; saveState(); render();
     }
   }
   if (a === 'toggleNotes') {
@@ -1241,6 +1283,7 @@ app.addEventListener('change', function(e) {
     var sk = swapKey(day, exId);
     if (val === def) delete state.swaps[sk]; else state.swaps[sk] = val;
     saveState();
+    render();   // a swap rescales the top set, backoffs AND ramp -- must repaint
     return;
   }
   if (e.target.classList.contains('rpe-input')) {

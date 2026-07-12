@@ -1,5 +1,14 @@
 # Changelog
 
+## [2026-07-12c] -- swap actually repaints; variation percentages are editable
+
+### Fixed
+- **Selecting a main lift from the dropdown did nothing visible.** The change handler saved the swap and returned without calling `render()`, so the `<select>` repainted itself natively while the ramp, top set and backoff kept the base lift's name and weight. You would see "SSB SQUAT" above a "BACK SQUAT -- RAMP" at back-squat loads.
+- **Saving the settings modal has never worked, in any version of this app.** `.modal` carried `onclick="event.stopPropagation()"` to stop an inside click closing the overlay -- but SAVE and RESET live inside the modal and are handled by the delegated `app` click listener, so the click never reached it. 1RM edits were silently discarded. The guard now only swallows clicks that are not on an actionable element inside the modal.
+
+### Added
+- **Variation percentages are editable** in the settings modal, grouped by lift, with the original estimate shown beside each ("est. 90%", plus "yours 80%" once overridden). `state.vscale` overrides the `VARIANTS` defaults. The shipped numbers are population averages -- a pause squat is not 85% of *your* back squat until you say it is. Changing one rescales its top set, backoffs and ramp together.
+
 ## [2026-07-12b] -- lift variations rescale the whole main block
 
 ### What changed

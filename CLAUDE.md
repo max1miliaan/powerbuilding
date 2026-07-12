@@ -106,6 +106,13 @@ The ramp and backoff are separate exercise ids (`back_squat_ramp`, `back_squat_b
 
 The swap `<select>` compares against `ex.baseName`, not `ex.name` -- after a swap `ex.name` IS the variation, so comparing against it would never clear the swap.
 
+**The scales are editable.** `state.vscale` overrides the `VARIANTS` defaults; the settings modal edits them per variation and shows the original estimate beside each ("est. 90%"). The defaults are population averages, not Max's ratios -- set them once from real numbers.
+
+**`.modal` must NOT blanket-`stopPropagation()`.** It did, and since SAVE and RESET live inside the modal and are handled by the delegated `app` click listener, they never fired -- **1RM saving was silently broken for the entire life of the app**. The guard now only swallows clicks that are not on an actionable element inside `.modal`:
+```
+onclick="if(!event.target.closest('.modal [data-action]')) event.stopPropagation()"
+```
+
 ## Plate granularity
 
 Max owns **0.5kg plates** -> a 1.0kg pair. `STEP` is 2.5kg for squat/bench/deadlift and **1.0kg for OHP**. At 80kg a 2.5kg OHP jump is a 3.1% intensity leap and two weeks of a block collapse onto the same weight.

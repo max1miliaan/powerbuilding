@@ -538,8 +538,9 @@ function globalStall(weekIdx) {
 }
 
 // --- Weight prescription --------------------------------------------------
-function topWeight(liftKey, weekIdx) {
-  var e = e1rmFor(liftKey, weekIdx);
+// `scale` is the selected variation's fraction of the base lift (see VARIANTS).
+function topWeight(liftKey, weekIdx, scale) {
+  var e = e1rmFor(liftKey, weekIdx) * (scale || 1);
   var w = WAVE[weekIdx];
   if (w.deload) return floorStep(liftKey, e * DELOAD_PCT);
   var raw = e * pct(liftKey, targetReps(liftKey, weekIdx), targetRpe(liftKey, weekIdx));
@@ -572,10 +573,33 @@ function rampSets(liftKey, topKg) {
 // Builds the full main block: ramp -> top set -> backoffs.
 // The top set is a SINGLE set with its own card, because that is where the RPE
 // is logged and where every downstream calculation reads from.
+// A variation is not the base lift. A pause squat at your back-squat weight is
+// undoable; a block pull is heavier. `scale` is the fraction of the base lift's
+// e1RM the variation is run at -- it multiplies the e1RM, so the top set, the
+// backoffs AND the ramp all move together and stay internally consistent.
+// Anything not listed scales 1.0.
+var VARIANTS = {
+  // squat
+  'High Bar Squat':     { scale:0.95 },
+  'SSB Squat':          { scale:0.90, note:'SSB sits ~10% under the back squat.' },
+  'Box Squat':          { scale:0.90, note:'Sit under control -- never drop onto the box.' },
+  'Pause Squat':        { scale:0.85, note:'2s pause in the hole. Only when the knee is quiet.' },
+  // bench
+  'Close Grip Bench':   { scale:0.90 },
+  'Pause Bench':        { scale:0.90, note:'2s pause on the chest, no stretch reflex.' },
+  'Banded Bench Press': { scale:0.80, note:'BAR WEIGHT ONLY -- bands add 15-20% at lockout.' },
+  'DB Bench Press':     { scale:0.36, eq:'dumbbell', note:'PER DUMBBELL, not total.' },
+  // deadlift
+  'Block Pull':         { scale:1.05, note:'Shorter ROM -- runs heavier than the full pull.' },
+  'Sumo Deadlift':      { scale:1.00 },
+  // ohp
+  'Seated Barbell OHP': { scale:0.95, note:'No leg drive.' },
+  'Z Press':            { scale:0.75 },
+};
+
 function mainBlock(liftKey, weekIdx) {
   var m = MAIN_LIFTS[liftKey];
   var wk = WAVE[weekIdx];
-  var top = topWeight(liftKey, weekIdx);
   var tReps = targetReps(liftKey, weekIdx);
   var tRpe = targetRpe(liftKey, weekIdx);
   var out = [];
@@ -584,9 +608,20 @@ function mainBlock(liftKey, weekIdx) {
   // spinal shear. The GHD hinge on D3 carries the day instead.
   if (wk.deload && liftKey === 'deadlift') return [];
 
+  // Read the swap and rescale. The ramp and backoff cards have their own ids, so
+  // without this they would keep the base lift's name AND its weight after a swap.
+  var chosen = state.swaps[swapKey(MAIN_DAY[liftKey], m.id)] || m.name;
+  var v = VARIANTS[chosen] || {};
+  var scale = v.scale || 1;
+  var eq = v.eq || 'barbell';
+  var vNote = v.note ? ' ' + v.note : '';
+  var vTag = scale !== 1 ? ' (' + Math.round(scale * 100) + '% of ' + m.name + ')' : '';
+
+  var top = topWeight(liftKey, weekIdx, scale);
+
   var r = rampSets(liftKey, top);
   out.push({
-    id: m.id + '_ramp', name: m.name + ' -- Ramp', type:'ramp', eq:'barbell',
+    id: m.id + '_ramp', name: chosen + ' -- Ramp', type:'ramp', eq: eq,
     sets: r.wts.length, reps: r.reps.join(','), wt: r.wts,
     rest: r.rest[r.rest.length - 1], rpeCap: 6, cls:'ramp', ss: null,
     notes: 'Warmup ramp -- not working volume. Rest ' + r.rest.join('/') + 's.',
@@ -594,25 +629,25 @@ function mainBlock(liftKey, weekIdx) {
 
   if (wk.deload) {
     out.push({
-      id: m.id, name: m.name, type:'main', eq:'barbell',
+      id: m.id, name: chosen, baseName: m.name, vscale: scale, type:'main', eq: eq,
       sets: 2, reps: String(tReps), wt: top,
       rest: 120, rpeCap: 5, cls:'main_' + liftKey, ss: null,
-      notes: 'Deload -- 2x' + tReps + ' @ 60% e1RM, RPE 5. Do not push.',
+      notes: 'Deload -- 2x' + tReps + ' @ 60% e1RM, RPE 5. Do not push.' + vNote,
     });
     return out;
   }
 
   out.push({
-    id: m.id, name: m.name, type:'main', eq:'barbell',
+    id: m.id, name: chosen, baseName: m.name, vscale: scale, type:'main', eq: eq,
     sets: 1, reps: String(tReps), wt: top,
     rest: 180, rpeCap: tRpe, cls:'main_' + liftKey, ss: null,
-    notes: 'TOP SET -- ' + tReps + ' reps @ RPE ' + tRpe + '. Log your RPE: it sets next week.',
+    notes: 'TOP SET -- ' + tReps + ' reps @ RPE ' + tRpe + '. Log your RPE: it sets next week.' + vTag + vNote,
   });
 
   var bo = BACKOFF[liftKey];
   var boKg = backoffWeight(liftKey, top, weekIdx);
   out.push({
-    id: m.id + '_bo', name: m.name + ' -- Backoff', type:'backoff', eq:'barbell',
+    id: m.id + '_bo', name: chosen + ' -- Backoff', type:'backoff', eq: eq,
     sets: bo.sets, reps: String(backoffReps(liftKey, tReps)), wt: boKg,
     rest: 120, rpeCap: Math.min(8, tRpe), cls:'main_' + liftKey, ss: null,
     notes: bo.sets + ' x ' + backoffReps(liftKey, tReps) + ' @ -' + Math.round(backoffDrop(liftKey, weekIdx) * 100) + '%. Stop at RPE 8, do not grind.',
@@ -998,7 +1033,7 @@ function render() {
     h += '<div class="ex-header">';
     var alts = ALTS[ex.id];
     if (alts) {
-      h += '<select class="ex-select" data-day="' + state.day + '" data-exid="' + ex.id + '" data-default="' + ex.name + '">';
+      h += '<select class="ex-select" data-day="' + state.day + '" data-exid="' + ex.id + '" data-default="' + (ex.baseName || ex.name) + '">';
       for (var ai = 0; ai < alts.length; ai++) {
         h += '<option' + (alts[ai] === displayName ? ' selected' : '') + '>' + alts[ai] + '</option>';
       }
@@ -1103,7 +1138,11 @@ function render() {
           h += '<div class="suggest-bump">Stalling: ' + flags.join('; ') + '. e1RM has been cut 5% automatically and this week repeats. If it fires again, take the deload.</div>';
         }
         var e = e1rmFor(liftKey, state.week);
-        h += '<div class="e1rm-line">e1RM ' + e + 'kg &middot; top set is ' + Math.round(ex.wt / e * 100) + '% of it &middot; log your RPE to set next week</div>';
+        var ve = e * (ex.vscale || 1);
+        var pctLine = 'e1RM ' + e + 'kg';
+        if ((ex.vscale || 1) !== 1) pctLine += ' &middot; ' + ex.name + ' e1RM ~' + (Math.round(ve * 2) / 2) + 'kg';
+        pctLine += ' &middot; top set is ' + Math.round(ex.wt / ve * 100) + '% of it &middot; log your RPE to set next week';
+        h += '<div class="e1rm-line">' + pctLine + '</div>';
       }
     }
 

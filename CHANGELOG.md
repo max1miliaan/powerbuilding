@@ -1,5 +1,18 @@
 # Changelog
 
+## [2026-07-12b] -- lift variations rescale the whole main block
+
+### What changed
+- Swapping the main lift from its dropdown now **rescales the load**. Previously the swap changed only the display name: a Pause Squat was still prescribed the back squat's 160kg, which is undoable.
+- New `VARIANTS` table maps each variation to a `scale` (its fraction of the base lift's e1RM). The scale multiplies the e1RM, so the top set, the backoff sets and the warmup ramp all move together and stay internally consistent.
+- **The ramp and backoff now follow the main lift.** They are separate exercise ids (`back_squat_ramp`, `back_squat_bo`), so before this they kept the base lift's name and weight after a swap -- you would see "Back Squat -- Ramp" at back-squat weights above a Pause Squat top set.
+- The e1RM line reports the variation's own working max ("e1RM 180kg / Pause Squat e1RM ~153kg / top set is 90% of it") rather than showing the scaled top set as a misleading fraction of the base lift.
+- `DB Bench Press` flips `eq` to `dumbbell`: weight is per-dumbbell and the plate breakdown is suppressed. `Banded Bench Press` is flagged as bar weight only.
+- `Block Pull` scales to 1.05 -- shorter ROM, so it correctly runs heavier than the full pull.
+
+### Fixed
+- The swap `<select>`'s `data-default` compared against `ex.name`, which after a swap IS the variation -- so selecting the base lift again could never clear the swap. It now compares against `ex.baseName`.
+
 ## [2026-07-12] -- v2: top set + backoff, RPE autoregulation, 55-minute sessions
 
 Full program rebuild. Five specialist agents audited the old program in parallel (time budget, volume/coverage, periodization, fatigue/injury, exercise selection); five more assembled the new days, each adversarially checked. This closes every item the 2026-05-31e review deferred.

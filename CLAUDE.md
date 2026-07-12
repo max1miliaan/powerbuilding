@@ -88,6 +88,24 @@ The old trigger needed 3 consecutive miss weeks, but the deload landed on week 6
 2. **Each stall window is charged AT MOST ONCE** (`lastCharged`). `stallFlags()` looks back two loading weeks, so consecutive weeks share weeks; without the guard the same bad week is taxed repeatedly and e1RM death-spirals (measured: 180 -> 130kg).
 3. **The `[0.85, 1.15] x seed` guards run AFTER the cut, not before.** Clamping first let the cut push e1RM to 0.85 x 0.85 = 0.72 of seed, well under the stated floor.
 
+## Lift variations (swap dropdown)
+
+Swapping the main lift via its dropdown **rescales the load**. A pause squat at your back-squat weight is undoable; a block pull is heavier. `VARIANTS` maps each variation to a `scale` -- its fraction of the base lift's e1RM -- which multiplies the e1RM, so **the top set, the backoffs and the ramp all move together**. Anything not in `VARIANTS` scales 1.0.
+
+The ramp and backoff are separate exercise ids (`back_squat_ramp`, `back_squat_bo`). Without this they would keep the base lift's name AND its weight after a swap. `mainBlock()` reads the swap and propagates the chosen name + scale to all three cards.
+
+| Variation | Scale | Note |
+|---|---|---|
+| High Bar / SSB / Box Squat | 0.95 / 0.90 / 0.90 | |
+| Pause Squat | 0.85 | 2s pause. Only when the knee is quiet. |
+| Close Grip / Pause Bench | 0.90 | |
+| Banded Bench Press | 0.80 | **Bar weight only** -- bands add 15-20% at lockout |
+| DB Bench Press | 0.36 | **Per dumbbell**, and `eq` flips to `dumbbell` so plate math is suppressed |
+| Block Pull | 1.05 | Shorter ROM -- runs HEAVIER than the full pull |
+| Seated Barbell OHP | 0.95 | No leg drive |
+
+The swap `<select>` compares against `ex.baseName`, not `ex.name` -- after a swap `ex.name` IS the variation, so comparing against it would never clear the swap.
+
 ## Plate granularity
 
 Max owns **0.5kg plates** -> a 1.0kg pair. `STEP` is 2.5kg for squat/bench/deadlift and **1.0kg for OHP**. At 80kg a 2.5kg OHP jump is a 3.1% intensity leap and two weeks of a block collapse onto the same weight.

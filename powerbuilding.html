@@ -35,10 +35,7 @@ body {
   padding-right: env(safe-area-inset-right);
   transition: padding-bottom 0.25s;
 }
-body.timer-on #app {
-  padding-bottom: max(150px, calc(env(safe-area-inset-bottom) + 110px));
-}
-
+body
 .header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 16px 12px; position: sticky; top: 0; z-index: 100;
@@ -280,40 +277,6 @@ body.timer-on #app {
 .notes-content h3 { color: var(--text); font-size: 12px; margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 .notes-content h3:first-child { margin-top: 0; }
 
-.timer-bar {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: rgba(28,28,28,0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(255,255,255,0.1); padding: 10px 16px;
-  padding-bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px));
-  z-index: 150;
-  transform: translateY(100%); transition: transform 0.25s ease;
-}
-.timer-bar.visible { transform: translateY(0); }
-.timer-bar.finished { border-top-color: var(--accent); }
-.timer-top { display: flex; align-items: center; gap: 10px; }
-.timer-time {
-  font-size: 32px; font-weight: 700; color: #fff;
-  font-variant-numeric: tabular-nums; min-width: 80px;
-}
-.timer-label { flex: 1; font-size: 11px; color: var(--text-dim); line-height: 1.3; }
-.timer-btns { display: flex; gap: 6px; }
-.timer-btn {
-  background: none; border: 1px solid rgba(255,255,255,0.12); color: var(--text);
-  height: 36px; padding: 0 10px; border-radius: 5px; font-size: 12px;
-  cursor: pointer; font-weight: 600; min-width: 44px; font-family: inherit;
-}
-.timer-btn:active { background: rgba(255,255,255,0.05); }
-.timer-btn.dismiss { color: var(--accent); border-color: rgba(208,90,27,0.4); }
-.timer-track {
-  height: 3px; background: var(--card-border); border-radius: 2px;
-  margin-top: 8px; overflow: hidden;
-}
-.timer-fill {
-  height: 100%; background: var(--accent); border-radius: 2px;
-  transition: width 1s linear;
-}
-@keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-.timer-bar.finished .timer-time { color: var(--accent); animation: timerPulse 1s infinite; }
 
 @media (max-width: 374px) {
   .set-row { gap: 3px; padding: 4px 6px; }
@@ -333,390 +296,618 @@ body.timer-on #app {
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type=number] { -moz-appearance: textfield; }
+/* --- v12: session estimate, RPE input, ramp + top-set cards --- */
+.sess-bar { display:flex; align-items:center; justify-content:space-between; padding:9px 12px;
+  margin-bottom:10px; border:1px solid var(--border); background:var(--bg-alt);
+  font-size:11px; letter-spacing:0.5px; }
+.sess-est { font-weight:700; }
+.sess-cap { color:var(--text-dim); }
+.warn-bar { padding:10px 12px; margin-bottom:10px; border:1px solid var(--accent);
+  background:rgba(255,107,0,0.08); color:var(--accent); font-size:11px; line-height:1.5; }
+.rpe-input { background:var(--bg); border:1px solid var(--accent); color:var(--accent);
+  font-family:inherit; font-size:12px; font-weight:700; padding:6px 4px; width:62px; cursor:pointer; }
+.rpe-cap { color:var(--text-dim); font-size:10px; letter-spacing:1px; margin-left:10px; }
+.e1rm-line { color:var(--text-dim); font-size:10px; letter-spacing:0.4px; margin-top:8px;
+  padding-top:8px; border-top:1px solid var(--border); }
+.exercise-card.ramp-card { opacity:0.72; }
+.exercise-card.top-card { border-left:2px solid var(--accent); }
+.ex-badge.b-ramp { opacity:0.6; }
+.ex-badge.b-main { background:var(--accent); color:var(--bg); }
+.week-pill.dl { opacity:0.55; }
+
 </style>
 </head>
 <body>
 <div id="app"></div>
-<div class="timer-bar" id="timerBar">
-  <div class="timer-top">
-    <span class="timer-time" id="timerTime">0:00</span>
-    <span class="timer-label" id="timerLabel">Rest</span>
-    <div class="timer-btns">
-      <button class="timer-btn" id="timerMinus">-15s</button>
-      <button class="timer-btn" id="timerPlus">+15s</button>
-      <button class="timer-btn dismiss" id="timerDismiss">SKIP</button>
-    </div>
-  </div>
-  <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
-</div>
 <script>
 (function() {
 'use strict';
 
-// 12 weeks: fixed 5x5 compound + accessories, 5-day (squat / upper / deadlift / upper / pump).
-// Main lifts run at a fixed working weight per week (no AMRAP, no ramp).
-// Linear weekly progression; deload on weeks 6 and 12.
-// Each main lift is hit ~2x/week (one heavy 5x5 day + one lighter secondary day).
-// Order each day: Primer -> Main 5x5 -> Secondary/Accessories -> Core.
+// ---------------------------------------------------------------------------
+// PROGRESSION ENGINE -- Powerbuilding v2
+// Top set + backoff, RPE-driven. Weight derives from a live e1RM that the
+// logged top-set RPE updates each week. Nothing is open-loop.
+// ---------------------------------------------------------------------------
 
-// Working weight = 1RM * START_PCT + (step * INC), fixed across the 5 sets.
-// Each block is a self-contained 5-week wave (~75% -> ~86% of 1RM): prog RESETS to 0
-// at the start of every block so the weight never climbs into un-hittable territory.
-// Block 2 is offset one increment heavier (BLOCK_BUMP) for overload across blocks.
-var START_PCT  = { squat:0.75, bench:0.78, deadlift:0.78, ohp:0.75 };
-var INC        = { squat:5,    bench:2.5,  deadlift:5,     ohp:2.5  };
-var BLOCK_BUMP = 1;    // extra INC steps added per block index (block 2 starts 1 step up)
-var DELOAD_PCT = 0.60; // deload weeks: 3x5 @ 60% of 1RM
+// %1RM by (reps, RPE). Reactive Training Systems chart.
+var PCT = {
+  10:  {1:1.000, 2:0.955, 3:0.922, 4:0.892, 5:0.863, 6:0.837, 7:0.811, 8:0.786},
+  9.5: {1:0.978, 2:0.939, 3:0.907, 4:0.878, 5:0.850, 6:0.824, 7:0.799, 8:0.774},
+  9:   {1:0.955, 2:0.922, 3:0.892, 4:0.863, 5:0.837, 6:0.811, 7:0.786, 8:0.762},
+  8.5: {1:0.939, 2:0.907, 3:0.878, 4:0.850, 5:0.824, 6:0.799, 7:0.774, 8:0.751},
+  8:   {1:0.922, 2:0.892, 3:0.863, 4:0.837, 5:0.811, 6:0.786, 7:0.762, 8:0.740},
+  7.5: {1:0.907, 2:0.878, 3:0.850, 4:0.824, 5:0.799, 6:0.774, 7:0.751, 8:0.723},
+  7:   {1:0.892, 2:0.863, 3:0.837, 4:0.811, 5:0.786, 6:0.762, 7:0.740, 8:0.707},
+  6.5: {1:0.878, 2:0.850, 3:0.824, 4:0.799, 5:0.774, 6:0.751, 7:0.727, 8:0.695},
+  6:   {1:0.863, 2:0.837, 3:0.811, 4:0.786, 5:0.762, 6:0.740, 7:0.715, 8:0.684},
+};
+// Deadlift has poorer rep endurance than the other lifts at a given RPE.
+var PCT_ADJ = { squat:0, bench:0, deadlift:-0.02, ohp:0 };
+// Hard intensity ceilings. Deadlift is capped lower -- lumbar history.
+var PCT_CAP = { squat:0.90, bench:0.90, deadlift:0.88, ohp:0.90 };
 
-// prog = week index WITHIN the block (resets each block). cycle = block index (0,1).
-var WEEKS = [
-  { prog:0, block:'Block 1 - W1', cycle:0 },
-  { prog:1, block:'Block 1 - W2', cycle:0 },
-  { prog:2, block:'Block 1 - W3', cycle:0 },
-  { prog:3, block:'Block 1 - W4', cycle:0 },
-  { prog:4, block:'Block 1 - W5', cycle:0 },
-  { deload:true, block:'Deload 1', cycle:0 },
-  { prog:0, block:'Block 2 - W1', cycle:1 },
-  { prog:1, block:'Block 2 - W2', cycle:1 },
-  { prog:2, block:'Block 2 - W3', cycle:1 },
-  { prog:3, block:'Block 2 - W4', cycle:1 },
-  { prog:4, block:'Block 2 - W5', cycle:1 },
-  { deload:true, block:'Deload 2', cycle:1 },
-];
-
-function workWeight(liftKey, weekIdx, maxes, scale) {
-  var wk = WEEKS[weekIdx];
-  var oneRM = maxes[liftKey];
-  var step = wk.prog + wk.cycle * BLOCK_BUMP;
-  var w = wk.deload ? oneRM * DELOAD_PCT : oneRM * START_PCT[liftKey] + step * INC[liftKey];
-  if (scale) w = w * scale;
-  return round25(w);
+function pct(liftKey, reps, rpe) {
+  var row = PCT[rpe] || PCT[8];
+  var p = (row[reps] != null ? row[reps] : row[5]) + PCT_ADJ[liftKey];
+  return Math.min(p, PCT_CAP[liftKey]);
 }
 
-// Fixed main-lift ids (no per-cycle variant rotation). Swaps still available via ALTS.
+// Bar granularity. Max owns 0.5kg plates -> a 1.0kg pair.
+// OHP steps in 1.0kg: at 80kg a 2.5kg jump is a 3.1% intensity leap and the
+// wave collapses (two weeks of a block land on the same weight).
+var STEP = { squat:2.5, bench:2.5, deadlift:2.5, ohp:1.0 };
+function floorStep(liftKey, kg) { var s = STEP[liftKey]; return Math.floor(kg / s + 0.001) * s; }
+function roundStep(liftKey, kg) { var s = STEP[liftKey]; return Math.round(kg / s) * s; }
+
+// Deadlift never exceeds RPE 8. Hard rule, not a preference.
+var RPE_CAP = { squat:9, bench:9, deadlift:8, ohp:9 };
+
+// 12 weeks = 3 blocks x (3 loading weeks + 1 deload). Deloads at 3, 7, 11.
+// Reps wave DOWN as intensity waves UP -- the old program held 5x5 fixed while
+// %1RM climbed to 89%, which is why it prescribed unliftable sets.
+var WAVE = [
+  { prog:0, reps:5, rpe:7,   block:'Block 1 - W1', cycle:0 },
+  { prog:1, reps:4, rpe:8,   block:'Block 1 - W2', cycle:0 },
+  { prog:2, reps:3, rpe:9,   block:'Block 1 - W3', cycle:0 },
+  { deload:true,             block:'Deload 1',     cycle:0 },
+  { prog:0, reps:5, rpe:7,   block:'Block 2 - W1', cycle:1 },
+  { prog:1, reps:4, rpe:8,   block:'Block 2 - W2', cycle:1 },
+  { prog:2, reps:3, rpe:9,   block:'Block 2 - W3', cycle:1 },
+  { deload:true,             block:'Deload 2',     cycle:1 },
+  { prog:0, reps:5, rpe:7,   block:'Block 3 - W1', cycle:2 },
+  { prog:1, reps:4, rpe:8,   block:'Block 3 - W2', cycle:2 },
+  { prog:2, reps:3, rpe:9,   block:'Block 3 - W3', cycle:2 },
+  { deload:true,             block:'Deload 3',     cycle:2 },
+];
+var WEEKS = WAVE; // week-pill bar and block bar read this
+
+var DELOAD_PCT = 0.60;
+
+// Backoff prescription per lift. Deadlift gets 2 sets, not 3 -- back-sparing.
+// The drop WAVES with the top set. A fixed 12% off a 78% top set is a sub-RPE-6
+// backoff (junk volume); off an 89% top set it is RPE 7.7. Waving it keeps every
+// backoff near RPE 7.5 all block. Deadlift's old 15% off an already-capped top
+// landed at 71% for 5 reps -- below RPE 6, i.e. not a stimulus at all.
+var BACKOFF = {
+  squat:    { drops:[0.08, 0.10, 0.12], sets:3 },
+  bench:    { drops:[0.08, 0.11, 0.14], sets:3 },   // W3 at 0.12 reverse-solved to RPE 8.5, over its own cap
+  ohp:      { drops:[0.08, 0.10, 0.12], sets:3 },
+  deadlift: { drops:[0.10, 0.10, 0.10], sets:2 },
+};
+function backoffDrop(liftKey, weekIdx) {
+  var w = WAVE[weekIdx];
+  return BACKOFF[liftKey].drops[w.deload ? 0 : w.prog];
+}
+function backoffReps(liftKey, topReps) {
+  if (liftKey === 'deadlift') return 5;
+  return ({ 5:8, 4:7, 3:6 })[topReps] || 8;
+}
+
+// On-plan weekly drift of e1RM. An experienced 180kg squatter adds 5-12kg per
+// YEAR -- this claims ~4% of 1RM over 12 weeks. The old +5kg/wk implied +14%
+// per block, which is novice math applied to an experienced lifter.
+var INC = { squat:0.75, bench:0.5, deadlift:0.75, ohp:0.25 };
+
 var MAIN_LIFTS = {
   squat:    { id:'back_squat', name:'Back Squat' },
   bench:    { id:'bench',      name:'Bench Press' },
   deadlift: { id:'deadlift',   name:'Deadlift' },
   ohp:      { id:'ohp',        name:'Standing OHP' },
 };
-// Map a main-lift exercise id back to its maxes key (for miss/deload tracking).
+// Which day each main lift lives on -- needed to find its top-set log.
+var MAIN_DAY = { squat:0, bench:1, deadlift:2, ohp:3 };
 function mainKeyForId(exId) {
   for (var k in MAIN_LIFTS) { if (MAIN_LIFTS[k].id === exId) return k; }
   return null;
 }
+function targetRpe(liftKey, weekIdx) {
+  var w = WAVE[weekIdx];
+  if (w.deload) return 5;
+  return Math.min(w.rpe, RPE_CAP[liftKey]);
+}
+function targetReps(liftKey, weekIdx) {
+  var w = WAVE[weekIdx];
+  return w.deload ? 5 : w.reps;
+}
 
+// --- e1RM: replayed from the log, not stored ------------------------------
+// Deriving rather than caching means editing an old week's RPE recomputes
+// everything downstream, and there is no stale-state class of bug.
+function topSetLog(liftKey, weekIdx) {
+  return getLog(lk(weekIdx, MAIN_DAY[liftKey], MAIN_LIFTS[liftKey].id, 0));
+}
+
+function e1rmFor(liftKey, weekIdx) {
+  var seed = state.maxes[liftKey];
+  var e = seed;
+  for (var w = 0; w < weekIdx; w++) {
+    if (WAVE[w].deload) continue;            // deloads never move e1RM
+    var l = topSetLog(liftKey, w);
+    // An RPE is only ever there because the set happened -- do not also require
+    // the checkbox, or forgetting to tick it silently freezes the progression.
+    if (l.rpe == null) continue;             // no RPE -> no autoregulation
+    var tReps = targetReps(liftKey, w);
+    var tRpe = targetRpe(liftKey, w);
+    var d = l.rpe - tRpe;
+    var inc = INC[liftKey];
+
+    if (l.reps != null && l.reps < tReps)  e = e * 0.95;   // missed the prescription
+    else if (d >= 1.5)                     e = e * 0.97;   // hit reps but RPE 10
+    else if (d >= 0.75)                    e = e - inc;    // a shade hot
+    else if (d >= 0.25)                    e = e;          // hold
+    else if (d >= -0.25)                   e = e + inc;    // on plan
+    else if (d >= -0.75)                   e = e + 1.5 * inc;
+    else if (d >= -1.25)                   e = e + 2 * inc;
+    else                                   e = e + 3 * inc; // way too light
+
+    e = Math.min(e, seed * 1.15);           // runaway guards
+    e = Math.max(e, seed * 0.85);
+  }
+  // Stall triggers cut e1RM on top of the drift above. The guards must come
+  // AFTER the cut -- clamping first let the cut push e1RM to 0.85 x 0.85 = 0.72
+  // of seed, well under the stated floor.
+  e = e * stallCut(liftKey, weekIdx);
+  e = Math.min(e, seed * 1.15);
+  e = Math.max(e, seed * 0.85);
+  return Math.round(e * 2) / 2;             // 0.5kg resolution
+}
+
+// --- Stall detection ------------------------------------------------------
+// Evaluated on the TOP SET ONLY. A dropped rep on backoff set 3 is normal
+// fatigue, not a stall. The old scheme needed 3 consecutive miss weeks, but
+// the deload landed on week 6 -- so it could never fire inside a block.
+function loadingWeeksBefore(weekIdx) {
+  var out = [];
+  for (var w = 0; w < weekIdx; w++) if (!WAVE[w].deload) out.push(w);
+  return out;
+}
+function missedTop(liftKey, w) {
+  var l = topSetLog(liftKey, w);
+  return l.rpe != null && l.reps != null && l.reps < targetReps(liftKey, w);
+}
+function rpeCreep(liftKey, w) {
+  var l = topSetLog(liftKey, w);
+  return l.rpe != null && (l.rpe - targetRpe(liftKey, w)) >= 1.0;
+}
+// Returns the reasons this lift is stalling as of weekIdx.
+function stallFlags(liftKey, weekIdx) {
+  var lw = loadingWeeksBefore(weekIdx);
+  if (lw.length < 2) return [];
+  var a = lw[lw.length - 1], b = lw[lw.length - 2];
+  var f = [];
+  // S2 HARD MISS -- top-set reps short in 2 consecutive loading weeks.
+  if (missedTop(liftKey, a) && missedTop(liftKey, b)) f.push('reps missed 2 weeks running');
+  // S3 RPE CREEP -- the leading indicator the old scheme entirely lacked.
+  // Fires even when the reps are made.
+  if (rpeCreep(liftKey, a) && rpeCreep(liftKey, b)) f.push('RPE 1+ over target 2 weeks running');
+  return f;
+}
+function stallCut(liftKey, weekIdx) {
+  // Charge each stall window AT MOST ONCE. stallFlags() looks back two loading
+  // weeks, so consecutive weeks share weeks -- without the lastCharged guard the
+  // same bad week is taxed again and again and e1RM death-spirals.
+  //
+  // Only RPE CREEP is priced here. A missed top set is already charged x0.95 in
+  // the drift loop; taxing it again here was double-dipping on one bad week.
+  var cut = 1, lastCharged = -99;
+  for (var w = 2; w <= weekIdx && w < WAVE.length; w++) {
+    if (WAVE[w].deload) continue;
+    if (!creepStall(liftKey, w)) continue;
+    var lw = loadingWeeksBefore(w);
+    var a = lw[lw.length - 1], b = lw[lw.length - 2];
+    if (b <= lastCharged) continue;    // window overlaps one already charged
+    cut = cut * 0.95;
+    lastCharged = a;
+  }
+  return Math.max(cut, 0.85);
+}
+// RPE crept 1+ over target for two consecutive loading weeks WITH the reps made.
+// This is the only stall that e1RM is not already responding to.
+function creepStall(liftKey, weekIdx) {
+  var lw = loadingWeeksBefore(weekIdx);
+  if (lw.length < 2) return false;
+  var a = lw[lw.length - 1], b = lw[lw.length - 2];
+  return rpeCreep(liftKey, a) && rpeCreep(liftKey, b) && !missedTop(liftKey, a) && !missedTop(liftKey, b);
+}
+// S4 GLOBAL -- 2+ of the 4 mains stalling in the same week means the problem
+// is systemic, not a lift. Force a deload rather than cutting four lifts.
+function globalStall(weekIdx) {
+  var n = 0;
+  for (var k in MAIN_LIFTS) if (stallFlags(k, weekIdx).length) n++;
+  return n >= 2;
+}
+
+// --- Weight prescription --------------------------------------------------
+function topWeight(liftKey, weekIdx) {
+  var e = e1rmFor(liftKey, weekIdx);
+  var w = WAVE[weekIdx];
+  if (w.deload) return floorStep(liftKey, e * DELOAD_PCT);
+  var raw = e * pct(liftKey, targetReps(liftKey, weekIdx), targetRpe(liftKey, weekIdx));
+  // FLOOR the deadlift -- over-prescribing it by a step is a back-safety issue.
+  // ROUND the rest: bench drifts only ~1.2kg of bar weight per block, and
+  // flooring to 2.5kg truncated that to zero, so Block 2 W1 repeated Block 1 W1.
+  return liftKey === 'deadlift' ? floorStep(liftKey, raw) : roundStep(liftKey, raw);
+}
+function backoffWeight(liftKey, top, weekIdx) {
+  return roundStep(liftKey, top * (1 - backoffDrop(liftKey, weekIdx)));
+}
+
+// Ramp sets. Spans 45% -> 88% of the TOP SET (not of 1RM), reps 4/3/2/1.
+// n is per-LIFT, not per-kg. Keying it off absolute weight meant bench (max
+// 115kg) and OHP (max 73kg) could never reach 4 ramp sets while the deadlift
+// always did, and the squat changed ramp length mid-block.
+var RAMP_N = { squat:4, bench:4, deadlift:4, ohp:3 };
+function rampSets(liftKey, topKg) {
+  var n = RAMP_N[liftKey];
+  var REPS = [4, 3, 2, 1], REST = [30, 45, 60, 120];
+  var wts = [], reps = [];
+  for (var i = 0; i < n; i++) {
+    var p = 0.45 + (0.88 - 0.45) * (i / (n - 1));
+    wts.push(floorStep(liftKey, topKg * p));
+    reps.push(REPS[REPS.length - n + i]);
+  }
+  return { wts:wts, reps:reps, rest:REST.slice(REST.length - n) };
+}
+
+// Builds the full main block: ramp -> top set -> backoffs.
+// The top set is a SINGLE set with its own card, because that is where the RPE
+// is logged and where every downstream calculation reads from.
+function mainBlock(liftKey, weekIdx) {
+  var m = MAIN_LIFTS[liftKey];
+  var wk = WAVE[weekIdx];
+  var top = topWeight(liftKey, weekIdx);
+  var tReps = targetReps(liftKey, weekIdx);
+  var tRpe = targetRpe(liftKey, weekIdx);
+  var out = [];
+
+  // Deadlift is SKIPPED on deload weeks -- one week in four with zero heavy
+  // spinal shear. The GHD hinge on D3 carries the day instead.
+  if (wk.deload && liftKey === 'deadlift') return [];
+
+  var r = rampSets(liftKey, top);
+  out.push({
+    id: m.id + '_ramp', name: m.name + ' -- Ramp', type:'ramp', eq:'barbell',
+    sets: r.wts.length, reps: r.reps.join(','), wt: r.wts,
+    rest: r.rest[r.rest.length - 1], rpeCap: 6, cls:'ramp', ss: null,
+    notes: 'Warmup ramp -- not working volume. Rest ' + r.rest.join('/') + 's.',
+  });
+
+  if (wk.deload) {
+    out.push({
+      id: m.id, name: m.name, type:'main', eq:'barbell',
+      sets: 2, reps: String(tReps), wt: top,
+      rest: 120, rpeCap: 5, cls:'main_' + liftKey, ss: null,
+      notes: 'Deload -- 2x' + tReps + ' @ 60% e1RM, RPE 5. Do not push.',
+    });
+    return out;
+  }
+
+  out.push({
+    id: m.id, name: m.name, type:'main', eq:'barbell',
+    sets: 1, reps: String(tReps), wt: top,
+    rest: 180, rpeCap: tRpe, cls:'main_' + liftKey, ss: null,
+    notes: 'TOP SET -- ' + tReps + ' reps @ RPE ' + tRpe + '. Log your RPE: it sets next week.',
+  });
+
+  var bo = BACKOFF[liftKey];
+  var boKg = backoffWeight(liftKey, top, weekIdx);
+  out.push({
+    id: m.id + '_bo', name: m.name + ' -- Backoff', type:'backoff', eq:'barbell',
+    sets: bo.sets, reps: String(backoffReps(liftKey, tReps)), wt: boKg,
+    rest: 120, rpeCap: Math.min(8, tRpe), cls:'main_' + liftKey, ss: null,
+    notes: bo.sets + ' x ' + backoffReps(liftKey, tReps) + ' @ -' + Math.round(backoffDrop(liftKey, weekIdx) * 100) + '%. Stop at RPE 8, do not grind.',
+  });
+
+  return out;
+}
+
+// --- Time model -----------------------------------------------------------
+// The number the whole program is designed against: 45:00 = 2700s, of which
+// ~1310s (21:50) is total rest, ramp included.
+var SESSION_CAP_MIN = 55;
+var GENERAL_WARMUP_MIN = 3;
+var MULTI = ['back_squat','bench','deadlift','ohp','legpress','bss','hip_thrust',
+             'weighted_pullup','incline_db_press','lat_pulldown','cable_row','csrow','ghd_med'];
+
+function exerciseMinutes(ex, secondOfPair) {
+  var isMulti = MULTI.indexOf(ex.id) >= 0 || ex.type === 'main' || ex.type === 'backoff' || ex.type === 'ramp';
+  var tempo = isMulti ? 4.0 : 3.5;
+  var nums = String(ex.reps).match(/\d+(\.\d+)?/g) || ['10'];
+  var reps = nums.reduce(function(a, b) { return a + parseFloat(b); }, 0) / nums.length;
+  if (/\/(leg|arm|side)/i.test(ex.reps)) reps *= 2;
+
+  var work = ex.sets * (reps * tempo + 10);
+  var rest, transition;
+  if (ex.type === 'ramp') {
+    // Ramp rests are the ascending ladder, not a flat interval.
+    var LADDER = [30, 45, 60, 120];
+    rest = LADDER.slice(LADDER.length - ex.sets).reduce(function(a, b) { return a + b; }, 0);
+    transition = 0; // you stay at the bar
+  } else if (ex.type === 'main') {
+    // The top set is ONE set, but you still rest after it before the backoffs.
+    // (sets-1) would charge zero rest here and silently undercount the session.
+    rest = ex.sets * ex.rest;
+    transition = 0; // same bar, straight into backoffs
+  } else {
+    rest = secondOfPair ? 0 : (ex.sets - 1) * (ex.ss ? 60 : ex.rest);
+    transition = secondOfPair ? 0 : 50;
+  }
+  return (work + rest + transition) / 60;
+}
+
+function dayMinutes(exercises) {
+  var total = GENERAL_WARMUP_MIN;
+  var seenSS = {};
+  exercises.forEach(function(ex) {
+    var second = !!(ex.ss && seenSS[ex.ss]);
+    if (ex.ss) seenSS[ex.ss] = true;
+    total += exerciseMinutes(ex, second);
+  });
+  return total - (50 / 60); // no transition after the last station
+}
+
+// ---------------------------------------------------------------------------
+// THE 5 DAYS
+// Mon D1 Squat / Tue D2 Bench / Wed REST / Thu D3 Deadlift / Fri REST /
+// Sat D4 Overhead / Sun D5 Pump
+//
+// Rest days sit BEFORE the two heavy axial sessions. Squat -> Deadlift is 72h.
+// All knee-EXTENSION load (the patellar tendon's concern) is on D1 only: squat
+// and leg press. Nothing else in the week loads that tendon -- 144h of recovery.
+// (Seated leg curl on D3 is knee FLEXION -- hamstring work, not tendon load.)
+// Bench -> Overhead is 96h with no tricep work in between.
+// D5 carries zero legs, zero axial load, zero side delts and zero triceps, so
+// it collides with neither Saturday's OHP nor Monday's squat.
+// ---------------------------------------------------------------------------
 var DAY_LABELS = [
-  { short:'D1', name:'Squat' },
-  { short:'D2', name:'Upper A' },
-  { short:'D3', name:'Deadlift' },
-  { short:'D4', name:'Pump' },
-  { short:'D5', name:'Upper B' },
+  { short:'D1', name:'Squat',    dow:'Mon' },
+  { short:'D2', name:'Bench',    dow:'Tue' },
+  { short:'D3', name:'Deadlift', dow:'Thu' },
+  { short:'D4', name:'Overhead', dow:'Sat' },
+  { short:'D5', name:'Pump',     dow:'Sun' },
 ];
 
-// Swap menus
-var SQ_ALTS = ['Back Squat','High Bar Squat','SSB Squat','Box Squat','Hack Squat'];
-var BP_ALTS = ['Bench Press','Close Grip Bench','Pause Bench','DB Bench Press','Floor Press'];
-var DL_ALTS = ['Deadlift','Trap Bar Deadlift','Block Pull','Sumo Deadlift','Pause Deadlift'];
-var OH_ALTS = ['Standing OHP','Seated Barbell OHP','Push Press','DB Shoulder Press','Z Press'];
+function getExercises(dayIdx, weekIdx, maxes) {
+  var dl = WAVE[weekIdx].deload;
+  var ds = function(n) { return dl ? Math.min(2, n) : n; };   // deload: every accessory drops to 2 sets
+  var dn = dl ? ' Deload: 2 sets, RPE 6, ~70% of last week.' : '';
+
+  switch (dayIdx) {
+
+  // D1 SQUAT (Mon) -- the ONLY day carrying knee-EXTENSION load.
+  case 0: return mainBlock('squat', weekIdx).concat([
+    { id:'legpress', name:'Leg Press', type:'accessory', eq:'machine', sets:ds(4), reps:'10-12', wt:null, rest:60, rpeCap:8, cls:'compound_acc', ss:null,
+      notes:'Feet high, stop at 90 deg -- you control depth so the tendon never sees the bottom position. Replaces the split squats (bilateral is half the time and is not balance-limited).' + dn },
+    { id:'bss', name:'Bulgarian Split Squat', type:'accessory', eq:'dumbbell', sets:ds(3), reps:'8-10 /leg', wt:null, rest:75, rpeCap:8, cls:'compound_acc', ss:null,
+      notes:'CAP THE DEPTH, stop at RPE 8, never to failure. This is a SECOND patellar exposure in one session -- which is exactly why it lives here and on no other day. Also the only direct glute work besides the hip thrust.' + dn },
+    { id:'seated_leg_curl', name:'Seated Leg Curl', type:'accessory', eq:'machine', sets:ds(4), reps:'10-12', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:null,
+      notes:'Slow 3-4s eccentric. The only legal knee-flexion hamstring work (no RDLs). Hamstrings were at 3 direct sets against 11 quad -- this is half the fix.' + dn },
+    { id:'calf_raise_db', name:'Standing Calf Raise (DB)', type:'accessory', eq:'dumbbell', sets:ds(4), reps:'10-12', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:'A',
+      notes:'DB, not the machine -- a machine cannot be supersetted. 3s pause at the bottom. Calves had ZERO sets in the old program.' + dn },
+    { id:'pallof_press', name:'Pallof Press', type:'core', eq:'cable', sets:ds(3), reps:'12/side', wt:null, rest:60, rpeCap:7, cls:'core', ss:'A',
+      notes:'Anti-rotation. Replaces the loaded lumbar flexion that ran 3x/week on a back history.' + dn },
+    // No hanging leg raise here. It lives on D5 -- squat day has the least room
+    // and the least claim to it, and D5 has the slack.
+  ]);
+
+  // D2 BENCH (Tue)
+  case 1: return mainBlock('bench', weekIdx).concat([
+    { id:'incline_db_press', name:'Incline DB Press', type:'accessory', eq:'dumbbell', sets:ds(4), reps:'8-10', wt:null, rest:60, rpeCap:8, cls:'compound_acc', ss:'A',
+      notes:'30-45 deg. The only upper-chest work in the program -- it was at 3 sets/week.' + dn },
+    { id:'cable_rear_delt_fly', name:'Cable Rear Delt Fly', type:'accessory', eq:'cable', sets:ds(4), reps:'12-15', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:'A',
+      notes:'Compounds give rear delts nothing, so every set must be direct. They were at 4 sets against an MEV of 8 while being called the priority muscle.' + dn },
+    { id:'db_lateral_raise', name:'DB Lateral Raise', type:'accessory', eq:'dumbbell', sets:ds(4), reps:'12-15', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:'B',
+      notes:'Lead with the elbows, stop at shoulder height.' + dn },
+    { id:'cable_rope_pushdown', name:'Cable Rope Pushdown', type:'accessory', eq:'cable', sets:ds(4), reps:'12-15', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:'B',
+      notes:'4 here + 4 on D4. Still held down deliberately -- bench, OHP and incline already pay ~5.5 sets of tricep credit.' + dn },
+    { id:'cable_fly', name:'Cable Fly', type:'accessory', eq:'cable', sets:ds(3), reps:'10-12', wt:null, rest:75, rpeCap:9, cls:'isolation', ss:null,
+      notes:'Tension at lockout, which the bench lacks.' + dn },
+  ]);
+
+  // D3 DEADLIFT (Thu) -- deliberately the shortest session. Rest day either side.
+  // The old program stacked THREE erector exposures here. Do not re-add a hinge.
+  case 2: return mainBlock('deadlift', weekIdx).concat([
+    { id:'ghd_med', name:'GHD Back Ext + Med Ball', type:'accessory', eq:'bw+', sets:ds(3), reps:'10-12', wt:null, rest:90, rpeCap:7, cls:'compound_acc', ss:null,
+      notes:'The only legal loaded hinge (no RDLs). Bodyweight or med ball only -- never add a plate. Carries the glute and erector volume.' + (dl ? ' Deload: this replaces the deadlift entirely. 2x10, RPE 5.' : '') },
+    { id:'seated_leg_curl', name:'Seated Leg Curl', type:'accessory', eq:'machine', sets:ds(4), reps:'10-12', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:null,
+      notes:'Second hamstring exposure of the week. The deadlift only pays ~1.5 sets of credit and the squat pays none.' + dn },
+    { id:'hip_thrust', name:'DB Hip Thrust', type:'accessory', eq:'dumbbell', sets:ds(4), reps:'10-12', wt:null, rest:75, rpeCap:8, cls:'compound_acc', ss:null,
+      notes:'Pure hip extension -- adds ZERO knee-extension load, so the D1-only patellar rule survives. Short-position glute work that the squat and leg press do not provide.' + dn },
+    { id:'calf_raise_db', name:'Standing Calf Raise (DB)', type:'accessory', eq:'dumbbell', sets:ds(6), reps:'10-12', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:'A',
+      notes:'6 sets here + 4 on D1. Calves get ZERO compound credit, so 8 direct sets sat exactly on the MEV floor with no margin -- this is the only session with the headroom to fix it.' + dn },
+    { id:'pallof_press', name:'Pallof Press', type:'core', eq:'cable', sets:ds(3), reps:'12/side', wt:null, rest:60, rpeCap:7, cls:'core', ss:'A',
+      notes:'Anti-rotation. No lumbar load.' + dn },
+  ]);
+
+  // D4 OVERHEAD (Sat). The old program put pushdowns 24h before this lift,
+  // pre-exhausting the triceps before a lockout-limited press. Bench is now 96h
+  // away and nothing touches triceps in between. Do not undo this.
+  case 3: return mainBlock('ohp', weekIdx).concat([
+    { id:'weighted_pullup', name:'Weighted Pull-Up', type:'accessory', eq:'bw+', sets:ds(3), reps:'6-8', wt:null, rest:120, rpeCap:8, cls:'compound_acc', ss:null,
+      notes:'The heavy vertical pull. Dip belt. Never supersetted -- it holds a bar.' + (dl ? ' Deload: bodyweight only, 2 sets, RPE 6.' : '') },
+    { id:'db_lateral_raise', name:'DB Lateral Raise', type:'accessory', eq:'dumbbell', sets:ds(5), reps:'12-15', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:'A',
+      notes:'Side delts get almost nothing from the compounds. 5 here + 4 on D2.' + dn },
+    { id:'oh_cable_tricep_ext', name:'Overhead Cable Tricep Ext', type:'accessory', eq:'cable', sets:ds(4), reps:'10-12', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:'A',
+      notes:'Long head, loaded in the stretched position. Pushdowns cannot do this and the old program had no long-head work at all.' + dn },
+    { id:'face_pull', name:'Face Pull', type:'accessory', eq:'cable', sets:ds(4), reps:'15', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:null,
+      notes:'Promoted from a junk 2-set primer to a real working slot. Rear delts + external rotators.' + dn },
+  ]);
+
+  // D5 PUMP (Sun) -- no main lift. Sits between Sat OHP and Mon Squat, so it
+  // carries ZERO legs, ZERO axial load, ZERO side delts and ZERO triceps.
+  // That non-collision is the entire reason the day is placed here.
+  case 4: return [
+    { id:'lat_pulldown', name:'Lat Pulldown', type:'accessory', eq:'cable', sets:ds(5), reps:'8-12', wt:null, rest:60, rpeCap:8, cls:'compound_acc', ss:'A',
+      notes:'Vertical pull. 5 sets here + 3 weighted pull-ups on D4 clears the lat target.' + dn },
+    { id:'cable_fly_lh', name:'Low-to-High Cable Fly', type:'accessory', eq:'cable', sets:ds(4), reps:'10-12', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:'A',
+      notes:'Low-to-high, NOT flat -- this is the second upper-chest slot. Upper chest was at 3 sets/week. Cable + cable is a legal pair, two stacks, no rack.' + dn },
+    { id:'cable_row', name:'Cable Row', type:'accessory', eq:'cable', sets:ds(4), reps:'10-12', wt:null, rest:60, rpeCap:8, cls:'compound_acc', ss:'B',
+      notes:'Cable, NOT the chest-supported row machine -- a machine cannot be supersetted.' + dn },
+    { id:'cable_rear_delt_fly', name:'Cable Rear Delt Fly', type:'accessory', eq:'cable', sets:ds(4), reps:'12-15', wt:null, rest:60, rpeCap:9, cls:'isolation', ss:'B',
+      notes:'Third rear-delt exposure of the week.' + dn },
+    { id:'csrow', name:'Chest-Supported Row', type:'accessory', eq:'machine', sets:ds(4), reps:'8-12', wt:null, rest:75, rpeCap:8, cls:'compound_acc', ss:null,
+      notes:'Strict, chest-supported, zero lumbar load. Machine -- NOT supersettable. Mid-back was carried by a single cable-row slot.' + dn },
+    { id:'db_incline_curl', name:'DB Incline Curl', type:'accessory', eq:'dumbbell', sets:ds(4), reps:'10-12', wt:null, rest:75, rpeCap:9, cls:'isolation', ss:'C',
+      notes:'The incline bench loads the long head under stretch, which the cut EZ-bar curl could not.' + dn },
+    { id:'db_hammer_curl', name:'DB Hammer Curl', type:'accessory', eq:'dumbbell', sets:ds(4), reps:'10-12', wt:null, rest:75, rpeCap:9, cls:'isolation', ss:'C',
+      notes:'Same muscle as the incline curl, so this pair rests 75s per round, not 60.' + dn },
+    // NO cable crunch. Sunday sits 24h BEFORE Monday's squat -- the heaviest
+    // axial session of the week (~4,265kg of bar tonnage). Loaded lumbar
+    // flexion immediately before that, on a lower-back history, is the one
+    // thing in this program most likely to injure. There is now zero loaded
+    // lumbar flexion anywhere in the week. Abs are trained by hanging leg
+    // raises plus the bracing demand of heavy squats and deadlifts.
+    { id:'hanging_leg_raise', name:'Hanging Leg Raise', type:'core', eq:'bw', sets:ds(5), reps:'10-15', wt:null, rest:45, rpeCap:7, cls:'core', ss:null,
+      notes:'No swinging, control the descent. The only direct ab slot -- no loaded lumbar flexion exists in this program.' + dn },
+  ];
+
+  }
+  return [];
+}
+
+// Swap menus. INVARIANT: any id that participates in a superset must have a
+// CABLE/DB-ONLY alternatives list, or a legal swap silently produces an illegal
+// pairing. The old ALTS offered 'Reverse Pec Deck' and 'Machine Lateral Raise'
+// on exactly such ids.
+// Box squat sits you back and REDUCES patellar load -- good for the knee -- but
+// never drop onto it: plopping spikes lumbar compression. Pause squat is the
+// opposite trade: no back risk, but sustained load at max knee flexion is what
+// an angry patellar tendon likes least. Run it only when the knee is quiet.
+var SQ_ALTS = ['Back Squat','High Bar Squat','SSB Squat','Box Squat','Pause Squat']; // no front squat, no hack squat
+// Pause bench kills the stretch reflex (raw strength off the chest). Banded
+// bench overloads the lockout, where the press actually fails, at a lighter bar
+// weight. Both are top-set-legal: RPE, not %, sets the load, so the scheme
+// adapts automatically to the lower absolute weight either one demands.
+var BP_ALTS = ['Bench Press','Close Grip Bench','Pause Bench','Banded Bench Press','DB Bench Press'];
+// No trap bar: it markedly increases the knee-extension moment, which would put
+// real patellar load on D3 and collapse the 144h tendon window to 72h.
+// Sumo and Block Pull both cut the lumbar moment without adding knee.
+var DL_ALTS = ['Deadlift','Block Pull','Sumo Deadlift'];                             // no trap bar, no pause DL, no RDL
+var OH_ALTS = ['Standing OHP','Seated Barbell OHP'];                                 // no push press, no Z press
 
 var ALTS = {
-  // Main lifts
-  back_squat:SQ_ALTS, bench:BP_ALTS, deadlift:DL_ALTS, ohp:OH_ALTS,
-  // Primers
-  goblet:    ['Goblet Squat','Bodyweight Squat','Leg Press (light)'],
-  bandpa:    ['Band Pull-Apart','Face Pull (light)','Reverse Pec Deck (light)'],
-  facepull:  ['Face Pull','Band Pull-Apart','Reverse Pec Deck'],
-  // Lower accessories
-  bss:       ['Bulgarian Split Squat','Front Foot Elevated Split Squat','Walking Lunge','Reverse Lunge'],
-  ffess:     ['Front Foot Elevated Split Squat','Bulgarian Split Squat','Hack Squat','Pendulum Squat'],
-  legcurl:   ['Seated Leg Curl','Lying Leg Curl','Nordic Curl'],
-  ghd_med:   ['GHD Back Ext + Med Ball','GHD Back Ext (weighted)','45-Deg Back Ext + Plate'],
-  // Upper accessories
-  dbrow:     ['DB Row','Chest-Supported Row','Cable Row','Hammer Strength Row'],
-  latpd:     ['Lat Pulldown','Pull-Up','Neutral-Grip Pulldown','Assisted Pull-Up'],
-  csrow:     ['Chest-Supported Row','Seal Row (DB)','Cable Row','Hammer Strength Row'],
-  cablefly:  ['Cable Fly','Pec Deck','DB Fly'],
-  latraise:  ['DB Lateral Raise','Cable Lateral Raise','Machine Lateral Raise'],
-  inclinedb: ['Incline DB Press','Hammer Strength Incline','Incline Smith Press','DB Bench Press'],
-  db_ohp:    ['Seated DB Shoulder Press','Standing DB Press','Arnold Press','Machine Shoulder Press'],
-  rearfly:   ['Cable Rear Delt Fly','Reverse Pec Deck','Face Pull','Band Pull-Apart'],
-  wpullup:   ['Weighted Pull-Up','Pull-Up','Lat Pulldown','Chin-Up'],
-  sealrow:   ['Seal Row (DB)','Chest-Supported Row','Pendlay Row','DB Row'],
-  ezcurl_pd: ['EZ Bar Curl','Barbell Curl','Cable Curl'],
-  pushdown_pd:['Tricep Pushdown','Rope Pushdown','Overhead Cable Tricep Ext'],
-  // Core
-  hlr:       ['Hanging Leg Raise','Knee Raise','Dead Bug'],
-  cablecrunch:['Cable Crunch','Decline Sit-Up','Ab Wheel Rollout'],
+  back_squat: SQ_ALTS, bench: BP_ALTS, deadlift: DL_ALTS, ohp: OH_ALTS,
+  // Pendulum and Belt Squat are hack-squat-family: arcing, deep knee flexion,
+  // max patellar load at the bottom, and NOT depth-cappable the way the leg
+  // press is. Banning the hack squat and then offering these was a landmine.
+  legpress:            ['Leg Press','Horizontal Leg Press'],
+  seated_leg_curl:     ['Seated Leg Curl','Lying Leg Curl','Standing Single-Leg Curl'],
+  bss:                 ['Bulgarian Split Squat','Reverse Lunge','Step-Up'],
+  hip_thrust:          ['DB Hip Thrust','Barbell Hip Thrust','Cable Kickback','Glute Bridge'],
+  csrow:               ['Chest-Supported Row','Hammer Strength Row','Incline DB Row'],
+  ghd_med:             ['GHD Back Ext + Med Ball','GHD Back Ext (BW)','45-Deg Back Ext (BW)'],
+  weighted_pullup:     ['Weighted Pull-Up','Pull-Up','Chin-Up','Neutral-Grip Pull-Up'],
+  // -- superset participants: cable/DB only, by construction --
+  calf_raise_db:       ['Standing Calf Raise (DB)','Single-Leg Calf Raise (DB)','Seated Calf Raise (DB)'],
+  pallof_press:        ['Pallof Press','Half-Kneeling Pallof','Cable Anti-Rotation Hold'],
+  incline_db_press:    ['Incline DB Press','Low-Incline DB Press','DB Bench Press'],
+  cable_rear_delt_fly: ['Cable Rear Delt Fly','DB Rear Delt Fly','Face Pull'],
+  db_lateral_raise:    ['DB Lateral Raise','Cable Lateral Raise','Leaning Cable Lateral Raise'],
+  cable_rope_pushdown: ['Cable Rope Pushdown','DB Overhead Ext','DB Skull Crusher'],
+  cable_fly_lh:        ['Low-to-High Cable Fly','Incline Cable Fly','Incline DB Fly'],
+  cable_fly:           ['Cable Fly','Low-to-High Cable Fly','DB Fly'],
+  oh_cable_tricep_ext: ['Overhead Cable Tricep Ext','DB Overhead Ext','Cable Rope Pushdown'],
+  face_pull:           ['Face Pull','Cable Rear Delt Fly','Band Pull-Apart'],
+  lat_pulldown:        ['Lat Pulldown','Neutral-Grip Pulldown','Straight-Arm Pulldown'],
+  cable_row:           ['Cable Row','Single-Arm Cable Row','Wide-Grip Cable Row'],
+  db_incline_curl:     ['DB Incline Curl','DB Seated Curl','Cable Curl'],
+  db_hammer_curl:      ['DB Hammer Curl','Cable Rope Hammer Curl','DB Incline Curl'],
+  // -- core --
+  hanging_leg_raise:   ['Hanging Leg Raise','Captain\'s Chair Knee Raise','Dead Bug'],
+  cable_crunch:        ['Cable Crunch','Ab Wheel Rollout','Weighted Plank'],          // no decline sit-up
 };
 
-var STORAGE_KEY = 'pb12wk_v11';
-var STORAGE_KEY_PREV = 'pb12wk_v10';
+var PR_NAMES = {
+  back_squat:'Back Squat', bench:'Bench Press', deadlift:'Deadlift', ohp:'Standing OHP',
+  back_squat_bo:'Squat Backoff', bench_bo:'Bench Backoff', deadlift_bo:'Deadlift Backoff', ohp_bo:'OHP Backoff',
+  legpress:'Leg Press', seated_leg_curl:'Seated Leg Curl', calf_raise_db:'Standing Calf Raise',
+  bss:'Bulgarian Split Squat', hip_thrust:'DB Hip Thrust', csrow:'Chest-Supported Row',
+  pallof_press:'Pallof Press', hanging_leg_raise:'Hanging Leg Raise', ghd_med:'GHD + Med Ball',
+  weighted_pullup:'Weighted Pull-Up', incline_db_press:'Incline DB Press',
+  cable_rear_delt_fly:'Cable Rear Delt Fly', db_lateral_raise:'DB Lateral Raise',
+  cable_rope_pushdown:'Rope Pushdown', cable_fly:'Cable Fly', cable_fly_lh:'Low-to-High Cable Fly',
+  oh_cable_tricep_ext:'Overhead Tricep Ext', face_pull:'Face Pull',
+  lat_pulldown:'Lat Pulldown', cable_row:'Cable Row',
+  db_incline_curl:'DB Incline Curl', db_hammer_curl:'DB Hammer Curl', cable_crunch:'Cable Crunch',
+};
+
+// ---------------------------------------------------------------------------
+// STATE
+// ---------------------------------------------------------------------------
+var STORAGE_KEY = 'pb12wk_v12';
+var STORAGE_KEY_PREV = 'pb12wk_v11';
 
 function round25(kg) { return Math.round(kg / 2.5) * 2.5; }
 
 function plates(total) {
   if (!total || total <= 20) return null;
   var perSide = (total - 20) / 2;
-  var avail = [25, 20, 15, 10, 5, 2.5, 1.25];
-  var used = [];
-  var rem = perSide;
+  var avail = [25, 20, 15, 10, 5, 2.5, 1.25, 0.5];   // 0.5kg pair -> 1kg granularity
+  var used = [], rem = perSide;
   for (var i = 0; i < avail.length; i++) { while (rem >= avail[i] - 0.001) { used.push(avail[i]); rem -= avail[i]; } }
   return used.length ? used.join(' + ') : null;
 }
 
-function lk(w, d, eid, si) { return w+'_'+d+'_'+eid+'_'+si; }
+function lk(w, d, eid, si) { return w + '_' + d + '_' + eid + '_' + si; }
 function getLog(key) { return state.log[key] || {}; }
-
 function swapKey(day, exId) { return day + '_' + exId; }
-function getDisplayName(day, ex) {
-  var sk = swapKey(day, ex.id);
-  return state.swaps[sk] || ex.name;
-}
+function getDisplayName(day, ex) { return state.swaps[swapKey(day, ex.id)] || ex.name; }
 
-// Display names for PR list (main lifts + accessories logged with weight)
-var PR_NAMES = {
-  back_squat:'Back Squat', bench:'Bench Press', deadlift:'Deadlift', ohp:'Standing OHP',
-  wpullup:'Weighted Pull-Up',
-  bss:'Bulgarian Split Squat', ffess:'FFE Split Squat',
-  dbrow:'DB Row', sealrow:'Seal Row', cablefly:'Cable Fly', latraise:'DB Lateral Raise',
-  latpd:'Lat Pulldown', csrow:'Chest-Supported Row',
-  legcurl:'Seated Leg Curl', ghd_med:'GHD + Med Ball',
-  ezcurl_pd:'EZ Curl', pushdown_pd:'Tricep Pushdown',
-  hlr:'Hanging Leg Raise', cablecrunch:'Cable Crunch', inclinedb:'Incline DB Press',
-  db_ohp:'DB Shoulder Press', rearfly:'Cable Rear Delt Fly',
-};
-
-// A "miss" = a logged main set completed with fewer reps than target.
-function isMissWeek(exId, dayIdx, weekIdx, target) {
-  for (var s = 0; s < 6; s++) {
-    var l = getLog(lk(weekIdx, dayIdx, exId, s));
-    if (l.done && l.reps != null && l.reps < target) return true;
-  }
-  return false;
-}
-// Count consecutive training weeks (ending at weekIdx) where the lift was missed.
-function missStreak(exId, dayIdx, weekIdx, target) {
-  var n = 0;
-  for (var w = weekIdx; w >= 0; w--) {
-    if (WEEKS[w].deload) continue;
-    var logged = false;
-    for (var s = 0; s < 6; s++) { if (getLog(lk(w, dayIdx, exId, s)).done) { logged = true; break; } }
-    if (!logged) break;
-    if (isMissWeek(exId, dayIdx, w, target)) n++; else break;
-  }
-  return n;
-}
-
-// Build a fixed 5x5 main (or scaled secondary). opts: { type, sets, reps, scale, eq, note }
-function mainLift(liftKey, weekIdx, maxes, opts) {
-  opts = opts || {};
-  var m = MAIN_LIFTS[liftKey];
-  var wk = WEEKS[weekIdx];
-  var sets = opts.sets || 5;
-  var reps = opts.reps || '5';
-  var w = workWeight(liftKey, weekIdx, maxes, opts.scale);
-  var note;
-  if (wk.deload) note = 'Deload -- ' + sets + 'x' + reps + ' @ ' + Math.round(DELOAD_PCT*100) + '% 1RM, RPE 5';
-  else if (opts.scale) note = (opts.note || 'Secondary') + ' -- ' + sets + 'x' + reps + ' @ ' + Math.round(opts.scale*100) + '% of working weight';
-  else note = (opts.note || 'Fixed 5x5') + ' -- all sets ' + reps + ' reps @ ' + w + 'kg';
-  var dsets = wk.deload ? Math.min(sets, 3) : sets;
-  return { id:m.id, name:m.name, type:opts.type || 'main', eq:opts.eq || 'barbell', sets:dsets, reps:reps, wt:w, notes:note };
-}
-
-// Order each day: Primer -> Main 5x5 -> accessories -> Core.
-// Accessories drop to 2 sets on deload weeks. Stable accessory IDs across weeks
-// so prev-week data carries forward in the input prefill.
-// 5 days: squat and deadlift each get their own day (never same session).
-// Barbell bench & OHP each heavy 5x5 1x/week; second press exposure is dumbbell.
-// D5 Pump = no barbell main; dumbbell + cable hypertrophy for chest/shoulders/arms.
-function getExercises(dayIdx, weekIdx, maxes) {
-  var wk = WEEKS[weekIdx];
-  var dl = wk.deload;
-  var ds = dl ? 2 : 3;
-  var dlNote = dl ? ' (deload -- ~50% load, RPE 5)' : '';
-
-  switch(dayIdx) {
-
-  // D1 SQUAT -- heavy squat 5x5, quad + ham accessories (no deadlift)
-  case 0: {
-    return [
-      { id:'goblet', name:'Goblet Squat', type:'primer', eq:'dumbbell', sets:2, reps:'8', wt:null, notes:'Primer -- light DB, controlled tempo' },
-      mainLift('squat', weekIdx, maxes, { note:'Fixed 5x5' }),
-      { id:'bss', name:'Bulgarian Split Squat', type:'accessory', eq:'dumbbell', sets:ds, reps:'8-10 /leg', wt:null, notes:'RPE 8 -- knee-friendly quad' + dlNote },
-      { id:'legcurl', name:'Seated Leg Curl', type:'accessory', eq:'machine', sets:ds, reps:'10-12', wt:null, notes:'Hams -- slow eccentric' + dlNote },
-      { id:'latpd', name:'Lat Pulldown', type:'accessory', eq:'cable', sets:ds, reps:'8-12', wt:null, notes:'Vertical pull -- lats / upper back' + dlNote },
-      { id:'hlr', name:'Hanging Leg Raise', type:'core', eq:'bw', sets:ds, reps:'10-15', wt:null, notes:'' },
-    ];
-  }
-
-  // D2 UPPER A -- heavy bench 5x5 + DB shoulder press
-  case 1: {
-    return [
-      { id:'bandpa', name:'Band Pull-Apart', type:'primer', eq:'bw', sets:2, reps:'15', wt:null, notes:'Primer -- scap / RC activation' },
-      mainLift('bench', weekIdx, maxes, { note:'Fixed 5x5' }),
-      { id:'db_ohp', name:'Seated DB Shoulder Press', type:'accessory', eq:'dumbbell', sets:ds, reps:'8-10', wt:null, notes:'RPE 8 -- DB shoulder press (second press exposure)' + dlNote },
-      { id:'dbrow', name:'DB Row', type:'accessory', eq:'dumbbell', sets:ds, reps:'8-10', wt:null, notes:'RPE 8 -- log heaviest DB used' + dlNote },
-      { id:'cablefly', name:'Cable Fly', type:'accessory', eq:'cable', sets:ds, reps:'10-12', wt:null, notes:'Squeeze, slow eccentric' + dlNote },
-      { id:'latraise', name:'DB Lateral Raise', type:'accessory', eq:'dumbbell', sets:ds, reps:'12-15', wt:null, notes:'RPE 8 -- side delts' + dlNote },
-      { id:'cablecrunch', name:'Cable Crunch', type:'core', eq:'cable', sets:ds, reps:'12-15', wt:null, notes:'' },
-    ];
-  }
-
-  // D3 DEADLIFT -- deadlift 5x3, posterior chain (no squat)
-  case 2: {
-    return [
-      { id:'ghd_warm', name:'GHD Hip Extension (BW)', type:'primer', eq:'bw', sets:2, reps:'10', wt:null, notes:'Primer -- BW only, slow eccentric' },
-      mainLift('deadlift', weekIdx, maxes, { sets:5, reps:'3', note:'Fixed 5x3 -- lower rep, heavier; spares the back vs 5x5' }),
-      { id:'ffess', name:'Front Foot Elevated Split Squat', type:'accessory', eq:'dumbbell', sets:ds, reps:'8-10 /leg', wt:null, notes:'RPE 8 -- knee-friendly quad/glute' + dlNote },
-      { id:'ghd_med', name:'GHD Back Ext + Med Ball', type:'accessory', eq:'bw+', sets:ds, reps:'10-12', wt:null, notes:'Posterior chain -- back-safe hinge (no RDL)' + dlNote },
-      { id:'csrow', name:'Chest-Supported Row', type:'accessory', eq:'machine', sets:ds, reps:'8-12', wt:null, notes:'Horizontal pull -- mid-back, no lumbar load' + dlNote },
-      { id:'hlr', name:'Hanging Leg Raise', type:'core', eq:'bw', sets:ds, reps:'10-15', wt:null, notes:'' },
-    ];
-  }
-
-  // D4 PUMP -- weak-point day: rear delts, side delts, arms (no barbell main, no
-  // duplicate pressing -- that work lives on D2/D5). Sits between deadlift and OHP.
-  case 3: {
-    return [
-      { id:'bandpa', name:'Band Pull-Apart', type:'primer', eq:'bw', sets:2, reps:'15', wt:null, notes:'Primer -- scap / RC activation' },
-      { id:'rearfly', name:'Cable Rear Delt Fly', type:'accessory', eq:'cable', sets:dl?2:4, reps:'12-15', wt:null, notes:'Rear delts -- lagging muscle, prioritized first' + dlNote },
-      { id:'latraise', name:'DB Lateral Raise', type:'accessory', eq:'dumbbell', sets:dl?2:4, reps:'12-15', wt:null, notes:'Side delts -- high volume to reach MAV' + dlNote },
-      { id:'latpd', name:'Lat Pulldown', type:'accessory', eq:'cable', sets:ds, reps:'10-12', wt:null, notes:'Vertical pull -- lats / upper back' + dlNote },
-      { id:'csrow', name:'Chest-Supported Row', type:'accessory', eq:'machine', sets:ds, reps:'10-12', wt:null, notes:'Horizontal pull -- mid-back, rear delt' + dlNote },
-      { id:'ezcurl_pd', name:'EZ Curl', type:'accessory', eq:'barbell', sets:ds, reps:'12-15', wt:null, ss:'A', notes:'Superset with pushdown -- arm frequency' + dlNote },
-      { id:'pushdown_pd', name:'Tricep Pushdown', type:'accessory', eq:'cable', sets:ds, reps:'12-15', wt:null, ss:'A', notes:'Superset with curl' + dlNote },
-      { id:'cablecrunch', name:'Cable Crunch', type:'core', eq:'cable', sets:ds, reps:'12-15', wt:null, notes:'' },
-    ];
-  }
-
-  // D5 UPPER B -- heavy OHP 5x5 + incline DB + pull volume (last upper day of week)
-  case 4: {
-    return [
-      { id:'facepull', name:'Face Pull', type:'primer', eq:'cable', sets:2, reps:'15', wt:null, notes:'Primer -- light cable, rear delt / RC' },
-      mainLift('ohp', weekIdx, maxes, { note:'Fixed 5x5' }),
-      { id:'inclinedb', name:'Incline DB Press', type:'accessory', eq:'dumbbell', sets:ds, reps:'8-10', wt:null, notes:'RPE 8 -- DB incline chest (second press exposure)' + dlNote },
-      { id:'wpullup', name:'Weighted Pull-Up', type:'accessory', eq:'bw+', sets:dl?3:4, reps:dl?'6':'6-8', wt:null, notes:dl ? 'Deload -- BW only, RPE 6' : 'Log added weight, progress weekly' },
-      { id:'sealrow', name:'Seal Row (DB)', type:'accessory', eq:'dumbbell', sets:ds, reps:'8-10', wt:null, notes:'Strict, no torso movement' + dlNote },
-      { id:'latraise', name:'DB Lateral Raise', type:'accessory', eq:'dumbbell', sets:ds, reps:'12-15', wt:null, notes:'RPE 8 -- side delts' + dlNote },
-      { id:'ezcurl_pd', name:'EZ Curl', type:'accessory', eq:'barbell', sets:ds, reps:'10-12', wt:null, ss:'A', notes:'Superset with pushdown' + dlNote },
-      { id:'pushdown_pd', name:'Tricep Pushdown', type:'accessory', eq:'cable', sets:ds, reps:'10-12', wt:null, ss:'A', notes:'Superset with curl' + dlNote },
-      { id:'cablecrunch', name:'Cable Crunch', type:'core', eq:'cable', sets:ds, reps:'12-15', wt:null, notes:'' },
-    ];
-  }
-
-  }
-  return [];
-}
-
-// State
 function defaultState() {
-  return { week:0, day:0, maxes:{squat:180, bench:125, deadlift:200, ohp:80}, log:{}, swaps:{}, showSettings:false, showPR:false };
+  return {
+    week: 0, day: 0,
+    maxes: { squat:180, bench:125, deadlift:200, ohp:80 },
+    log: {}, swaps: {},
+    showSettings: false, showPR: false,
+  };
 }
 function loadState() {
   try {
     var s = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (s) { var d = defaultState(); return { ...d, ...s, maxes:{ ...d.maxes, ...(s.maxes||{}) } }; }
-  } catch(e) {}
-  // Migrate from v10 (5/3/1): carry 1RMs only, start logs fresh -- the scheme is incompatible.
+    if (s) { var d = defaultState(); return Object.assign(d, s, { maxes: Object.assign(d.maxes, s.maxes || {}) }); }
+  } catch (e) {}
+  // Migrate from v11 (fixed 5x5): carry the 1RMs as e1RM seeds, drop the logs.
+  // Exercise ids and the whole progression scheme changed -- stale keys would
+  // pollute computePRs() and the RPE replay silently.
   try {
     var prev = JSON.parse(localStorage.getItem(STORAGE_KEY_PREV));
-    if (prev && prev.maxes) { var d2 = defaultState(); d2.maxes = { ...d2.maxes, ...prev.maxes }; return d2; }
-  } catch(e2) {}
+    if (prev && prev.maxes) { var d2 = defaultState(); d2.maxes = Object.assign(d2.maxes, prev.maxes); return d2; }
+  } catch (e2) {}
   return defaultState();
 }
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    week:state.week, day:state.day, maxes:state.maxes, log:state.log, swaps:state.swaps
+    week: state.week, day: state.day, maxes: state.maxes,
+    log: state.log, swaps: state.swaps,
   }));
 }
 var state = loadState();
-if (state.day > 4) state.day = 0; // clamp day index to the 5-day layout (0-4)
+if (state.day > 4 || state.day < 0) state.day = 0;
+if (state.week >= WAVE.length || state.week < 0) state.week = 0;
 
-// Timer
-var audioCtx = null;
-var timerEl = {};
-var tmr = { iv: null, rem: 0, total: 0, on: false, done: false };
-
-function ensureAudio() {
-  if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
-  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-}
-function playBeep() {
-  if (!audioCtx) return;
-  try {
-    var t = audioCtx.currentTime;
-    [0, 0.2].forEach(function(d) {
-      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.connect(g); g.connect(audioCtx.destination);
-      o.frequency.value = 880; g.gain.value = 0.3;
-      o.start(t + d); o.stop(t + d + 0.12);
-    });
-  } catch(e) {}
-}
-function getRestSec(ex) {
-  if (ex.type === 'primer') return 30;
-  if (ex.type === 'main') return 180;
-  if (ex.type === 'supplemental') return 120;
-  if (ex.eq === 'bw+') return 120;
-  if (['bss','ffess','dbrow','sealrow','ghd_med'].indexOf(ex.id) >= 0) return 90;
-  if (ex.ss) return 60;
-  return 75;
-}
-function fmtTime(s) { return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
-function timerTick() {
-  tmr.rem--;
-  if (tmr.rem <= 0) {
-    tmr.rem = 0; tmr.done = true;
-    clearInterval(tmr.iv); tmr.iv = null;
-    timerEl.bar.classList.add('finished');
-    playBeep();
-    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-  }
-  timerDisp();
-}
-function timerStart(sec, label) {
-  ensureAudio();
-  clearInterval(tmr.iv);
-  tmr.total = sec; tmr.rem = sec; tmr.on = true; tmr.done = false;
-  timerEl.bar.classList.add('visible');
-  timerEl.bar.classList.remove('finished');
-  document.body.classList.add('timer-on');
-  timerEl.label.textContent = label || 'Rest';
-  timerDisp();
-  tmr.iv = setInterval(timerTick, 1000);
-}
-function timerDisp() {
-  timerEl.time.textContent = fmtTime(tmr.rem);
-  var pct = tmr.total ? ((tmr.total - tmr.rem) / tmr.total * 100) : 0;
-  timerEl.fill.style.width = pct + '%';
-}
-function timerDismiss() {
-  clearInterval(tmr.iv); tmr.iv = null;
-  tmr.on = false; tmr.done = false;
-  timerEl.bar.classList.remove('visible', 'finished');
-  document.body.classList.remove('timer-on');
-}
-function timerAdjust(delta) {
-  if (!tmr.on) return;
-  tmr.rem = Math.max(0, tmr.rem + delta);
-  tmr.total = Math.max(tmr.total, tmr.rem);
-  if (delta > 0 && tmr.done) {
-    tmr.done = false;
-    timerEl.bar.classList.remove('finished');
-    tmr.iv = setInterval(timerTick, 1000);
-  }
-  if (tmr.rem <= 0 && !tmr.done) {
-    tmr.rem = 0; tmr.done = true;
-    clearInterval(tmr.iv); tmr.iv = null;
-    timerEl.bar.classList.add('finished');
-    playBeep();
-    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-  }
-  timerDisp();
-}
-
-// PR tracking
+// ---------------------------------------------------------------------------
+// PRs
+// ---------------------------------------------------------------------------
 function computePRs() {
   var prs = {};
   for (var key in state.log) {
@@ -732,54 +923,61 @@ function computePRs() {
   return prs;
 }
 
-// Render
+// ---------------------------------------------------------------------------
+// RENDER
+// ---------------------------------------------------------------------------
 var app = document.getElementById('app');
+var RPE_OPTS = ['', '6', '6.5', '7', '7.5', '8', '8.5', '9', '9.5', '10'];
 
 function render() {
-  var wk = WEEKS[state.week];
+  var wk = WAVE[state.week];
   var exercises = getExercises(state.day, state.week, state.maxes);
-  var totalSets = exercises.reduce(function(s,e) { return s + e.sets; }, 0);
+
+  // Ramp sets are warmup, not working volume -- they do not count toward the
+  // set total (the old program's "primers" did, and inflated it).
+  var work = exercises.filter(function(e) { return e.type !== 'ramp'; });
+  var totalSets = work.reduce(function(s, e) { return s + e.sets; }, 0);
   var doneSets = 0;
-  exercises.forEach(function(e) { for (var i = 0; i < e.sets; i++) if (getLog(lk(state.week, state.day, e.id, i)).done) doneSets++; });
-  var pct = totalSets ? Math.round(doneSets/totalSets*100) : 0;
+  work.forEach(function(e) {
+    for (var i = 0; i < e.sets; i++) if (getLog(lk(state.week, state.day, e.id, i)).done) doneSets++;
+  });
+  var pct2 = totalSets ? Math.round(doneSets / totalSets * 100) : 0;
   var prs = computePRs();
 
   var h = '';
+  h += '<div class="header">\n    <h1>TOP SET + BACKOFF</h1>\n    <div style="display:flex;gap:6px">\n      <button class="settings-btn" data-action="openPR">PR</button>\n      <button class="settings-btn" data-action="openSettings">1RM</button>\n    </div>\n  </div>';
 
-  h += '<div class="header">\n    <h1>5X5 + ACCESSORIES</h1>\n    <div style="display:flex;gap:6px">\n      <button class="settings-btn" data-action="openPR">PR</button>\n      <button class="settings-btn" data-action="openSettings">1RM</button>\n    </div>\n  </div>';
-
-  // Block bar: block name + phase + week
   h += '<div class="block-bar">\n    <span class="block-name">' + wk.block + '</span>';
-  var phaseLabel = wk.deload ? 'DELOAD' : 'BLOCK ' + (wk.cycle + 1);
-  h += '<span>' + phaseLabel + '</span>';
-  h += '<span class="block-week">Week ' + (state.week+1) + ' / ' + WEEKS.length + '</span>\n  </div>';
+  h += '<span>' + (wk.deload ? 'DELOAD' : 'RPE ' + wk.rpe + ' / ' + wk.reps + ' REPS') + '</span>';
+  h += '<span class="block-week">Week ' + (state.week + 1) + ' / ' + WAVE.length + '</span>\n  </div>';
 
   h += '<div class="week-bar">';
-  for (var i = 0; i < WEEKS.length; i++) {
+  for (var i = 0; i < WAVE.length; i++) {
     var act = i === state.week ? ' active' : '';
-    var hd = '';
-    var pfx = i + '_';
+    var hd = '', pfx = i + '_';
     for (var k in state.log) { if (k.indexOf(pfx) === 0 && state.log[k].done) { hd = ' has-data'; break; } }
-    h += '<button class="week-pill' + act + hd + '" data-action="week" data-val="' + i + '">' + (i+1) + '</button>';
+    h += '<button class="week-pill' + act + hd + (WAVE[i].deload ? ' dl' : '') + '" data-action="week" data-val="' + i + '">' + (i + 1) + '</button>';
   }
   h += '</div>';
 
   h += '<div class="day-tabs">';
   DAY_LABELS.forEach(function(d, i) {
-    h += '<button class="day-tab' + (i===state.day?' active':'') + '" data-action="day" data-val="' + i + '">\n      <div class="day-num">' + d.short + '</div>' + d.name + '</button>';
+    h += '<button class="day-tab' + (i === state.day ? ' active' : '') + '" data-action="day" data-val="' + i + '">\n      <div class="day-num">' + d.short + ' ' + d.dow + '</div>' + d.name + '</button>';
   });
   h += '</div>';
 
-  h += '<div class="progress-wrap">\n    <div class="progress-track"><div class="progress-fill" id="pFill" style="width:' + pct + '%"></div></div>\n    <span class="progress-text" id="pText">' + doneSets + '/' + totalSets + ' sets</span>\n  </div>';
+  h += '<div class="progress-wrap">\n    <div class="progress-track"><div class="progress-fill" id="pFill" style="width:' + pct2 + '%"></div></div>\n    <span class="progress-text" id="pText">' + doneSets + '/' + totalSets + ' sets</span>\n  </div>';
 
-  var restMap = {
-    0: 'Rest: 3 min (squat 5x5) / 90s (BSS) / 75s (leg curl, core)',
-    1: 'Rest: 3 min (bench 5x5) / 90s (DB shoulder press, DB row) / 75s (fly, lateral, core)',
-    2: 'Rest: 3 min (deadlift 5x3) / 90s (FFESS, GHD med) / 75s (leg curl, core)',
-    3: 'Rest: 75s (delts, rows) / 60s (curl/pushdown SS) -- keep it moving, chase the pump',
-    4: 'Rest: 3 min (OHP 5x5) / 90s (incline DB, seal row) / 2 min (pull-up) / 60s (curl/pushdown SS) / 75s (core)',
-  };
-  h += '<div class="rest-info">' + restMap[state.day] + '</div>';
+  // Session clock vs the 45:00 budget.
+  // Static session estimate. No clock, no countdown -- just the number.
+  var est = dayMinutes(exercises);
+  h += '<div class="sess-bar"><span class="sess-est">Est. ' + est.toFixed(0) + ' min</span>'
+     + '<span class="sess-cap">target ' + SESSION_CAP_MIN + ' min all-in</span></div>';
+
+  // Global stall: two or more mains stalling at once is systemic, not a lift.
+  if (!wk.deload && globalStall(state.week)) {
+    h += '<div class="warn-bar">Two or more main lifts are stalling. That is systemic fatigue, not a lift problem. Take the deload week now rather than pushing on.</div>';
+  }
 
   h += '<div class="exercises">';
   var curSS = null;
@@ -787,21 +985,16 @@ function render() {
     var ex = exercises[ei];
     var nx = exercises[ei + 1];
     var displayName = getDisplayName(state.day, ex);
-    var repTargets = ex.reps.indexOf(',') >= 0 ? ex.reps.split(',').map(function(r){return r.trim();}) : null;
+    var repTargets = ex.reps.indexOf(',') >= 0 ? ex.reps.split(',').map(function(r) { return r.trim(); }) : null;
 
-    if (ex.ss && ex.ss !== curSS) {
-      h += '<div class="ss-group"><div class="ss-header">SUPERSET</div>';
-      curSS = ex.ss;
-    } else if (ex.ss && ex.ss === curSS) {
-      h += '<div class="ss-divider"></div>';
-    }
+    if (ex.ss && ex.ss !== curSS) { h += '<div class="ss-group"><div class="ss-header">SUPERSET -- alternate, rest 60s per round</div>'; curSS = ex.ss; }
+    else if (ex.ss && ex.ss === curSS) { h += '<div class="ss-divider"></div>'; }
 
     var allDone = true;
     for (var ci = 0; ci < ex.sets; ci++) if (!getLog(lk(state.week, state.day, ex.id, ci)).done) { allDone = false; break; }
 
-    h += '<div class="exercise-card ' + (allDone?'all-done':'') + '">';
+    h += '<div class="exercise-card ' + (allDone ? 'all-done' : '') + (ex.type === 'ramp' ? ' ramp-card' : '') + (ex.type === 'main' ? ' top-card' : '') + '">';
 
-    // Header with swap select or plain name
     h += '<div class="ex-header">';
     var alts = ALTS[ex.id];
     if (alts) {
@@ -813,34 +1006,30 @@ function render() {
     } else {
       h += '<span class="ex-name">' + displayName + '</span>';
     }
-    h += '<span class="ex-badge">' + ex.type.toUpperCase() + '</span></div>';
+    h += '<span class="ex-badge b-' + ex.type + '">' + ex.type.toUpperCase() + '</span></div>';
 
-    // Target display
     var tgt;
     if (Array.isArray(ex.wt)) {
-      var rampReps = ex.reps.split(',');
-      var topIdx = ex.wt.length - 1;
-      tgt = 'Build to ' + rampReps[topIdx] + ' @ ' + ex.wt[topIdx] + 'kg (' + ex.sets + ' sets)';
+      var rr = ex.reps.split(',');
+      tgt = ex.wt.map(function(w2, wi) { return w2 + 'kg x ' + rr[wi]; }).join('  /  ');
     } else if (ex.wt) {
       tgt = ex.sets + ' x ' + ex.reps + ' @ ' + ex.wt + 'kg';
     } else {
       tgt = ex.sets + ' x ' + ex.reps;
     }
-    h += '<div class="ex-target">' + tgt + '</div>';
-    var pr = prs[ex.id];
-    if (pr) h += '<div class="ex-pr">PR: ' + pr.weight + (ex.unit || 'kg') + ' (Week ' + pr.week + ')</div>';
+    h += '<div class="ex-target">' + tgt + (ex.rpeCap ? '<span class="rpe-cap">RPE ' + (ex.type === 'main' ? '' : 'max ') + ex.rpeCap + '</span>' : '') + '</div>';
 
-    // Plate breakdown
+    var pr = prs[ex.id];
+    if (pr) h += '<div class="ex-pr">PR: ' + pr.weight + 'kg (Week ' + pr.week + ')</div>';
+
     if (ex.eq === 'barbell') {
       if (Array.isArray(ex.wt)) {
-        var unique = [];
         var seen = {};
         for (var ui = 0; ui < ex.wt.length; ui++) {
-          if (!seen[ex.wt[ui]]) { unique.push(ex.wt[ui]); seen[ex.wt[ui]] = true; }
-        }
-        for (var pi = 0; pi < unique.length; pi++) {
-          var pl = plates(unique[pi]);
-          if (pl) h += '<div class="plates">' + unique[pi] + 'kg: ' + pl + ' /side</div>';
+          if (seen[ex.wt[ui]]) continue;
+          seen[ex.wt[ui]] = true;
+          var pl = plates(ex.wt[ui]);
+          if (pl) h += '<div class="plates">' + ex.wt[ui] + 'kg: ' + pl + ' /side</div>';
         }
       } else if (ex.wt) {
         var pl2 = plates(ex.wt);
@@ -857,16 +1046,10 @@ function render() {
       var wtTarget = Array.isArray(ex.wt) ? ex.wt[si] : ex.wt;
       var repTarget = repTargets ? repTargets[si] : ex.reps;
 
-      // Find most recent prior-week log for this exercise/set
-      var prevLog = null;
-      var prevWeek = null;
+      var prevLog = null, prevWeek = null;
       for (var pw = state.week - 1; pw >= 0; pw--) {
         var pvl = getLog(lk(pw, state.day, ex.id, si));
-        if (pvl.weight != null || pvl.reps != null) {
-          prevLog = pvl;
-          prevWeek = pw + 1;
-          break;
-        }
+        if (pvl.weight != null || pvl.reps != null) { prevLog = pvl; prevWeek = pw + 1; break; }
       }
 
       var preW = '';
@@ -876,70 +1059,87 @@ function render() {
 
       var preR = '';
       var exact = /^\d+$/.test(repTarget);
-      if (exact && ex.type === 'main') preR = log.reps != null ? log.reps : repTarget;
+      if (exact && (ex.type === 'main' || ex.type === 'backoff' || ex.type === 'ramp')) preR = log.reps != null ? log.reps : repTarget;
       else if (log.reps != null) preR = log.reps;
       else if (prevLog && prevLog.reps != null) preR = prevLog.reps;
 
       var pv = '';
       if (prevLog) {
         var pp = [];
-        if (prevLog.weight != null) pp.push(prevLog.weight + (ex.unit || 'kg'));
-        if (!ex.unit && prevLog.reps != null) pp.push('x ' + prevLog.reps);
+        if (prevLog.weight != null) pp.push(prevLog.weight + 'kg');
+        if (prevLog.reps != null) pp.push('x ' + prevLog.reps);
         pv = 'wk' + prevWeek + ': ' + pp.join(' ');
       }
 
-      h += '<div class="set-row' + (log.done?' done':'') + '" data-key="' + key + '">\n        <label class="set-check-label">\n          <input type="checkbox" class="set-check" data-key="' + key + '" data-exid="' + ex.id + '"' + (log.done?' checked':'') + '>\n          <span class="checkmark"></span>\n        </label>\n        <span class="set-num">' + (si+1) + '</span>';
-      if (ex.unit) {
-        h += '<input type="number" class="w-input" data-key="' + key + '" value="' + preW + '" step="1" placeholder="' + ex.unit + '" inputmode="numeric">\n        <span class="unit">' + ex.unit + '</span>';
+      h += '<div class="set-row' + (log.done ? ' done' : '') + '" data-key="' + key + '">\n        <label class="set-check-label">\n          <input type="checkbox" class="set-check" data-key="' + key + '" data-exid="' + ex.id + '" data-si="' + si + '"' + (log.done ? ' checked' : '') + '>\n          <span class="checkmark"></span>\n        </label>\n        <span class="set-num">' + (si + 1) + '</span>';
+      h += '<input type="number" class="w-input" data-key="' + key + '" value="' + preW + '" step="0.5" placeholder="kg" inputmode="decimal">\n        <span class="unit">kg</span>\n        <span class="times">x</span>\n        <input type="number" class="r-input" data-key="' + key + '" value="' + preR + '" step="1" placeholder="' + String(repTarget || ex.reps).replace(/\s*\/.*/, '') + '" inputmode="numeric">';
+
+      // RPE goes on the TOP SET ONLY. It is the single input that drives e1RM,
+      // autoregulation, the stall triggers -- everything downstream.
+      if (ex.type === 'main') {
+        h += '<select class="rpe-input" data-key="' + key + '" title="RPE -- how hard was it?">';
+        for (var ri = 0; ri < RPE_OPTS.length; ri++) {
+          var o = RPE_OPTS[ri];
+          var sel = (log.rpe != null && String(log.rpe) === o) ? ' selected' : '';
+          h += '<option value="' + o + '"' + sel + '>' + (o === '' ? 'RPE' : o) + '</option>';
+        }
+        h += '</select>';
       } else {
-        h += '<input type="number" class="w-input" data-key="' + key + '" value="' + preW + '" step="2.5" placeholder="kg" inputmode="decimal">\n        <span class="unit">kg</span>\n        <span class="times">x</span>\n        <input type="number" class="r-input" data-key="' + key + '" value="' + preR + '" step="1" placeholder="' + (repTarget || ex.reps).replace(/\s*\/.*/, '') + '" inputmode="numeric">';
+        var isPR = log.done && log.weight != null && pr && log.weight >= pr.weight;
+        h += (isPR ? '<span class="pr-badge">PR</span>' : (pv ? '<span class="prev">' + pv + '</span>' : ''));
       }
-      var isPR = log.done && log.weight != null && pr && log.weight >= pr.weight;
-      h += (isPR ? '<span class="pr-badge">PR</span>' : (pv ? '<span class="prev">' + pv + '</span>' : ''));
       h += '\n      </div>';
     }
     h += '</div>';
 
-    // Stall detection: if a main barbell lift is missed (fewer than its target
-    // reps) 3+ training weeks in a row, suggest a 10% cut to the 1RM.
-    var stallTarget = /^\d+$/.test(ex.reps) ? parseInt(ex.reps) : 0;
-    if (ex.type === 'main' && stallTarget) {
+    // Per-lift stall. Fires on the TOP SET only -- a dropped rep on backoff set
+    // 3 is normal fatigue. Includes RPE creep, which fires even when the reps
+    // are made: the leading indicator the old scheme had no way to see.
+    if (ex.type === 'main' && !wk.deload) {
       var liftKey = mainKeyForId(ex.id);
-      if (liftKey && state.maxes[liftKey] != null) {
-        var streak = missStreak(ex.id, state.day, state.week, stallTarget);
-        if (streak >= 3) {
-          var cut = round25(state.maxes[liftKey] * 0.90);
-          h += '<div class="suggest-bump">Missed 5x5 ' + streak + ' weeks running. Cut 1RM 10% &rarr; ' + cut + 'kg? <button data-action="cutRM" data-lift="' + liftKey + '" data-new="' + cut + '">Deload 1RM</button></div>';
+      if (liftKey) {
+        var flags = stallFlags(liftKey, state.week);
+        if (flags.length) {
+          h += '<div class="suggest-bump">Stalling: ' + flags.join('; ') + '. e1RM has been cut 5% automatically and this week repeats. If it fires again, take the deload.</div>';
         }
+        var e = e1rmFor(liftKey, state.week);
+        h += '<div class="e1rm-line">e1RM ' + e + 'kg &middot; top set is ' + Math.round(ex.wt / e * 100) + '% of it &middot; log your RPE to set next week</div>';
       }
     }
 
     h += '</div>';
-
     if (curSS && (!nx || nx.ss !== curSS)) { h += '</div>'; curSS = null; }
   }
   h += '</div>';
 
-  // Notes
-  h += '<div class="notes-section">\n    <button class="notes-toggle" data-action="toggleNotes">\n      <span>Notes + Injury Management</span><span id="notesArrow">V</span>\n    </button>\n    <div class="notes-content" id="notesContent">\n      <h3>5x5 Structure</h3>\n      12 weeks = 2 blocks &times; 5 training weeks + a deload (weeks 6 and 12). Main lifts run a flat 5&times;5 at a fixed working weight each week -- no AMRAP, no ramp, no max-outs. Working weight = 1RM &times; start% + weekly increment. Deload weeks: 3&times;5 @ 60% 1RM.\n      <h3>Weekly Progression</h3>\n      Each block is a self-contained 5-week wave: weight starts ~75% of 1RM and climbs +5kg/week (squat &amp; deadlift) / +2.5kg/week (bench &amp; OHP) to ~86%, then deloads. Block 2 resets and starts one step heavier than Block 1. Weight never climbs into un-hittable territory. The 1RMs in settings drive every working weight -- update them to recompute the whole plan.\n      <h3>5-Day Split</h3>\n      D1 Squat (squat 5x5 + quad/ham accessories), D2 Upper A (bench 5x5 + DB shoulder press + back/delts), D3 Deadlift (deadlift 5x3 + posterior chain), D4 Pump (no barbell -- rear/side delts, arms, pulls -- weak-point day), D5 Upper B (OHP 5x5 + incline DB + pull/arms). Squat and deadlift never share a day. Order keeps the two barbell-press days (D2 bench, D5 OHP) non-adjacent, with the Pump day sitting between deadlift and OHP so no muscle is hammered on back-to-back days. Barbell bench &amp; OHP each pressed heavy 1&times;/week (5x5); every other pressing exposure is dumbbell.\n      <h3>Deadlift &amp; Squat Separate</h3>\n      Deadlift gets its own day (5&times;3, lower-rep/heavier to spare the back) -- squatting and deadlifting heavy in the same session is excessive lower-back and recovery load. Posterior chain volume comes from GHD back ext + med ball on deadlift day.\n      <h3>Stall &rarr; Deload</h3>\n      Log your actual reps. If you miss the target reps on a main barbell lift three training weeks in a row, the app surfaces a banner to cut that 1RM by 10% (which recomputes its working weights). Run linear progression until you stall, then deload.\n      <h3>Patellar Tendonitis</h3>\n      No front squats, no rebound plyos. Squat is one heavy day only; Bulgarian + FFE split squats are the unilateral quad work.\n      <h3>Lower Back</h3>\n      No RDLs, no deficit pulls. Deadlift on its own day at 5x3; GHD back ext + med ball covers the hip hinge with minimal lumbar flexion.\n      <h3>Previous Week</h3>\n      Inputs pre-fill with the previous week logged value (in orange). Adjust if you progressed; otherwise log as is. The "wkN: Xkg x R" label shows which week the prefill came from.\n    </div>\n  </div>';
+  h += '<div class="notes-section">\n    <button class="notes-toggle" data-action="toggleNotes">\n      <span>How this works + injury rules</span><span id="notesArrow">V</span>\n    </button>\n    <div class="notes-content" id="notesContent">\n'
+    + '      <h3>Top Set + Backoff</h3>\n      Every main lift is one heavy top set, then backoffs at -12% (deadlift -15%). The top set is where you log RPE. That RPE is the only thing driving the program: it updates a live e1RM, which sets next week\'s weight. Nothing is on a fixed percentage.\n'
+    + '      <h3>The Wave</h3>\n      3 loading weeks, then a deload, three times over. Reps come DOWN as intensity goes UP: 5 reps @ RPE 7, then 4 @ RPE 8, then 3 @ RPE 9. Holding reps fixed while intensity climbs is what made the old 5x5 prescribe sets that could not be completed.\n'
+    + '      <h3>RPE</h3>\n      RPE 7 = 3 reps left in the tank. RPE 8 = 2 left. RPE 9 = 1 left. RPE 10 = nothing left. Log it honestly -- if you inflate it the program backs off, if you sandbag it the program runs away from you. Both are self-correcting within a week.\n'
+    + '      <h3>Deadlift is capped at RPE 8</h3>\n      Hard rule, not a preference. It never exceeds 88% of e1RM, gets 2 backoff sets instead of 3, and is skipped entirely on deload weeks -- one week in four with zero heavy spinal shear. It is the least-pushed lift in the program on purpose.\n'
+    + '      <h3>45 Minutes</h3>\n      Every session is built to 45 min all-in: warmup, ramp sets, working sets, rest, and walking between stations. The clock at the top starts on your first ticked set. If it says you are over, the fix is to cut the last isolation pair, not to rush the main lift.\n'
+    + '      <h3>Supersets</h3>\n      Cable and dumbbell only -- never a rack, barbell, or machine. That rule exists so you are not holding two stations in a busy gym. If you swap an exercise, the alternatives offered are cable/DB only for the same reason.\n'
+    + '      <h3>Patellar Tendon</h3>\n      All knee-flexion load is on D1 and nowhere else, giving the tendon 144h. No front squats, no hack squat, no rebound plyos. Leg press stops at 90 degrees -- you control the depth so the tendon never sees the bottom position.\n'
+    + '      <h3>Lower Back</h3>\n      No RDLs. Squat is 72h from deadlift, with a rest day in between. GHD back ext + med ball is the only loaded hinge and never takes a plate. One loaded-lumbar-flexion slot in the whole week (cable crunch, D5, furthest from both axial days).\n'
+    + '    </div>\n  </div>';
 
-  // Settings modal
   if (state.showSettings) {
-    h += '<div class="modal-overlay" data-action="closeSettings">\n      <div class="modal" onclick="event.stopPropagation()">\n        <h2>1RM MAXES</h2>\n        <div class="settings-group"><label>Squat (kg)</label>\n          <input type="number" id="inSquat" value="' + state.maxes.squat + '" step="2.5" inputmode="decimal"></div>\n        <div class="settings-group"><label>Bench Press (kg)</label>\n          <input type="number" id="inBench" value="' + state.maxes.bench + '" step="2.5" inputmode="decimal"></div>\n        <div class="settings-group"><label>Deadlift (kg)</label>\n          <input type="number" id="inDead" value="' + state.maxes.deadlift + '" step="2.5" inputmode="decimal"></div>\n        <div class="settings-group"><label>OHP (kg)</label>\n          <input type="number" id="inOHP" value="' + state.maxes.ohp + '" step="2.5" inputmode="decimal"></div>\n        <button class="save-btn" data-action="saveSettings">SAVE + RECALCULATE</button>\n        <button class="reset-btn" data-action="resetProgress">Reset All Progress</button>\n      </div>\n    </div>';
+    h += '<div class="modal-overlay" data-action="closeSettings">\n      <div class="modal" onclick="event.stopPropagation()">\n        <h2>1RM SEEDS</h2>\n        <div style="color:var(--text-dim);font-size:11px;margin-bottom:14px;line-height:1.5">These seed the e1RM. After that your logged RPE drives the weights -- you should rarely need to touch these.</div>\n'
+      + '        <div class="settings-group"><label>Squat (kg)</label>\n          <input type="number" id="inSquat" value="' + state.maxes.squat + '" step="2.5" inputmode="decimal"></div>\n'
+      + '        <div class="settings-group"><label>Bench Press (kg)</label>\n          <input type="number" id="inBench" value="' + state.maxes.bench + '" step="2.5" inputmode="decimal"></div>\n'
+      + '        <div class="settings-group"><label>Deadlift (kg)</label>\n          <input type="number" id="inDead" value="' + state.maxes.deadlift + '" step="2.5" inputmode="decimal"></div>\n'
+      + '        <div class="settings-group"><label>OHP (kg)</label>\n          <input type="number" id="inOHP" value="' + state.maxes.ohp + '" step="1" inputmode="decimal"></div>\n'
+      + '        <button class="save-btn" data-action="saveSettings">SAVE + RECALCULATE</button>\n        <button class="reset-btn" data-action="resetProgress">Reset All Progress</button>\n      </div>\n    </div>';
   }
 
-  // PR modal -- dynamic from logged data
   if (state.showPR) {
     h += '<div class="modal-overlay" data-action="closePR">\n      <div class="modal" onclick="event.stopPropagation()">\n        <h2>PERSONAL RECORDS</h2><div class="pr-grid">';
     var prData = computePRs();
-    var prEntries = Object.keys(prData).sort(function(a,b) { return prData[b].weight - prData[a].weight; });
+    var prEntries = Object.keys(prData).sort(function(a, b) { return prData[b].weight - prData[a].weight; });
     if (prEntries.length) {
       for (var pe = 0; pe < prEntries.length; pe++) {
-        var eid = prEntries[pe];
-        var p = prData[eid];
-        var nm = PR_NAMES[eid] || eid;
-        var u = (eid === 'boxjump1') ? 'cm' : 'kg';
-        h += '<div class="pr-card has-pr">\n          <div class="pr-left"><span class="pr-name">' + nm + '</span><span class="pr-week">Week ' + p.week + '</span></div>\n          <span class="pr-val">' + p.weight + '<span class="pr-unit">' + u + '</span></span>\n        </div>';
+        var eid = prEntries[pe], p = prData[eid];
+        h += '<div class="pr-card has-pr">\n          <div class="pr-left"><span class="pr-name">' + (PR_NAMES[eid] || eid) + '</span><span class="pr-week">Week ' + p.week + '</span></div>\n          <span class="pr-val">' + p.weight + '<span class="pr-unit">kg</span></span>\n        </div>';
       }
     } else {
       h += '<div style="color:var(--text-dim);text-align:center;padding:20px">No PRs logged yet</div>';
@@ -952,16 +1152,21 @@ function render() {
 
 function updateProgress() {
   var exercises = getExercises(state.day, state.week, state.maxes);
-  var totalSets = exercises.reduce(function(s,e) { return s + e.sets; }, 0);
+  var work = exercises.filter(function(e) { return e.type !== 'ramp'; });
+  var totalSets = work.reduce(function(s, e) { return s + e.sets; }, 0);
   var doneSets = 0;
-  exercises.forEach(function(e) { for (var i = 0; i < e.sets; i++) if (getLog(lk(state.week, state.day, e.id, i)).done) doneSets++; });
-  var fill = document.getElementById('pFill');
-  var text = document.getElementById('pText');
-  if (fill) fill.style.width = (totalSets ? Math.round(doneSets/totalSets*100) : 0) + '%';
+  work.forEach(function(e) {
+    for (var i = 0; i < e.sets; i++) if (getLog(lk(state.week, state.day, e.id, i)).done) doneSets++;
+  });
+  var fill = document.getElementById('pFill'), text = document.getElementById('pText');
+  if (fill) fill.style.width = (totalSets ? Math.round(doneSets / totalSets * 100) : 0) + '%';
   if (text) text.textContent = doneSets + '/' + totalSets + ' sets';
 }
 
-// Events
+
+// ---------------------------------------------------------------------------
+// EVENTS
+// ---------------------------------------------------------------------------
 app.addEventListener('click', function(e) {
   var el = e.target.closest('[data-action]');
   if (!el) return;
@@ -980,19 +1185,8 @@ app.addEventListener('click', function(e) {
     state.showSettings = false; saveState(); render();
   }
   if (a === 'resetProgress') {
-    if (confirm('Reset ALL logged sets, weights, and exercise swaps?')) {
+    if (confirm('Reset ALL logged sets, weights, RPEs and swaps?')) {
       state.log = {}; state.swaps = {}; state.showSettings = false; saveState(); render();
-    }
-  }
-  if (a === 'cutRM') {
-    var lift = el.dataset.lift;
-    var newVal = parseFloat(el.dataset.new);
-    if (lift && newVal && state.maxes[lift] != null) {
-      if (confirm('Cut ' + lift + ' 1RM from ' + state.maxes[lift] + 'kg to ' + newVal + 'kg?\n\nAll working weights for this lift will recompute.')) {
-        state.maxes[lift] = newVal;
-        saveState();
-        render();
-      }
     }
   }
   if (a === 'toggleNotes') {
@@ -1003,57 +1197,49 @@ app.addEventListener('click', function(e) {
 
 app.addEventListener('change', function(e) {
   if (e.target.classList.contains('ex-select')) {
-    var day = parseInt(e.target.dataset.day);
-    var exId = e.target.dataset.exid;
-    var def = e.target.dataset.default;
-    var val = e.target.value;
+    var day = parseInt(e.target.dataset.day), exId = e.target.dataset.exid;
+    var def = e.target.dataset.default, val = e.target.value;
     var sk = swapKey(day, exId);
-    if (val === def) delete state.swaps[sk];
-    else state.swaps[sk] = val;
+    if (val === def) delete state.swaps[sk]; else state.swaps[sk] = val;
     saveState();
+    return;
+  }
+  if (e.target.classList.contains('rpe-input')) {
+    var rk = e.target.dataset.key;
+    var rv = e.target.value === '' ? null : parseFloat(e.target.value);
+    state.log[rk] = Object.assign({}, state.log[rk] || {}, { rpe: rv });
+    saveState();
+    render();   // RPE moves e1RM, which moves every downstream weight
     return;
   }
   if (e.target.classList.contains('set-check')) {
     var key = e.target.dataset.key;
-    state.log[key] = { ...(state.log[key]||{}), done: e.target.checked };
+    state.log[key] = Object.assign({}, state.log[key] || {}, { done: e.target.checked });
     saveState();
     var row = e.target.closest('.set-row');
     if (row) row.classList.toggle('done', e.target.checked);
     var card = row && row.closest('.exercise-card');
-    if (card) {
-      var checks = card.querySelectorAll('.set-check');
-      card.classList.toggle('all-done', Array.from(checks).every(function(c) { return c.checked; }));
-    }
+    var checks = card ? card.querySelectorAll('.set-check') : [];
+    var allDone = card && Array.from(checks).every(function(c) { return c.checked; });
+    if (card) card.classList.toggle('all-done', allDone);
     updateProgress();
-    if (e.target.checked) {
-      var exId2 = e.target.dataset.exid;
-      var exercises = getExercises(state.day, state.week, state.maxes);
-      var ex = exercises.find(function(x) { return x.id === exId2; });
-      if (ex) timerStart(getRestSec(ex), getDisplayName(state.day, ex));
-    }
+
     return;
   }
   if (e.target.classList.contains('w-input')) {
     var key2 = e.target.dataset.key;
-    state.log[key2] = { ...(state.log[key2]||{}), weight: e.target.value ? parseFloat(e.target.value) : null };
+    state.log[key2] = Object.assign({}, state.log[key2] || {}, { weight: e.target.value ? parseFloat(e.target.value) : null });
     saveState();
   }
   if (e.target.classList.contains('r-input')) {
     var key3 = e.target.dataset.key;
-    state.log[key3] = { ...(state.log[key3]||{}), reps: e.target.value ? parseInt(e.target.value) : null };
+    state.log[key3] = Object.assign({}, state.log[key3] || {}, { reps: e.target.value ? parseInt(e.target.value) : null });
     saveState();
   }
 });
 
 render();
 
-timerEl.bar = document.getElementById('timerBar');
-timerEl.time = document.getElementById('timerTime');
-timerEl.label = document.getElementById('timerLabel');
-timerEl.fill = document.getElementById('timerFill');
-document.getElementById('timerDismiss').addEventListener('click', timerDismiss);
-document.getElementById('timerPlus').addEventListener('click', function() { timerAdjust(15); });
-document.getElementById('timerMinus').addEventListener('click', function() { timerAdjust(-15); });
 })();
 </script>
 </body>

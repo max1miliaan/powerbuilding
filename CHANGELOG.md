@@ -1,5 +1,82 @@
 # Changelog
 
+## [2026-07-12] -- v2: top set + backoff, RPE autoregulation, 55-minute sessions
+
+Full program rebuild. Five specialist agents audited the old program in parallel (time budget, volume/coverage, periodization, fatigue/injury, exercise selection); five more assembled the new days, each adversarially checked. This closes every item the 2026-05-31e review deferred.
+
+### Why the old program had to go
+
+- **It prescribed loads that cannot be lifted.** A 5RM is ~87% of 1RM. By Block 2 Week 5 the app prescribed squat 5x5 @ 89%, bench @ 88%, OHP @ 91%, deadlift 5x3 @ 90%. Set 1 was at or above the rep-max and sets 2-5 were mathematically impossible. Reps were pinned at 5x5 while intensity climbed, and there was no RPE cap on any main lift -- it prescribed RPE 10 by construction.
+- **No session fit 45 minutes.** Modelled all-in: D1 49:27, D2 54:43, D3 50:33, D4 46:13, D5 64:12. The week ran 4h25m against a 3h45m budget.
+- **Six muscle groups were at or near zero.** Calves 0. Glutes 0 direct. Traps 0. Forearms 0. Obliques 0. Hamstrings 3 direct against 11 quad (3.7:1). Abs got 15 sets -- more than chest.
+- **The stall handler could never fire.** `missStreak()` needed 3 consecutive miss weeks, but the deload landed on week 6. It was structurally unreachable inside a block.
+- **CLAUDE.md line 49 was false.** It claimed the Pump day placement meant "no muscle group is loaded on back-to-back days". D4 -> D5 shared side delts, rear delts, triceps, biceps, lats and mid-back at 24h, and D4's pushdowns pre-exhausted the triceps 24h before a 91% OHP -- a lockout-limited lift.
+
+### What changed
+
+- **Top set + backoff** replaces straight 5x5. Reps wave DOWN (5 @ RPE7 -> 4 @ RPE8 -> 3 @ RPE9) as intensity waves UP.
+- **RPE-driven closed loop.** Weight derives from a live e1RM that the logged top-set RPE updates. e1RM is replayed from the log, not stored, so editing an old week recomputes everything downstream. Nothing in the old code read a single logged rep.
+- **Wave is now 3:1** (3 loading weeks + deload, x3). Deloads at weeks 4, 8, 12.
+- **New stall triggers** on the top set only: hard miss (2 weeks), RPE creep (2 weeks, *even with reps made* -- the leading indicator the old scheme lacked), and a global 2-of-4-lifts banner.
+- **Schedule reordered:** Mon Squat / Tue Bench / **Wed rest** / Thu Deadlift / **Fri rest** / Sat Overhead / Sun Pump. Rest days now sit BEFORE the heavy axial days. Squat->Deadlift is 72h (was 48h). Bench->Overhead is 96h with zero tricep work between. All knee load is on D1 alone (144h tendon recovery).
+- **Deadlift hard-capped** at RPE 8 / 88% e1RM, 2 backoff sets not 3, and skipped entirely on deload weeks -- one week in four with zero heavy spinal shear.
+- **Explicit warmup ramp** (`type:'ramp'`, excluded from working volume). All four old "primers" cut: the goblet squat rehearsed the squat you were about to ramp into, and D3 warmed up *on the GHD* for GHD work 25 min later.
+- **No timers.** The rest-countdown bar and live session clock are both removed. The app shows a static `Est. N min` figure per day and nothing else.
+- **Supersets are cable/DB only** and every superset id's swap menu is cable/DB-only by construction.
+- **Plate granularity:** OHP steps in 1.0kg (0.5kg plate pair). At 2.5kg the OHP wave collapsed -- two weeks of a block landed on the same weight.
+
+### Volume: direct work is now funded inversely to compound coverage
+
+A muscle the compounds hammer gets few or zero direct sets; a muscle they ignore gets its full MEV in direct work.
+
+Final direct sets/week: quads 11, glutes 10, calves 10, hams 8, erectors 6, lats 8, mid-back 8, rear delts 12, side delts 9, upper chest 8, mid chest 7, biceps 8, triceps 8, abs 5, obliques 6.
+
+- Calves 0 -> **10**. Glutes 0 direct -> **10**. Hamstrings 3 -> **8** (quad:ham was 3.7:1, now 11:8). Rear delts 4 -> **12** (they were the stated "priority" muscle at half of MEV). Upper chest 3 -> **8**. Obliques 0 -> **6**.
+- Abs 15 -> **5** (overfunded above chest). Triceps and biceps held at 8 direct -- the compounds already pay 5.5 and 4.5 sets of credit.
+- Front delts get **zero** isolation (7.5 sets of compound credit). Neck, traps and forearms/grip are **out of scope by decision**, not gaps.
+- Cut: 3 of 5 ab slots, 2 of 4 redundant horizontal rows, all 4 primers.
+
+### Bugs fixed
+
+- `getRestSec()` checked `eq==='bw+'` (120s) *before* the 90s id list, so `ghd_med`'s entry in that list was dead code -- it silently rested 120s.
+- The rest timer fired after the **last** set of every exercise, costing an obedient lifter an extra full rest interval per exercise (+6:30 to +9:30 per session).
+- `ALTS.ezcurl_pd[0]` was `'EZ Bar Curl'` while the exercise's `name` was `'EZ Curl'`, so the selected-option check never matched and the dropdown rendered the wrong default.
+- The program's only superset was `ezcurl_pd` (**barbell**) + a cable pushdown -- it held an EZ bar and a cable stack simultaneously.
+- `ALTS.cablecrunch` offered **"Decline Sit-Up"** -- loaded lumbar flexion at end range, directly contraindicated on a lower-back history.
+- Hack Squat was offered in `SQ_ALTS`, `bss` and `ffess` -- the highest patellar tendon load of any squat pattern at depth.
+- `restMap[2]` (D3) read "75s (leg curl, core)" on a day that had no leg curl.
+
+### Second round -- fixes from three adversarial verifiers
+
+Three Opus agents (programming logic / volume / injury) were pointed at the assembled file and told to break it. They did.
+
+**Injury (blocking):**
+- **Cable crunch removed entirely.** It sat on D5 Sunday with a note claiming it was "furthest from both heavy axial days". That was arithmetically false -- Sunday is **24h before Monday's squat**, the heaviest axial session of the week. Loaded lumbar flexion immediately before that, on a lower-back history, was the single most likely thing in the program to injure. There is now **zero loaded lumbar flexion anywhere**.
+- **`legpress` ALTS offered Pendulum Squat and Belt Squat** -- both hack-squat-family, arcing, max patellar load at the bottom, and not depth-cappable. The hack squat was banned and then its two closest cousins were put behind a one-click swap. Removed.
+- **`DL_ALTS` offered the Trap Bar** -- it markedly increases the knee-extension moment, which would have put patellar load on D3 and collapsed the 144h tendon window to 72h. Removed. Z Press removed too (floor-seated lumbar flexion under an overhead load).
+
+**Programming logic (blocking):**
+- **`stallCut()` death-spiralled.** The same missed weeks were charged three times over (drift loop x0.95, then `stallCut` x0.95, then overlapping lookback windows re-charging the same week), and the `[0.85, 1.15]` guards ran *before* the cut, so the real floor was 0.85 x 0.85 = **0.72 x seed**. Measured: e1RM 180 -> **130kg**, and it never expired -- nine perfect weeks could not pay off a 5% tax. Now: only RPE creep is priced there (a miss is already charged in the drift loop), each stall window is charged at most once, and the guards run after the cut. Floor holds exactly at 153kg, and 8 good weeks recover 165 -> 170.
+- **Backoffs were junk volume.** A fixed 12% drop off a top set whose intensity swings 78% -> 89% meant the W1 backoff reverse-solved to **RPE < 6**, and every deadlift backoff was sub-RPE-6 -- not a stimulus. The drop now waves (8/10/12%, bench 8/11/14%, deadlift flat 10%). Every backoff now lands RPE 6-7.5, none over its cap.
+- **Ramp count keyed off absolute kg**, so bench and OHP could never reach 4 ramp sets while the deadlift always did, and the squat changed ramp length mid-block. `RAMP_N` is now per-lift.
+- **`floorStep` truncated bench's block-over-block progress to zero** (~1.2kg of bar drift per block, floored to a 2.5kg step). Top sets now round for squat/bench/OHP; the deadlift keeps FLOOR, where over-prescribing by a step is a back-safety issue.
+
+### Volume raised to 55-minute sessions
+
+Session budget raised from 45 to 55 min on request, and the extra ~10 min/day spent on the gaps the volume verifier found:
+- **Bulgarian Split Squat 3x8-10/leg back on D1** -- quads 8 -> 11. It is a SECOND patellar exposure in one session, which is exactly why it lives on D1 and no other day: cap the depth, RPE 8, never to failure.
+- **DB Hip Thrust 4 on D3** -- glutes 0 direct -> 10. Pure hip extension, so it adds zero knee-extension load and the D1-only patellar rule survives.
+- **Chest-Supported Row 4 on D5** -- mid-back 4 -> 8.
+- Calves 8 -> 10 (they sat exactly on the MEV floor with zero compound credit), upper chest 6 -> 8, triceps 6 -> 8, biceps 6 -> 8, rear delts 11 -> 12.
+- **Pause Squat** added to the squat menu and **Banded Bench Press** to the bench menu. Both run at a lighter absolute bar weight -- and because the top set is RPE-selected rather than %-selected, the scheme adapts with no config change.
+
+### Result
+
+- Every one of the 60 day/week combinations fits its cap. D1 51.6 / D2 45.9 / D3 52.2 / D4 44.6 / D5 52.2 min against a 55-min budget; deloads 20-35 min.
+- 122 working sets/week (ramp sets excluded -- they are warmup, not volume).
+- On-plan 12-week progression: squat 180 -> 187kg, bench 125 -> 129.5, deadlift 200 -> 207, OHP 80 -> 82.5 (~4% -- realistic; the old +5kg/wk implied +14% per block).
+- localStorage bumped to `pb12wk_v12`. Migrating from v11 carries the 1RMs as e1RM seeds and drops the logs (ids and scheme both changed).
+
 ## [2026-05-31e] -- D5 rebuild + week reorder (expert-panel HIGH)
 
 ### What changed

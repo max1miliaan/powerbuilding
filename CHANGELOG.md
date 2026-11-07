@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026-11-07f] -- confirmed seated leg machines
+
+- User confirmed seated leg curl and seated leg extension at Carlaw. New default sessions use bilateral seated curl 3×10–15 on both leg days and seated extension 2×10–15 on Legs A; rest90/75 seconds respectively. Replaced lower warm-up curl steps with light bilateral seated curls.
+- Removed the equipment-confirmation gate; leg press and kneeling curl remain alternatives. New seated IDs and blank trial loads prevent invented conversions from older stations.
+- Kept `ppl-v3` and existing progress. Version-1 frozen settings retain original exercises, unilateral inputs and warm-up IDs; new version-2 snapshots record the seated choices. No historical records are relabelled or rewritten.
+
 ## [2026-11-07e] -- saved warm-up checklists
 
 - Split all six session warm-ups into individually checkable circuit movements and lift-specific ramp sets, including pause/SSB setup cues and both-side instructions.

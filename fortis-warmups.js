@@ -25,7 +25,8 @@ const circuits = {
 
 export function warmupSteps(session) {
   const family = session.code.startsWith('push') ? 'push' : session.code.startsWith('pull') ? 'pull' : session.code;
-  const circuit = circuits[family];
+  const circuit = circuits[family]?.map(item => item[0]==='legcurl' && session.exercises.some(e=>e.id.endsWith('-seated-legcurl'))
+    ? ['seated-legcurl','Light seated leg curl','10–12 reps'] : item);
   if (!circuit) return [];
   const round = (number, optional = false) => circuit.map(([id, name, target]) => ({
     id: `circuit-${number}-${id}`, name, target, optional, phase: number === 1 ? 'circuit' : 'repeat',

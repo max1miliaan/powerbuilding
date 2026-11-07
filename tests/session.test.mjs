@@ -1,9 +1,35 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { setupKey, prescriptionKey, programFromRecords, sessionStarted, freezePrescription } from '../fortis-session.js';
+import { warmupSteps } from '../fortis-warmups.js';
 
 const fakeStore = (records = {}) => ({get: id => records[id], set: (id, value) => {records[id] = value;}, all: () => records});
 const current = (store, week = 5, code = 'legs-a') => programFromRecords(id => store.get(id)).find(p => p.week === week && p.code === code);
+
+test('earlier frozen sessions retain kneeling curls, quad choice and warm-up IDs without writes', () => {
+  for(const quad of ['leg-press','leg-extension']){
+    const records = {[prescriptionKey(5,'legs-a')]:{version:1,settings:{light:false,variation:'back-squat',quad}}};
+    const before=JSON.stringify(records),store=fakeStore(records),p=current(store);
+    assert(p.exercises.find(e=>e.id==='legs-a-legcurl').unilateral);
+    assert(p.exercises.some(e=>e.id===(quad==='leg-press'?'legs-a-legpress':'legs-a-legextension')));
+    const warmup=warmupSteps(p).find(s=>s.id==='circuit-1-legcurl');
+    assert.equal(warmup.name,'Light kneeling leg curl');assert.equal(warmup.target,'10–12 reps / side');
+    assert(!p.exercises.some(e=>e.id.includes('seated-leg')));
+    freezePrescription(store,p);
+    assert.equal(JSON.stringify(records),before);
+  }
+});
+
+test('new snapshots freeze the confirmed seated exercises and distinct warm-up IDs', () => {
+  const store=fakeStore(),p=current(store);
+  freezePrescription(store,p);
+  assert.equal(store.get(prescriptionKey(5,'legs-a')).version,2);
+  assert.equal(store.get(prescriptionKey(5,'legs-a')).settings.curl,'seated');
+  assert.equal(store.get(prescriptionKey(5,'legs-a')).settings.quad,'seated-leg-extension');
+  assert(warmupSteps(p).some(s=>s.id==='circuit-1-seated-legcurl'&&s.target==='10–12 reps'));
+  store.set(setupKey(5,'legs-a'),{curl:'kneeling',quad:'leg-press'});
+  assert(current(store).exercises.some(e=>e.id==='legs-a-seated-legcurl'));
+});
 
 test('settings rebuild session prescriptions without changing another account or session', () => {
   const a = fakeStore({[setupKey(5, 'legs-a')]: {light: true, variation: 'ssb-box-squat', quad: 'leg-extension'}});
@@ -23,7 +49,7 @@ test('first write freezes the selected prescription and later setup records cann
   store.set(setupKey(5, 'legs-a'), {light: false, variation: 'back-squat', quad: 'leg-extension'});
   assert.equal(current(store).light, true);
   assert.equal(current(store).exercises[0].variation, 'ssb-box-squat');
-  assert(!current(store).exercises.some(e => e.id.endsWith('legextension')));
+  assert(current(store).exercises.some(e => e.id.endsWith('seated-legextension')));
   freezePrescription(store, current(store));
   assert.deepEqual(store.get(prescriptionKey(5, 'legs-a')), frozen);
 });

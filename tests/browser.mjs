@@ -16,6 +16,11 @@ try {
     for(const [id,value] of [['1:D:D-jump:0',{bestCm:180,reps:2,done:true}],['1:D:D-sled:0',{weight:90,distance:15,effort:6,done:true}]]){const idKey='fortis-v1:guest:'+encodeURIComponent(id);if(!localStorage.getItem(idKey))localStorage.setItem(idKey,JSON.stringify({value,revision:0,dirty:true,changeId:'synthetic-legacy',conflict:null}));}
     const oldPpl='fortis-v1:guest:'+encodeURIComponent('ppl-v1:1:push-a:push-a-main:0');if(!localStorage.getItem(oldPpl))localStorage.setItem(oldPpl,JSON.stringify({value:{weight:195,reps:6,done:true},revision:0,dirty:true,changeId:'synthetic-old-ppl',conflict:null}));
     const v2='fortis-v1:guest:'+encodeURIComponent('ppl-v2:5:legs-a:legs-a-main-ssb-box-squat:0');if(!localStorage.getItem(v2))localStorage.setItem(v2,JSON.stringify({value:{weight:195,reps:5,rir:2,done:true},revision:0,dirty:true,changeId:'synthetic-v2',conflict:null}));
+    for(const [id,value] of [
+      ['ppl-v3:prescription:3:legs-a',{version:1,settings:{light:false,variation:'back-squat',quad:'leg-press'}}],
+      ['ppl-v3:3:legs-a:legs-a-legcurl:0',{weight:20,left:12,right:11,rir:2,done:true}],
+      ['ppl-v3:warmup:3:legs-a:circuit-1-legcurl',{done:true}],
+    ]){const k='fortis-v1:guest:'+encodeURIComponent(id);if(!localStorage.getItem(k))localStorage.setItem(k,JSON.stringify({value,revision:0,dirty:true,changeId:'synthetic-before-seated',conflict:null}));}
     if(!localStorage.getItem('fortis-view-v1'))localStorage.setItem('fortis-view-v1',JSON.stringify({week:3,code:'D'}));
   });
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -92,8 +97,20 @@ try {
   await pullup.getByRole('button',{name:'Use target'}).first().click();
   assert.equal(await pullup.locator('[data-field=weight]').first().inputValue(),'-30');
   await page.getByRole('button',{name:'Thu: Legs A',exact:true}).click();
-  assert.equal(await page.locator('[data-ex="legs-a-legcurl"] [data-field=left]').count(),3);
-  assert.equal(await page.locator('[data-ex="legs-a-legcurl"] [data-field=right]').count(),3);
+  assert.equal(await page.locator('[data-ex="legs-a-seated-legcurl"] [data-field=reps]').count(),3);
+  assert.equal(await page.locator('[data-ex="legs-a-seated-legcurl"] [data-field=left]').count(),0);
+  assert.equal(await page.locator('[data-ex="legs-a-seated-legextension"] .set-row').count(),2);
+  assert.equal(await page.locator('[data-ex="legs-a-seated-legcurl"] [data-field=weight]').first().getAttribute('placeholder'),'');
+  assert.equal(await page.locator('[data-warmup="circuit-1-seated-legcurl"]').count(),1);
+  assert.equal(await page.locator('#confirm-leg-extension').count(),0);
+  await page.locator('#week').selectOption('3');await page.locator('[data-day="legs-a"]').click();
+  assert.equal(await page.locator('[data-ex="legs-a-legcurl"] [data-field=left]').first().inputValue(),'12');
+  assert.equal(await page.locator('[data-ex="legs-a-legcurl"] [data-field=right]').first().inputValue(),'11');
+  assert.equal(await page.locator('[data-ex="legs-a-legpress"]').count(),1);
+  assert.equal(await page.locator('[data-warmup="circuit-1-legcurl"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('[data-ex="legs-a-seated-legcurl"]').count(),0,'old frozen session keeps its original station');
+  await page.locator('#week').selectOption('1');
+
   await page.getByRole('button',{name:'Sat: Pull B',exact:true}).click();
   await page.locator('#finish-button').click();
   assert.match(await page.locator('#panel-body').innerText(),/working sets and 0 of 6 warm-up steps/);
@@ -121,16 +138,11 @@ try {
   await page.locator('[data-setup=variation]').selectOption('ssb-box-squat');
   assert.match(await page.locator('#workout').innerText(),/Safety-bar box squat/);
   assert.match(await page.locator('.warmup').innerText(),/safety-bar box squat/i);
-  await page.locator('[data-setup=quad]').selectOption('leg-extension');
-  assert.equal(await page.locator('[data-setup=quad]').inputValue(),'leg-press','extension requires equipment confirmation');
-  await page.locator('#confirm-leg-extension').check();
-  await page.locator('[data-setup=quad]').selectOption('leg-extension');
-  await page.locator('#confirm-leg-extension').uncheck();
-  assert.equal(await page.locator('[data-ex="legs-a-legextension"]').count(),0,'removing confirmation restores leg press before logging');
-  assert.equal(await page.locator('[data-setup=quad]').inputValue(),'leg-press');
-  await page.locator('#confirm-leg-extension').check();
-  await page.locator('[data-setup=quad]').selectOption('leg-extension');
-  const extension=page.locator('[data-ex="legs-a-legextension"]');
+  assert.equal(await page.locator('[data-setup=quad]').inputValue(),'seated-leg-extension');
+  await page.locator('[data-setup=quad]').selectOption('leg-press');
+  assert.equal(await page.locator('[data-ex="legs-a-legpress"]').count(),1);
+  await page.locator('[data-setup=quad]').selectOption('seated-leg-extension');
+  const extension=page.locator('[data-ex="legs-a-seated-legextension"]');
   assert.equal(await extension.locator('.set-row').count(),2);
   assert.equal(await page.locator('[data-ex="legs-a-legpress"]').count(),0);
   assert.equal(await extension.locator('[data-field=weight]').first().getAttribute('placeholder'),'');
@@ -207,5 +219,5 @@ try {
     for(let i=0;i<5;i++){await page.locator('#days button').nth(i).click();assert(await page.locator('.exercise').count()>=4);assert(await page.locator('[data-warmup]').count()>=6);}
   }
   assert.deepEqual(errors,[],'no browser errors');
-  console.log('Browser checks passed: all 60 sessions, 320/390/1280px layouts, calibration, actual/target separation, persistence, assistance, unilateral inputs, rolling navigation, explicit recovery, equipment confirmation, locked prescriptions, warm-up checklists and separate totals, all three archives, export and timer.');
+  console.log('Browser checks passed: all 60 sessions, 320/390/1280px layouts, calibration, actual/target separation, persistence, assistance, unilateral inputs, rolling navigation, explicit recovery, confirmed seated machines and preserved earlier stations, locked prescriptions, warm-up checklists and separate totals, all three archives, export and timer.');
 } finally {await browser?.close();await new Promise(resolve=>server.close(resolve));}

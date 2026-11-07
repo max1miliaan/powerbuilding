@@ -31,8 +31,8 @@ Listed sets are work sets, excluding circuits and ramps. Reps are per side where
 | | Rear-delt machine or cable reverse fly | 2 × 12–20 |
 | | Cable curl | 3 × 10–15 |
 | Legs A | Back squat; optional explicitly selected SSB box squat | 3 × 4–6 |
-| | Atlantis kneeling leg curl | 3 × 10–15 per side |
-| | Fortis leg press; optional confirmed-machine leg extension | 2 × 10–15 |
+| | Seated leg curl, both legs together | 3 × 10–15 |
+| | Seated leg extension; leg press alternative | 2 × 10–15 |
 | | Standing dumbbell calf raise | 3 × 12–20 |
 | | Ab wheel | 2 × 8–12 |
 | Push B | 1-second paused barbell bench press | 3 × 6–8 |
@@ -47,11 +47,11 @@ Listed sets are work sets, excluding circuits and ramps. Reps are per side where
 | | Rope hammer curl | 3 × 10–15 |
 | Legs B | Conventional deadlift; optional explicitly selected 1-second paused floor deadlift | 2 × 3–5 |
 | | Wenning belt squat | 3 × 8–12 |
-| | Atlantis kneeling leg curl | 3 × 10–15 per side |
+| | Seated leg curl, both legs together | 3 × 10–15 |
 | | Seated calf raise | 3 × 12–15 |
 | | Pallof press | 2 × 10 per side |
 
-Main bench, squat and deadlift sets stop at about **2 RIR**, with **three minutes rest**. Push B paused bench stays at **2–3 RIR**, with three minutes rest. Accessories stay near **2 RIR**; cable crunch stays at **2–3 RIR**. Timer defaults are **3:00 for main lifts**, **2:30 for pull-ups**, **2:00 for other multi-joint presses, rows, pulldowns, leg press and belt squat**, **1:30 after both legs of kneeling curls**, and **1:15 for standalone isolation/core or a complete accessory pair**. Start a paired timer after both exercises and all sides. These are starting rest periods, not limits: add time when needed to preserve clean performance.
+Main bench, squat and deadlift sets stop at about **2 RIR**, with **three minutes rest**. Push B paused bench stays at **2–3 RIR**, with three minutes rest. Accessories stay near **2 RIR**; cable crunch stays at **2–3 RIR**. Timer defaults are **3:00 for main lifts**, **2:30 for pull-ups**, **2:00 for other multi-joint presses, rows, pulldowns, leg press and belt squat**, **1:30 for seated curls**, and **1:15 for standalone isolation/core or a complete accessory pair**. Start a paired timer after both exercises and all sides. These are starting rest periods, not limits: add time when needed to preserve clean performance.
 
 The two deadlift work sets are the default. A third is unnecessary for completing the prescription and should not displace hamstring curls or main-lift rest. There are no drop sets, plyometrics, explosive Olympic lifts, RDLs or front squats. Put deadlifts on Legs B rather than on Pull immediately before another lower session. Use supported rows to limit unnecessary lower-back fatigue.
 
@@ -84,8 +84,8 @@ This is a **scaled adaptation** of Wenning’s variable high-repetition circuits
 | --- | --- |
 | Push A / Push B | Light cable row 12–15; light pressdown 12–15; scapular push-up 8–10 |
 | Pull A / Pull B | Light cable row 12–15; light straight-arm pulldown 12–15; band pull-apart 12–15 |
-| Legs A | Light kneeling curl 10–12 each side; bodyweight squat 8–10; dead bug 4 each side |
-| Legs B | Light kneeling curl 10–12 each side; unloaded glute bridge 10; bird dog 4 each side |
+| Legs A | Light seated curl 10–12 with both legs together; bodyweight squat 8–10; dead bug 4 each side |
+| Legs B | Light seated curl 10–12 with both legs together; unloaded glute bridge 10; bird dog 4 each side |
 
 The tracker breaks this into individual completion controls, matching the working-set check buttons. Check a unilateral step only after both sides. Each circuit movement and ramp has its own saved state for that session; optional second-round movements and the final ramp are excluded from the main warm-up completion total. Warm-up-only sessions appear in History and checks are included in exports. They never increase working-set counts or earn load progression. Checking the first warm-up locks that session’s recovery/exercise choices, so choose those before starting. Existing completed sessions are not retroactively marked unfinished by the new checklist.
 
@@ -100,7 +100,7 @@ The tracker breaks this into individual completion controls, matching the workin
 
 Loads are chosen from readiness, without fixed percentages or mandatory numeric warm-up targets. Increase only as needed and keep preparation non-fatiguing. The final ramp and second circuit round are options, not volume quotas. Finishing a workout with unchecked warm-up steps offers the same explicit finish-with-skipped-items flow as incomplete work sets; nothing is checked automatically.
 
-A second upper-body round is optional only if you still need it, it leaves subsequent lifting performance unaffected, and **all preparation stays within 10–12 minutes**. It is never a quota. One round is the selected lighter-session default too. The lower-day circuit stays one round because unilateral curls take setup and repetition time.
+A second upper-body round is optional only if you still need it, it leaves subsequent lifting performance unaffected, and **all preparation stays within 10–12 minutes**. It is never a quota. One round is the selected lighter-session default too. The lower-day circuit stays one easy round; seated curls use both legs together. Earlier started sessions keep their original kneeling-curl circuit and both-side checks.
 
 Use brief transitions and enough rest to keep the circuit comfortable. Use nearby free stations; choose an easy band equivalent when a cable is busy rather than reserving several stations. The revised circuit avoids high-repetition curls before pull-up work and removes warm-up cable flies before pressing to limit unnecessary local fatigue.
 
@@ -132,10 +132,11 @@ Every number below is **lb**, and every non-bodyweight estimate has **low or ver
 | Weighted/assisted pull-up | Bodyweight, 0 added | Historical BW volume and +10 strength work; calibrate assistance |
 | Back squat | 245 total | Historical 245 back-off; low |
 | SSB box squat | 185 total, including actual SSB bar | Conservative coaching trial, no confirmed personal loading ratio; very low |
-| Kneeling leg curl | 20 each leg | Historical 25, same station only; low |
+| Seated leg curl | Choose a light bilateral trial | User confirmed the machine; no verified personal load or kneeling-curl conversion |
+| Earlier/alternative kneeling leg curl | 20 each leg | Historical 25, same station only; low |
 | Standing DB calf raise | 25 each hand | Historical 30 each; low |
 | Ab wheel | Bodyweight | Calibrate controlled reach; no added load |
-| Optional leg extension | Choose a light trial after confirming the machine | No verified station or load; calibrate independently |
+| Seated leg extension | Choose a light trial | User confirmed the machine; no verified personal load; calibrate independently |
 | One-second paused bench | 155 total | Conservative coaching trial below historical regular secondary bench 175; very low |
 | Seated DB shoulder press | 35 each hand | Historical 45 each; low |
 | Cable fly | 10 per stack | Generic coaching trial, no personal reference; very low |
@@ -172,7 +173,7 @@ A single stalled exercise calls for a local load or rep adjustment. If **several
 
 The cap includes circuits, ramps, working sets, all rests and equipment transitions. Normal sessions contain **11 sets on Push A / Pull A / Pull B**, **13 on Push B and either Legs day**. A unilateral set means both sides and takes longer than a bilateral set.
 
-A workable budget is 10–12 minutes for preparation, 12–16 for the first lift, and the remaining 32–38 for accessories and transitions. These are planning estimates, not guaranteed completion times in a busy gym. Lower-day unilateral curls make those sessions the tightest.
+A workable budget is 10–12 minutes for preparation, 12–16 for the first lift, and the remaining 32–38 for accessories and transitions. These are planning estimates, not guaranteed completion times in a busy gym. Seated curls reduce the time needed for separate sides, but machine availability and setup still affect the schedule.
 
 - Protect main-lift rests and **all prescribed quad and hamstring-curl work**. Trim calf work first if behind, then improve station/setup efficiency and reconsider non-priority accessories rather than repeatedly deleting quad or curl sets. Do not rush compounds or reserve multiple busy machines to force the schedule.
 - On Push B, complete cable crunch after the other work; trim a final fly or arm set if needed to fit, rather than rushing the main lift. Core work is prescribed, not an optional finisher.
@@ -193,7 +194,7 @@ The previous four-core-day plan already trained the major muscle groups, but ded
 | Seated DB shoulder press | 3 | 2.5 |
 | Direct biceps | 6 | 5 |
 | Direct triceps | 4 | 3.3 |
-| Quad-dominant squat, leg press, belt squat | 8 | 6.7 |
+| Quads: squat, seated leg extension, belt squat | 8 | 6.7 |
 | Knee-flexion hamstring curls | 6 | 5 |
 | Conventional deadlift; paused if selected | 2 | 1.7 |
 | Calves | 6 | 5 |
@@ -207,7 +208,9 @@ A written program can show differences in **training emphasis**, but cannot esta
 
 ## Equipment and evidence
 
-Equipment choices use the [Fortis equipment list](https://fortisfitness.ca/our-equipment/) and [Fortis East location](https://fortisfitness.ca/locations/fortis-fitness-east/): supported rows, leg press, Atlantis kneeling curl and Wenning belt squat are the intended stations. Incline and shoulder presses remain dumbbell movements; standing calves remain dumbbell work. The leg-extension machine is **not confirmed**. The default remains leg press; only after you confirm that an appropriate machine is actually available may the Legs A selector replace its two sets with leg extension **2×10–15**, independently calibrated and separately identified before logging. The option does not add sets or prove equivalent muscle-region stimulus. No seated leg-curl, incline/shoulder-press machine or standing-calf machine is assumed. Check the actual station's setup before calibrating. Use the rear-delt machine if present, otherwise the listed cable reverse fly.
+Equipment choices use the [Fortis equipment list](https://fortisfitness.ca/our-equipment/) and [Fortis East location](https://fortisfitness.ca/locations/fortis-fitness-east/), supplemented by the user's direct confirmation on 2026-11-07 that **seated leg curl and seated leg extension are available at Carlaw**. Seated curl is the default on both leg days, 3×10–15 with both legs together, resting 90 seconds. Seated extension replaces the Legs A leg-press slot for 2×10–15, resting 75 seconds. Align the knee with the machine pivot, secure pads appropriately and use a controlled comfortable range. Calibrate each actual station independently; neither old kneeling-curl nor leg-press settings establish a seated-machine load. Kneeling curl and leg press remain selectable alternatives before logging.
+
+Earlier started sessions keep their original exercises, unilateral fields, warm-up IDs and saved checks. New seated exercises have separate identifiers. The existing `ppl-v3` program and week selection remain in place; no logs are reset. Frozen version-1 settings reconstruct the original equipment, while new snapshots record the selected curl and quad station explicitly. Incline/shoulder presses and standing calves remain dumbbell movements.
 
 Machines and free weights can both produce strength and muscle growth. An eight-week study of 38 resistance-trained men found similar assessed muscle growth and overall strength improvements, with the strongest strength improvements in the trained modality. This supports retaining barbell strength practice while choosing useful machine/cable accessories; it does not prove every machine is safer or every substitution equivalent. [Hernández-Belmonte et al., 2023](https://pubmed.ncbi.nlm.nih.gov/37535335/).
 
@@ -220,7 +223,7 @@ Independent reviews challenged the plan’s specificity, fatigue, equipment assu
 - **Specificity and variation:** keep regular bench and paused bench consistent, retain back squat and conventional deadlift throughout by default, and make optional lower variations explicit pre-log choices for sustained blocks. No unsupported claims that a variation fixes a personal weak point or guarantees joint protection.
 - **Preparation fatigue:** reduce every circuit to one easy default round at 8+ RIR; allow a second upper round only when useful and within the time cap. Lift-specific ramps rehearse the actual variation.
 - **Core coverage:** add cable crunch after Push B, retain ab wheel and Pallof, and trade one lateral-raise set rather than simply adding work to every day. The counts describe training coverage, not a diagnosis of weak abs or a universal optimum.
-- **Practicality:** protect quad/curl work and trim calves first when necessary; do not assume a leg-extension machine or deadlift blocks, and do not make deficit pulls mandatory. Use the confirmed SSB/box equipment with a standardized setup; a bar labelled “safety” is not a guarantee of safety for a particular lifter.
+- **Practicality:** protect quad/curl work and trim calves first when necessary; use the user-confirmed seated curl/extension without assuming deadlift blocks, and do not make deficit pulls mandatory. Use the confirmed SSB/box equipment with a standardized setup; a bar labelled “safety” is not a guarantee of safety for a particular lifter.
 - **Progress and records:** separate each main-lift variation in identifiers and comparisons, and preserve both previous programs as read-only history. Old work is not silently relabelled as performed evidence. Historical binder targets may supply explicitly labelled low-confidence calibration hints, separate from chosen targets and actuals.
 
 An acute SSB study examined squat mechanics and muscle activity in 12 competitive powerlifters; it does not establish long-term injury protection or a universal loading ratio. [Hecker et al.](https://pubmed.ncbi.nlm.nih.gov/30363042/). Juggernaut’s coaching manual notes that excessive deficits change the pulling position and may reduce specificity; the conditional low-deficit option here is a coaching choice, not an established requirement for strength or hypertrophy. [Juggernaut deadlift manual](https://cdn.jtsstrength.com/wp-content/uploads/2022/11/22065452/JTS_DEADLIFT_MANUAL_2020_LR.pdf).

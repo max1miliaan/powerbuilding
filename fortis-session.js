@@ -7,14 +7,18 @@ export function settingsFor(session) {
   return {
     light: session.light,
     variation: session.exercises.find(e => e.isMain)?.variation || '',
-    quad: session.exercises.some(e => e.id.endsWith('-legextension')) ? 'leg-extension' : 'leg-press',
+    quad: session.exercises.some(e => e.id.endsWith('-seated-legextension')) ? 'seated-leg-extension' : session.exercises.some(e => e.id.endsWith('-legextension')) ? 'leg-extension' : 'leg-press',
+    curl: session.exercises.some(e => e.id.endsWith('-seated-legcurl')) ? 'seated' : 'kneeling',
   };
 }
 
 export function programFromRecords(getRecord) {
   const settings = Object.fromEntries(PROGRAM.map(p => {
     const frozen = getRecord(prescriptionKey(p.week, p.code));
-    return [`${p.week}:${p.code}`, frozen?.version === 1 ? frozen.settings : getRecord(setupKey(p.week, p.code)) || {}];
+    // Version 1 snapshots predate the confirmed seated machines. Preserve their
+    // original unilateral curls, quad choice and warm-up IDs without rewriting.
+    const settings=frozen?.version===1?{...frozen.settings,curl:'kneeling',quad:frozen.settings?.quad||'leg-press'}:frozen?.version===2?frozen.settings:getRecord(setupKey(p.week,p.code))||{};
+    return [`${p.week}:${p.code}`, settings];
   }));
   return buildProgram(settings);
 }
@@ -38,5 +42,5 @@ export function freezePrescription(store, session) {
   if (JSON.stringify(current) !== JSON.stringify(settingsFor(session))) {
     throw new Error('This session’s setup changed on another device. Reload it before entering sets.');
   }
-  if (!saved) store.set(id, {version: 1, settings: current});
+  if (!saved) store.set(id, {version: 2, settings: current});
 }

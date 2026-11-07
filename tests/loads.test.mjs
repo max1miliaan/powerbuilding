@@ -113,7 +113,7 @@ test('below-target effort and reps hold or reduce; incomplete rep-range progress
 });
 
 test('both sides of unilateral work must reach the ceiling at the required effort', () => {
-  const f = fixture('legs-b', 'legcurl');
+  const f = fixture('legs-b', 'pallof');
   f.fill(f.previousSession);
   assert.equal(f.evaluate().kind, 'increase');
   f.fill(f.previousSession, {right: f.exercise.repMax - 1});
@@ -171,13 +171,13 @@ test('review points retain normal progression until a lighter session is explici
 });
 
 test('selected leg extension has a manual hint and cannot inherit leg-press records', () => {
-  const program = buildProgram({'3:legs-a': {quad: 'leg-extension'}});
+  const program = buildProgram({'1:legs-a':{quad:'leg-press'},'2:legs-a':{quad:'leg-press'}});
   const current = program.find(s => s.week === 3 && s.code === 'legs-a');
   const exercise = current.exercises.find(e => e.id.endsWith('-legextension'));
   const hint = estimateFor(exercise);
   assert.equal(hint.value, null);
   assert.match(hint.label, /Manual calibration/);
-  assert.match(hint.basis, /unconfirmed/);
+  assert.match(hint.basis, /no verified personal load/);
   const records = new Map();
   for (const s of program.filter(s => s.order < current.order && s.code === current.code)) {
     const e = s.exercises.find(e => e.id.endsWith('-legpress'));
@@ -201,7 +201,7 @@ test('assisted pull-ups can progress assistance and bodyweight core progresses r
 
 test('accessory trial values match their own units rather than borrowing unrelated legacy lifts', () => {
   const expected = {incline: 55, lateral: 7.5, pressdown: 30, pullup: 0,
-    belt: 70, legcurl: 20, shoulder: 35, triceps: 20, pallof: 15,
+    belt: 70, legcurl: null, shoulder: 35, triceps: 20, pallof: 15,
     abwheel: 0, fly: 10, curl: 20, hammer: 20, pulldown: 60, crunch: 20};
   const exercised = new Set();
   for (const s of PROGRAM.filter(s => !s.light)) for (const e of s.exercises.filter(e => !e.isMain)) {
@@ -222,4 +222,18 @@ test('range-formatted RIR targets use their lower bound without treating missing
   assert.equal(f.evaluate().kind, 'increase');
   f.fill(f.previousSession, {rir: 1.5});
   assert.equal(f.evaluate().kind, 'hold');
+});
+
+test('seated curls require fresh calibration and cannot inherit unilateral kneeling records', () => {
+  const program=buildProgram({'1:legs-a':{curl:'kneeling'},'2:legs-a':{curl:'kneeling'}});
+  const current=program.find(p=>p.week===3&&p.code==='legs-a');
+  const exercise=current.exercises.find(e=>e.id.endsWith('seated-legcurl'));
+  const records=new Map();
+  for(const p of program.filter(p=>p.code==='legs-a'&&p.week<3)){
+    const old=p.exercises.find(e=>e.id==='legs-a-legcurl');
+    old.sets.forEach((_,i)=>records.set(key(p,old,i),{done:true,weight:20,left:15,right:15,rir:2}));
+  }
+  assert.equal(estimateFor(exercise).value,null);
+  assert.equal(exercise.unilateral,false);
+  assert.equal(progressionFor({program,session:current,exercise,getRecord:id=>records.get(id)}).kind,'calibrate');
 });

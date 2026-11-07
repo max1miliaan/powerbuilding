@@ -122,9 +122,10 @@ test('both variants cover required muscle groups without depending on an optiona
     assert(setCount([s], /leg curl/i) >= 3);
     assert(setCount([s], /calf/i) >= 3);
     assert(s.exercises.some(e => e.kind === 'core'));
-    const curl = s.exercises.find(e => /kneeling leg curl/i.test(e.name));
-    assert(curl, 'retain available kneeling curl rather than assuming a seated machine');
-    assert(curl.unilateral);
+    const curl = s.exercises.find(e => /seated leg curl/i.test(e.name));
+    assert(curl, 'use the user-confirmed seated machine');
+    assert.equal(curl.unilateral,false);
+    assert.equal(curl.restSec,90);
   }
   assert(setCount(pull, /row/i) >= setCount(pull, /pull-up|pulldown/i));
   for (const s of PROGRAM) {
@@ -207,19 +208,24 @@ test('review points never deload automatically; explicit lighter choices reduce 
   assert.deepEqual(PROGRAM, buildProgram(), 'building choices must not mutate default prescriptions');
 });
 
-test('optional leg extension preserves quad work with separate calibration and identifiers', () => {
-  const selected = buildProgram({'1:legs-a': {quad: 'leg-extension'}, '2:legs-b': {quad: 'leg-extension'}, '1:push-a': {quad: 'leg-extension'}});
-  const s = selected.find(s => s.week === 1 && s.code === 'legs-a');
-  const extension = s.exercises.find(e => e.id.endsWith('-legextension'));
-  assert(extension);
-  assert.equal(extension.sets.length, 2);
-  assert.deepEqual([extension.repMin, extension.repMax], [10, 15]);
-  assert.equal(extension.restSec, 75);
-  assert(extension.sets.every(x => x.weight === null));
-  assert.match(extension.cue, /confirming/);
-  assert(!s.exercises.some(e => e.id.endsWith('-legpress')));
-  assert.equal(selected.flatMap(s => s.exercises).filter(e => e.id.endsWith('-legextension')).length, 1);
-  assert.deepEqual(buildProgram({'1:legs-a': {quad: 'unknown'}}), PROGRAM);
+test('confirmed seated machines are defaults with separately identified alternatives', () => {
+  for(const p of PROGRAM.filter(p=>p.code.startsWith('legs'))){
+    const curl=p.exercises.find(e=>e.id.endsWith('seated-legcurl'));
+    assert(curl);assert.equal(curl.unilateral,false);assert.equal(curl.sets.length,3);
+    assert.deepEqual([curl.repMin,curl.repMax],[10,15]);assert.equal(curl.restSec,90);
+    if(p.code==='legs-a'){
+      const extension=p.exercises.find(e=>e.id.endsWith('seated-legextension'));
+      assert(extension);assert.equal(extension.sets.length,2);assert.equal(extension.restSec,75);
+      assert(extension.sets.every(s=>s.weight===null));
+    }
+  }
+  const alternative=buildProgram({'1:legs-a':{quad:'leg-press',curl:'kneeling'}}).find(p=>p.week===1&&p.code==='legs-a');
+  assert(alternative.exercises.some(e=>e.id==='legs-a-legpress'));
+  assert(alternative.exercises.find(e=>e.id==='legs-a-legcurl').unilateral);
+  assert(!alternative.exercises.some(e=>e.id.includes('seated-leg')));
+  const earlier=buildProgram({'1:legs-a':{quad:'leg-extension'}}).find(p=>p.week===1&&p.code==='legs-a');
+  assert(earlier.exercises.some(e=>e.id==='legs-a-legextension'&&e.name==='Machine leg extension'));
+  assert.deepEqual(buildProgram({'1:legs-a':{quad:'unknown',curl:'unknown'}}),PROGRAM);
 });
 
 test('required core covers three patterns and preparation cannot replace it', () => {

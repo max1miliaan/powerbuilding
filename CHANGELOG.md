@@ -1,5 +1,14 @@
 # Changelog
 
+## [2026-11-07] -- rolling five-day Push / Pull / Legs
+
+- Replaced the active four-core-day binder schedule with 60 sessions across twelve weeks: a continuous Push A / Pull A / Legs A / Push B / Pull B / Legs B rotation, five training days per week. Calendar weeks 4, 8 and 12 stay lighter without resetting the rotation.
+- Removed plyometrics. Added short, easy Wenning-inspired preparation circuits and exercise-specific ramps within the 60-minute session cap. Conventional deadlift stays on Legs B; no RDLs or front squats.
+- Added cable/machine accessories using Fortis equipment, dedicated rear delts on both pull variants, and explicit muscle-volume and timing guidance. Retained DB incline/shoulder presses and standing DB calves where a machine was not established.
+- All loads require manual calibration. Rep-range progression follows successful performed exposures; no inherited binder loads, date-driven increases or drop sets.
+- Archived the original 57-session prescription and kept previous logs available as read-only history. New PPL record IDs use `ppl-v1` within the unchanged `fortis-v1` store; PPL view state uses `fortis-ppl-view-v1`. Storage/auth behavior is unchanged.
+- Added `PPL_PROGRAM.md` and updated the repository instructions for the active plan. Older changelog entries describe historical programs.
+
 ## [2026-07-12c] -- swap actually repaints; variation percentages are editable
 
 ### Fixed

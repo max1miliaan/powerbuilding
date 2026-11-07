@@ -1,104 +1,163 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { PROGRAM, GUIDANCE } from '../fortis-program.js';
+import { readFile } from 'node:fs/promises';
+import { PROGRAM, GUIDANCE, PROGRAM_ID, ROTATION, TRAINING_DAYS } from '../fortis-program.js';
+import { PROGRAM as LEGACY_PROGRAM } from '../fortis-program-legacy.js';
 
-const session = (week, code) => PROGRAM.find(s => s.week === week && s.code === code);
-const exercise = (week, code, suffix) => session(week, code).exercises.find(e => e.id === `${code}-${suffix}`);
+const expectedRotation = ['push-a', 'pull-a', 'legs-a', 'push-b', 'pull-b', 'legs-b'];
+const expectedDays = ['Mon', 'Tue', 'Thu', 'Fri', 'Sat'];
+const normalCounts = {
+  'push-a': [3, 3, 3, 2],
+  'pull-a': [3, 3, 2, 3],
+  'legs-a': [3, 3, 2, 3, 2],
+  'push-b': [3, 2, 2, 3, 2],
+  'pull-b': [3, 3, 2, 3],
+  'legs-b': [2, 3, 3, 3, 2],
+};
+const mainRanges = {'push-a': [4, 6], 'push-b': [6, 8], 'legs-a': [4, 6], 'legs-b': [3, 5]};
+const normalSession = code => PROGRAM.find(s => s.code === code && !s.light);
+const setCount = (sessions, pattern) => sessions.flatMap(s => s.exercises)
+  .filter(e => pattern.test(e.name)).reduce((n, e) => n + e.sets.length, 0);
 
-test('57 chronological sessions: 48 core and nine optional, with no E in lighter weeks', () => {
-  assert.equal(PROGRAM.length, 57);
-  assert.equal(PROGRAM.filter(s => s.code !== 'E').length, 48);
-  assert.equal(PROGRAM.filter(s => s.code === 'E').length, 9);
-  for (let w = 1; w <= 12; w++) {
-    assert.deepEqual(PROGRAM.filter(s => s.week === w).map(s => s.code), w % 4 === 0 ? ['A','B','C','D'] : ['A','B','C','D','E']);
-  }
-  assert.deepEqual(PROGRAM, [...PROGRAM].sort((a,b) => a.week-b.week || a.code.localeCompare(b.code)));
-});
-
-test('every source set, weight, rep and distance matches the independently parsed PDF fixture', () => {
-  // SHA-256 of normalized prescription tuples independently extracted from all
-  // 366 exercise prescriptions in the 34-page PDF. No private source is shipped.
-  // A tuple is [weight lb, reps or null, distance m or null], grouped by week/code.
-  // Do not regenerate this fixture from PROGRAM after changing prescriptions.
-  const sourceDigest = 'b3164c0910217fc0bc36964cacd0f1b468487b5da937257347fdaefde220c837';
-  const normalized = PROGRAM.map(s => ({week:s.week, code:s.code,
-    exercises:s.exercises.map(e => e.sets.map(x => [x.weight,x.reps,x.distance]))}));
-  assert.equal(PROGRAM.reduce((n,s) => n+s.exercises.length,0),366);
-  assert.equal(createHash('sha256').update(JSON.stringify(normalized)).digest('hex'),sourceDigest);
-});
-
-test('main lift top and back-off loads match the verified twelve-week source tables', () => {
-  const expected = {
-    A:[[205,185],[215,190],[220,195],[175,null],[225,200],[230,205],[235,210],[185,null],[230,205],[235,210],[240,215],[190,null]],
-    B:[[275,245],[285,255],[295,265],[235,null],[300,270],[305,275],[310,280],[245,null],[310,275],[315,280],[320,285],[255,null]],
-    D:[[305,275],[315,285],[325,295],[260,null],[335,300],[340,305],[345,310],[275,null],[345,310],[350,315],[355,320],[280,null]],
-  };
-  for (const [code, weeks] of Object.entries(expected)) weeks.forEach(([top,back],i) => {
-    const work = exercise(i+1,code,'main').sets;
-    assert.deepEqual(work.map(s => s.weight),back===null ? [top,top] : [top,back,back]);
-    assert.equal(work.some(s => s.label==='Top'),back!==null);
-    if (back===null) assert(work.every(s => s.rir==='4+'));
+test('five training days continue the PPL rotation across all twelve weeks and lighter weeks', () => {
+  assert.equal(PROGRAM_ID, 'ppl-v1');
+  assert.deepEqual(ROTATION, expectedRotation);
+  assert.deepEqual(TRAINING_DAYS, expectedDays);
+  assert.equal(PROGRAM.length, 60);
+  const exposures = Object.fromEntries(expectedRotation.map(code => [code, 0]));
+  PROGRAM.forEach((s, i) => {
+    assert.equal(s.code, expectedRotation[i % 6], `rotation at session ${i + 1}`);
+    assert.equal(s.day, expectedDays[i % 5]);
+    assert.equal(s.week, Math.floor(i / 5) + 1);
+    assert.equal(s.block, Math.ceil(s.week / 4));
+    assert.equal(s.light, s.week % 4 === 0);
+    assert.equal(s.exposure, ++exposures[s.code]);
   });
-  assert.deepEqual(Array.from({length:12},(_,i)=>exercise(i+1,'C','main').sets[0].weight),[175,180,185,145,180,185,190,150,190,195,200,160]);
-});
-
-test('drop segments are only prescribed in their six specified weeks, with independent RIR', () => {
-  const dropWeeks = [2,3,6,7,10,11];
-  for (let w=1; w<=12; w++) {
-    for (const [code,id] of [['A','pressdown'],['C','curl']]) {
-      const work=exercise(w,code,id).sets;
-      assert.equal(work.some(s=>s.label==='Drop'),dropWeeks.includes(w));
-      if(dropWeeks.includes(w)) {
-        assert.deepEqual(work.map(s=>s.rir),['1','0–1']);
-        assert.equal(work[1].reps,8);
-        assert(work[1].weight<work[0].weight);
-      }
-    }
-    const allDrops=session(w,'A').exercises.concat(session(w,'B').exercises,session(w,'C').exercises,session(w,'D').exercises).filter(e=>e.sets.some(s=>s.label==='Drop'));
-    assert.equal(allDrops.length,dropWeeks.includes(w)?2:0);
+  assert.deepEqual(Object.values(exposures), [10, 10, 10, 10, 10, 10]);
+  for (let week = 1; week <= 12; week++) {
+    assert.equal(PROGRAM.filter(s => s.week === week).length, 5);
   }
+  // Monday is not always Push A: both ordinary and deload boundaries keep rolling.
+  assert.equal(PROGRAM[5].code, 'legs-b');
+  assert.equal(PROGRAM[15].code, 'push-b');
+  assert.equal(PROGRAM[20].code, 'legs-a');
+  assert.equal(PROGRAM[40].code, 'pull-b');
 });
 
-test('schema is valid for logging, and bodyweight does not erase pull-up load input', () => {
-  const kinds=new Set(['lift','jump','carry','sled','core','pullup']);
-  for(const s of PROGRAM) {
-    assert.equal(s.block,Math.ceil(s.week/4));
+test('logging schema uses rep ranges and fresh calibration instead of inherited Fortis pounds', () => {
+  const kinds = new Set(['lift', 'core', 'pullup']);
+  for (const s of PROGRAM) {
     assert(s.title && s.warmup && s.cue);
-    assert.equal(new Set(s.exercises.map(e=>e.id)).size,s.exercises.length);
-    for(const e of s.exercises) {
+    assert.equal(typeof s.warmup, 'string');
+    assert.equal(new Set(s.exercises.map(e => e.id)).size, s.exercises.length);
+    for (const e of s.exercises) {
       assert(e.id.startsWith(`${s.code}-`));
+      assert(e.name && e.unit);
       assert(kinds.has(e.kind));
-      assert.equal(typeof e.unilateral,'boolean');
-      assert(Number.isFinite(e.restSec) && e.restSec>0);
-      assert(e.sets.length>0);
-      for(const x of e.sets) {
-        assert(Number.isFinite(x.weight) && x.weight>=0);
-        assert.equal(typeof x.optional,'boolean');
-        if(['carry','sled'].includes(e.kind)) {assert.equal(x.reps,null);assert(x.distance>0);}
-        else {assert(Number.isInteger(x.reps) && x.reps>0);assert.equal(x.distance,null);}
-        if(e.unit==='bodyweight') assert.equal(x.weight,0);
+      assert.equal(typeof e.unilateral, 'boolean');
+      assert.equal(typeof e.cue, 'string');
+      assert(Number.isFinite(e.restSec) && e.restSec > 0);
+      assert(e.pair === null || typeof e.pair === 'string');
+      assert(Number.isInteger(e.repMin) && e.repMin > 0);
+      assert(Number.isInteger(e.repMax) && e.repMax >= e.repMin);
+      assert(e.sets.length > 0);
+      for (const x of e.sets) {
+        assert.equal(x.reps, e.repMin);
+        assert.equal(x.weight, e.unit === 'bodyweight' || e.kind === 'pullup' ? 0 : null,
+          `${s.week} ${e.id}: a replacement movement must not inherit an old target`);
+        assert.equal(x.distance, null);
+        assert.equal(x.optional, false);
+        assert.equal(x.rir, s.light ? '4+' : s.code === 'push-b' && e.id.endsWith('-main') ? '2–3' : '2');
+        assert.doesNotMatch(x.label, /drop|top|back-off/i);
       }
-      if(e.kind==='pullup') assert.equal(e.unit,'added lb');
+      if (e.kind === 'pullup') assert.equal(e.unit, 'added lb');
     }
   }
 });
 
-test('unilateral, optional-trip and lighter-week execution metadata is retained', () => {
-  for(let w=1;w<=12;w++) {
-    for(const [code,id] of [['B','legcurl'],['B','split'],['C','lateral'],['D','legcurl'],['D','pallof']]) assert(exercise(w,code,id).unilateral);
-    const sled=exercise(w,'D','sled').sets;
-    assert.deepEqual(sled.map(s=>s.optional),w%4===0?[false,false]:[false,false,true,true]);
-    assert(sled.every(s=>s.distance===15));
-    const jump=exercise(w,'D','jump');
-    assert.equal(jump.kind,'jump');assert.match(jump.cue,/distance in cm/);
-    if(w%4===0) {
-      for(const code of ['A','B','C','D']) for(const e of session(w,code).exercises) {
-        if(!['jump','sled'].includes(e.kind)) assert(e.sets.every(s=>s.rir==='4+'));
-      }
+test('normal volume and lighter-week reductions preserve strength and avoid extra sessions', () => {
+  for (const s of PROGRAM) {
+    const expected = s.light
+      ? s.exercises.map(e => e.id === `${s.code}-main` ? 2 : 1)
+      : normalCounts[s.code];
+    assert.deepEqual(s.exercises.map(e => e.sets.length), expected, `${s.week} ${s.code}`);
+    if (mainRanges[s.code]) {
+      const main = s.exercises[0];
+      assert.equal(main.id, `${s.code}-main`);
+      assert.equal(main.restSec, 180);
+      assert.deepEqual([main.repMin, main.repMax], mainRanges[s.code]);
+    }
+    assert(!s.exercises.some(e => ['jump', 'sled', 'carry'].includes(e.kind)));
+    assert(!s.exercises.some(e => /jump|plyo|\bRDL\b|Romanian|front squat/i.test(e.name)));
+    assert(!s.code.includes('optional'));
+  }
+  assert.equal(PROGRAM.filter(s => s.light).length, 15);
+  // Deadlifts belong to Legs B, never the pull session directly before a leg day.
+  const deadlifts = PROGRAM.flatMap(s => s.exercises.filter(e => /deadlift/i.test(e.name)).map(e => [s.code, e]));
+  assert.equal(deadlifts.length, 10);
+  assert(deadlifts.every(([code, e]) => code === 'legs-b' && e.sets.length === 2));
+});
+
+test('both variants cover required muscle groups without depending on an optional fifth workout', () => {
+  const push = ['push-a', 'push-b'].map(normalSession);
+  const pull = ['pull-a', 'pull-b'].map(normalSession);
+  const legs = ['legs-a', 'legs-b'].map(normalSession);
+  for (const s of push) {
+    assert(setCount([s], /bench/i) >= 3, `${s.code} retains bench practice`);
+    assert(setCount([s], /lateral/i) >= 3);
+    assert(setCount([s], /pressdown|triceps/i) >= 2);
+  }
+  for (const s of pull) {
+    assert(setCount([s], /row/i) >= 3);
+    assert(setCount([s], /pull-up|pulldown/i) >= 3);
+    assert(setCount([s], /rear|reverse pec/i) >= 2);
+    assert(setCount([s], /curl/i) >= 3);
+  }
+  for (const s of legs) {
+    assert(setCount([s], /squat/i) >= 3);
+    assert(setCount([s], /leg curl/i) >= 3);
+    assert(setCount([s], /calf/i) >= 3);
+    assert(s.exercises.some(e => e.kind === 'core'));
+    const curl = s.exercises.find(e => /kneeling leg curl/i.test(e.name));
+    assert(curl, 'retain available kneeling curl rather than assuming a seated machine');
+    assert(curl.unilateral);
+  }
+  assert(setCount(pull, /row/i) >= setCount(pull, /pull-up|pulldown/i));
+  for (const s of PROGRAM) {
+    for (const e of s.exercises.filter(e => /lateral|Pallof|kneeling leg curl/i.test(e.name))) {
+      assert(e.unilateral, `${e.id} must log both sides`);
     }
   }
-  assert.match(GUIDANCE.join(' '),/load AND rep target/);
-  assert.match(GUIDANCE.join(' '),/Calibrate top sets, back-offs and secondary bench independently/);
-  assert.match(GUIDANCE.join(' '),/single stalled exercise/);
+});
+
+test('Wenning-inspired preparation and progression remain explicit guidance', () => {
+  assert(GUIDANCE.length > 0);
+  const guidance = GUIDANCE.join(' ');
+  assert.match(guidance, /60/);
+  assert.match(guidance, /calibrat/i);
+  assert.match(guidance, /RIR|reps in reserve/i);
+  assert.match(guidance, /lighter|deload/i);
+  for (const code of expectedRotation) {
+    assert.match(normalSession(code).warmup, /Wenning|circuit/i);
+  }
+});
+
+test('the archived Fortis prescription retains the independent PDF golden fixture', () => {
+  // This fixture was independently extracted from the original 34-page binder.
+  // Never regenerate it from either the revised program or the archived module.
+  const sourceDigest = 'b3164c0910217fc0bc36964cacd0f1b468487b5da937257347fdaefde220c837';
+  assert.equal(LEGACY_PROGRAM.length, 57);
+  assert.equal(LEGACY_PROGRAM.reduce((n, s) => n + s.exercises.length, 0), 366);
+  const normalized = LEGACY_PROGRAM.map(s => ({week: s.week, code: s.code,
+    exercises: s.exercises.map(e => e.sets.map(x => [x.weight, x.reps, x.distance]))}));
+  assert.equal(createHash('sha256').update(JSON.stringify(normalized)).digest('hex'), sourceDigest);
+});
+
+test('GitHub Pages entrypoints remain byte-identical', async () => {
+  const [index, alias] = await Promise.all([
+    readFile(new URL('../index.html', import.meta.url)),
+    readFile(new URL('../powerbuilding.html', import.meta.url)),
+  ]);
+  assert(index.equals(alias));
 });

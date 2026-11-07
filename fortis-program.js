@@ -1,5 +1,5 @@
 // Fortis Carlaw: new prescription, separate from the archived binder plan.
-export const PROGRAM_ID = 'ppl-v2';
+export const PROGRAM_ID = 'ppl-v3';
 export const ROTATION = ['push-a','pull-a','legs-a','push-b','pull-b','legs-b'];
 export const TRAINING_DAYS = ['Mon','Tue','Thu','Fri','Sat'];
 export const GUIDANCE = [
@@ -9,15 +9,15 @@ export const GUIDANCE = [
   'Calibrate every exercise from current performance. Labelled first-trial estimates use historical prescriptions or low-confidence coaching guesses; they are not verified current strength and never fill actual records automatically. Choose a working load at the low end of the rep range with 2 clean reps in reserve (RIR), or 2–3 on Push B bench.',
   'Progress after successful performed exposures, not dates or checkboxes. When every set reaches the top of the range at the intended RIR, add the smallest available increment next time and return to the low end. Enter working loads manually; keep machine, seat, grip and range consistent.',
   'After missed reps or effort targets, repeat the last successful load AND reps. Reduce remaining work 5–10% if needed; do not grind or catch up. Adjust a single stalled exercise individually.',
-  'Weeks 4, 8 and 12 are lighter but the PPL sequence keeps rolling. Two easy sets on the main lift, one per accessory, all at 4+ RIR. Choose lighter loads from actual performance, not a fixed machine percentage. Do one easy circuit round.',
+  'Weeks 4, 8 and 12 are review points, not automatic deloads. Use performance and recovery to decide whether to select a lighter session. Explicit lighter sessions use two easy main sets and one per accessory at 4+ RIR; choose loads from actual performance and continue the rotation.',
   'Warm-ups are scaled Wenning-inspired circuits, not the full high-volume protocol. Start with one easy round on all days at roughly 8+ RIR and effort 3–4/10. A second upper round is optional only if it improves readiness without fatigue or exceeding the time budget. Circuit plus lift-specific ramps should take 10–12 minutes total. Warm-up work is not hard bodybuilding volume.',
   'Rest 3 minutes between main-lift sets, 2–3 for pull-ups, 2 minutes for other compounds and rows, 90 seconds after both sides of kneeling curls, and 75 seconds for isolation/core. For matching pairs, rest once for 75 seconds after both exercises and both sides. Pair only nearby free accessory stations. Never shorten main-lift rest to add accessories.',
-  'Keep the 60-minute cap. Kneeling curls and unilateral cable work need time for both sides. If behind, omit the final leg-press/belt-squat or calf set; on upper days trim the final isolation set. Preserve preparation, main rest and hamstring work. No required sled finisher.',
+  'Aim for 60 minutes including preparation, rests and transitions; completion is not guaranteed in a busy gym. Kneeling curls and unilateral cable work need both sides. Trim the final calf set before leg work; protect squat, leg press or selected leg extension, belt squat, hamstring curls, core and main-lift rest. On upper days trim a final fly or isolation set before core. No required sled finisher.',
   'No plyometrics, RDLs or front squats. Use Fortis kneeling curls, supported rows, leg press, Wenning belt squat and cables. Do not assume seated curls, machine chest/shoulder presses or standing calf machines are available.',
   'Direct core is required: cable crunches on Push B, ab wheel on Legs A, and Pallof press on Legs B; six normal sets per six-session rotation (about five per week). Warm-up core does not count toward this total. Rear delts, side delts and calves are also included. Squats, leg press, belt squats and deadlifts also train glutes. Coverage does not diagnose physical imbalance. Match unilateral reps and record the harder side’s RIR; do not automatically add weaker-side work.',
   'Use safeties or a spotter for bench and squat. Stop new pain. If several lifts decline over repeated exposures with poor recovery, take a lighter week and resume conservatively.',
-  'Variation blocks: Push A stays regular bench; Push B uses a one-second paused bench. Legs A uses back squat in weeks 1–4 and 9–12, SSB box squat in weeks 5–8. Legs B uses floor conventional deadlift in weeks 1–4 and 9–12, a one-second paused floor deadlift in weeks 5–8. Keep each variant stable within its block and calibrate independently; use actual SSB bar weight. Lighter weeks retain the block’s variation.',
-  'Earlier Fortis logs remain available in History and in your export. They are not imported into the new PPL targets.',
+  'Keep regular bench on Push A and paused bench on Push B. Default lower anchors remain back squat and conventional floor deadlift throughout. SSB box squat and paused deadlift are explicit alternatives, not calendar changes; retain a chosen variant for multiple exposures and calibrate its own load. Count the actual SSB bar weight. Leg extension can replace leg press only after confirming equipment; it is not assumed available.',
+  'Earlier Fortis and PPL logs remain available in History and export. They are not imported into new targets or silently relabelled.',
 ];
 const circuits = {
   push:'One easy round: light cable row × 12–15; rope pressdown × 12–15; scapular push-up × 8–10.',
@@ -39,17 +39,17 @@ const templates = [
     ['rear','Rear-delt machine / cable reverse fly','stack lb',2,12,20,{pair:'1',cue:'Choose one version, keep it consistent and calibrate its own load.'}],
     ['curl','Cable curl','stack lb',3,10,15,{pair:'1'}],
   ]},
-  {code:'legs-a',label:'Legs A',title:'Legs A / Squat + quads',circuit:'squat',cue:'Allow 10–12 min preparation and 12–15 min squat. Kneeling curls are per side. Omit the final leg-press/calf set if needed; preserve curls and main rest.',exercises:[
+  {code:'legs-a',label:'Legs A',title:'Legs A / Squat + quads',circuit:'squat',cue:'Allow 10–12 min preparation and 12–15 min squat. Kneeling curls are per side. Trim the final calf set first; protect squat, quad work, curls, core and main rest. Time estimates are not guarantees.',exercises:[
     ['main','Back squat','total lb',3,4,6,{restSec:180}],
     ['legcurl','Atlantis kneeling leg curl','stack lb',3,10,15,{unilateral:true,restSec:90,cue:'Each listed set includes both sides; rest after both.'}],
     ['legpress','Fortis leg press','machine lb',2,10,15,{restSec:90,cue:'Controlled range; follow the marked loading convention. Do not convert from squat loads.'}],
     ['calf','Standing DB calf raise','per hand',3,12,20,{pair:'1',cue:'Stable floor; do not balance on loose plates.'}],
     ['abwheel','Ab wheel rollout','bodyweight',2,8,12,{kind:'core',pair:'1',cue:'Progress controlled reach only without losing position.'}],
   ]},
-  {code:'push-b',label:'Push B',title:'Push B / Bench volume + shoulders',circuit:'push',cue:'Paused bench at 2–3 RIR. Required cable crunches finish the session; trim the final fly set if time is tight. Seated DB pressing and cable work provide bodybuilding volume. No assumed chest/shoulder press machines.',exercises:[
+  {code:'push-b',label:'Push B',title:'Push B / Bench volume + shoulders',circuit:'push',cue:'Paused bench at 2–3 RIR. Required cable crunches finish the session; trim the final fly set if time is tight. Three seated DB press sets prioritize overhead work. Seated DB pressing and cable work provide bodybuilding volume. No assumed chest/shoulder press machines.',exercises:[
     ['main','Barbell bench press','total lb',3,6,8,{restSec:180,rir:'2–3',cue:'Calibrate a separate moderate load from Push A.'}],
-    ['shoulder','Seated DB shoulder press','per hand',2,8,12,{restSec:90}],
-    ['fly','Cable fly','stack lb',2,10,15,{cue:'Displayed load per stack; controlled comfortable range.'}],
+    ['shoulder','Seated DB shoulder press','per hand',3,8,12,{restSec:90}],
+    ['fly','Cable fly','stack lb',1,10,15,{cue:'Displayed load per stack; controlled comfortable range.'}],
     ['lateral','Cable lateral raise','stack lb',2,12,20,{unilateral:true,restSec:75,pair:'1'}],
     ['triceps','Overhead cable triceps extension','stack lb',2,10,15,{pair:'1'}],
     ['crunch','Kneeling cable crunch','stack lb',2,10,15,{kind:'core',rir:'2–3',cue:'After the main lifts. Controlled trunk flexion, no swinging; leave 2–3 clean reps in reserve. Pair with nearby triceps work if practical.'}],
@@ -60,7 +60,7 @@ const templates = [
     ['rear','Rear-delt machine / cable reverse fly','stack lb',2,12,20,{pair:'1'}],
     ['hammer','Rope hammer curl','stack lb',3,10,15,{pair:'1'}],
   ]},
-  {code:'legs-b',label:'Legs B',title:'Legs B / Deadlift + belt squat',circuit:'deadlift',cue:'Deadlift strength, then belt squat/curl bodybuilding. Two deadlift work sets, no extra tops. Preserve 3 min rest; trim the final belt-squat/calf set before hamstrings.',exercises:[
+  {code:'legs-b',label:'Legs B',title:'Legs B / Deadlift + belt squat',circuit:'deadlift',cue:'Deadlift strength, then belt squat/curl bodybuilding. Two deadlift work sets, no extra tops. Preserve 3 min rest; trim the final calf set first; protect belt squat, curls and core. Completion within 60 minutes is not guaranteed.',exercises:[
     ['main','Conventional deadlift','total lb',2,3,5,{restSec:180}],
     ['belt','Wenning belt squat','added lb',3,8,12,{restSec:90,cue:'Ludus Magnus belt squat: plates added, calibrated on this machine.'}],
     ['legcurl','Atlantis kneeling leg curl','stack lb',3,10,15,{unilateral:true,restSec:90,cue:'Each listed set includes both sides. Keep setup consistent; log Legs B separately.'}],
@@ -72,29 +72,41 @@ const variations = {
   'push-a': ['bench','Barbell bench press','Use the same grip and controlled touch each exposure.'],
   'push-b': ['paused-bench','1-second paused bench press','Pause motionless on the chest for one second without relaxing or sinking. Calibrate separately from regular bench.'],
 };
-export const PROGRAM = Array.from({length:60},(_,index) => {
-  const t=templates[index%6],week=Math.floor(index/5)+1,block=Math.ceil(week/4),light=week%4===0;
-  const variant=variations[t.code] || (t.code==='legs-a' ? (block===2
-    ? ['ssb-box-squat','Safety-bar box squat','Use the Fortis SSB and a stable box/platform. Standardize bar weight and box height. Controlled contact, stay braced, no rocking or relaxing. Calibrate a fresh load.']
-    : ['back-squat','Back squat','Use consistent stance and controlled depth; calibrate from current performance.']) : t.code==='legs-b' ? (block===2
-    ? ['paused-deadlift','1-second paused conventional deadlift','Pause just clear of the floor for one second without losing position. Reset every rep. Calibrate separately from conventional deadlift.']
-    : ['conventional-deadlift','Conventional deadlift','Start at normal floor height; reset each rep and keep clean reps in reserve.']) : null);
-  const exercises=t.exercises.map(([id,name,unit,count,repMin,repMax,options={}]) => {
-    const isMain=id==='main';
-    return {id:`${t.code}-${id}${isMain?'-'+variant[0]:''}`,name:isMain?variant[1]:name,
-      unit,kind:'lift',unilateral:false,pair:null,cue:'',...options,isMain,repMin,repMax,
-      restSec:isMain?180:options.kind==='pullup'?150:id==='legcurl'?90:['incline','shoulder','row','pulldown','legpress','belt'].includes(id)?120:75,
-      ...(isMain?{variation:variant[0],cue:variant[2]}:{}),
-      sets:Array.from({length:light?(isMain?2:1):count},(_,i)=>({label:`Set ${i+1}`,
-        weight:unit==='bodyweight'||options.kind==='pullup'?0:null,reps:repMin,distance:null,optional:false,
-        rir:light?'4+':options.rir||'2'})),
-    };
+export function buildProgram(settings = {}) {
+  const choices = settings && typeof settings === 'object' ? settings : {};
+  return Array.from({length:60},(_,index) => {
+    const t=templates[index%6],week=Math.floor(index/5)+1,block=Math.ceil(week/4);
+    const setting=choices[`${week}:${t.code}`] || {};
+    const light=setting.light===true,review=week%4===0;
+    const variant=variations[t.code] || (t.code==='legs-a' ? (setting.variation==='ssb-box-squat'
+      ? ['ssb-box-squat','Safety-bar box squat','Use the Fortis SSB and a stable box/platform. Standardize bar weight and box height. Controlled contact, stay braced, no rocking or relaxing. Calibrate a fresh load and keep the variation stable for multiple exposures.']
+      : ['back-squat','Back squat','Use consistent stance and controlled depth; calibrate from current performance. Keep the anchor stable for multiple exposures.']) : t.code==='legs-b' ? (setting.variation==='paused-deadlift'
+      ? ['paused-deadlift','1-second paused conventional deadlift','Pause just clear of the floor for one second without losing position. Reset every rep. Calibrate separately and keep the variation stable for multiple exposures.']
+      : ['conventional-deadlift','Conventional deadlift','Start at normal floor height; reset each rep and keep clean reps in reserve. Keep the anchor stable for multiple exposures.']) : null);
+    const prescriptions=t.exercises.map(item => {
+      if(t.code==='legs-a' && item[0]==='legpress' && setting.quad==='leg-extension') {
+        return ['legextension','Machine leg extension','stack lb',2,10,15,{cue:'Use only after confirming a suitable machine. Calibrate its own marked load and comfortable range; do not convert leg-press loads.'}];
+      }
+      return item;
+    });
+    const exercises=prescriptions.map(([id,name,unit,count,repMin,repMax,options={}]) => {
+      const isMain=id==='main';
+      return {id:`${t.code}-${id}${isMain?'-'+variant[0]:''}`,name:isMain?variant[1]:name,
+        unit,kind:'lift',unilateral:false,pair:null,cue:'',...options,isMain,repMin,repMax,
+        restSec:isMain?180:options.kind==='pullup'?150:id==='legcurl'?90:['incline','shoulder','row','pulldown','legpress','belt'].includes(id)?120:75,
+        ...(isMain?{variation:variant[0],cue:variant[2]}:{}),
+        sets:Array.from({length:light?(isMain?2:1):count},(_,i)=>({label:`Set ${i+1}`,
+          weight:unit==='bodyweight'||options.kind==='pullup'?0:null,reps:repMin,distance:null,optional:false,
+          rir:light?'4+':options.rir||'2'})),
+      };
+    });
+    let warmup='Scaled Wenning-inspired circuit. '+circuits[t.circuit]+ ' Keep effort 3–4/10 and roughly 8+ RIR; never chase a burn. '+(!light&&['push','pull'].includes(t.circuit)?'A second round is optional only if readiness improves and time permits. ':'');
+    warmup+='Then 3–4 non-fatiguing exercise-specific ramps. Aim for 10–12 min of preparation, allowing extra time when needed. ';
+    warmup+=variant ? `Ramp with today’s ${variant[1].toLowerCase()}: practise its exact bar, pause and setup before work sets. ` : 'Start pull-ups with easy assisted/bodyweight reps, or ramp the pulldown with light sets. ';
+    if(t.code==='legs-b')warmup+='Use normal floor height, including paused deadlift ramps; no deficit is prescribed.';
+    return {week,block,code:t.code,label:t.label,day:TRAINING_DAYS[index%5],order:index+1,
+      exposure:Math.floor(index/6)+1,light,review,title:t.title,warmup,
+      cue:(light?'Selected lighter session: 4+ RIR, one circuit round, fewer sets; continue the rotation. ':review?'Review point: assess performance and recovery; normal training unless a lighter session is selected. ':'')+t.cue,exercises};
   });
-  let warmup='Scaled Wenning-inspired circuit. '+circuits[t.circuit]+ ' Keep effort 3–4/10 and roughly 8+ RIR; never chase a burn. '+(!light&&['push','pull'].includes(t.circuit)?'A second round is optional only if readiness improves and time permits. ':'');
-  warmup+='Then 3–4 non-fatiguing exercise-specific ramps. Total circuit plus ramps: 10–12 min. ';
-  warmup+=variant ? `Ramp with today’s ${variant[1].toLowerCase()}: practise its exact bar, pause and setup before work sets. ` : 'Start pull-ups with easy assisted/bodyweight reps, or ramp the pulldown with light sets. ';
-  if(t.code==='legs-b')warmup+='Use normal floor height, including paused deadlift ramps; no deficit is prescribed.';
-  return {week,block,code:t.code,label:t.label,day:TRAINING_DAYS[index%5],order:index+1,
-    exposure:Math.floor(index/6)+1,light,title:t.title,warmup,
-    cue:(light?'Lighter week: 4+ RIR, one circuit round, fewer sets; continue the rotation. ':'')+t.cue,exercises};
-});
+}
+export const PROGRAM = buildProgram();

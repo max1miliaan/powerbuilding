@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PROGRAM, PROGRAM_ID } from '../fortis-program.js';
+import { PROGRAM, PROGRAM_ID, buildProgram } from '../fortis-program.js';
 import { estimateFor, progressionFor } from '../fortis-loads.js';
 
 const key = (s, e, i) => `${PROGRAM_ID}:${s.week}:${s.code}:${e.id}:${i}`;
-function fixture(code = 'push-a', suffix = null) {
-  const sessions = PROGRAM.filter(s => s.code === code && !s.light);
+function fixture(code = 'push-a', suffix = null, program = PROGRAM) {
+  const sessions = program.filter(s => s.code === code && !s.light);
   const [oldSession, previousSession, currentSession] = sessions;
   const exercise = currentSession.exercises.find(e => suffix ? e.id.endsWith(suffix) : e.isMain) || currentSession.exercises[0];
   const records = new Map();
@@ -17,7 +17,7 @@ function fixture(code = 'push-a', suffix = null) {
       ...patch,
     }));
   }
-  const evaluate = session => progressionFor({program: PROGRAM, session: session || currentSession,
+  const evaluate = session => progressionFor({program, session: session || currentSession,
     exercise, getRecord: id => records.get(id)});
   return {oldSession, previousSession, currentSession, exercise, records, fill, evaluate};
 }
@@ -42,7 +42,8 @@ test('main estimates distinguish regular, paused and SSB variations without futu
   const expected = {bench: 185, 'paused-bench': 155, 'back-squat': 245,
     'ssb-box-squat': 185, 'conventional-deadlift': 275, 'paused-deadlift': 225};
   const found = new Set();
-  for (const s of PROGRAM) for (const e of s.exercises.filter(e => e.isMain)) {
+  const withVariants = buildProgram({'5:legs-a': {variation: 'ssb-box-squat'}, '5:legs-b': {variation: 'paused-deadlift'}});
+  for (const s of [...PROGRAM, ...withVariants]) for (const e of s.exercises.filter(e => e.isMain)) {
     assert.equal(estimateFor(e).value, expected[e.variation]);
     found.add(e.variation);
   }
@@ -122,17 +123,18 @@ test('both sides of unilateral work must reach the ceiling at the required effor
   assert.match(f.evaluate().text, /both sides/);
 });
 
-test('lighter actual sessions never replace a normal baseline or earn an increase', () => {
+test('explicit lighter sessions never replace a normal baseline or earn an increase', () => {
   const code = 'push-a';
-  const light = PROGRAM.find(s => s.code === code && s.light);
-  const after = PROGRAM.find(s => s.code === code && !s.light && s.week > light.week);
-  const before = PROGRAM.filter(s => s.code === code && !s.light && s.week < light.week).at(-1);
+  const program = buildProgram({'4:push-a': {light: true}});
+  const light = program.find(s => s.code === code && s.light);
+  const after = program.find(s => s.code === code && !s.light && s.week > light.week);
+  const before = program.filter(s => s.code === code && !s.light && s.week < light.week).at(-1);
   const exercise = after.exercises.find(e => e.isMain);
   const records = new Map();
   const fill = (s, weight) => s.exercises.find(e => e.id === exercise.id).sets.forEach((_, i) => records.set(key(s, exercise, i), {done: true, weight, reps: exercise.repMax, rir: 5}));
   fill(before, 185);
   fill(light, 145);
-  const evaluate = session => progressionFor({program: PROGRAM, session, exercise, getRecord: id => records.get(id)});
+  const evaluate = session => progressionFor({program, session, exercise, getRecord: id => records.get(id)});
   const advice = evaluate(after);
   assert.equal(advice.kind, 'increase');
   assert.equal(advice.week, before.week);
@@ -146,17 +148,42 @@ test('lighter actual sessions never replace a normal baseline or earn an increas
   assert.equal(evaluate(after).kind, 'calibrate');
 });
 
-test('new variation cannot inherit another variation or a future completed session', () => {
+test('a selected new variation cannot inherit another variation or a future completed session', () => {
   const code = 'legs-a';
-  const ssb = PROGRAM.find(s => s.code === code && s.block === 2 && !s.light);
+  const program = buildProgram({'5:legs-a': {variation: 'ssb-box-squat'}, '7:legs-a': {variation: 'ssb-box-squat'}});
+  const ssb = program.find(s => s.code === code && s.week === 5);
   const ssbExercise = ssb.exercises.find(e => e.isMain);
   const records = new Map();
-  for (const s of PROGRAM.filter(s => s.code === code && s !== ssb)) {
+  for (const s of program.filter(s => s.code === code && s !== ssb)) {
     const e = s.exercises.find(e => e.isMain);
     e.sets.forEach((_, i) => records.set(key(s, e, i), {done: true, weight: 245, reps: e.repMax, rir: 2}));
   }
-  const advice = progressionFor({program: PROGRAM, session: ssb, exercise: ssbExercise, getRecord: id => records.get(id)});
+  const advice = progressionFor({program, session: ssb, exercise: ssbExercise, getRecord: id => records.get(id)});
   assert.equal(advice.kind, 'calibrate');
+});
+
+test('review points retain normal progression until a lighter session is explicitly selected', () => {
+  const current = PROGRAM.find(s => s.code === 'push-a' && s.review);
+  const before = PROGRAM.filter(s => s.code === current.code && s.order < current.order).at(-1);
+  const e = current.exercises.find(e => e.isMain);
+  const records = new Map(before.exercises.find(x => x.id === e.id).sets.map((_, i) => [key(before, e, i), {done: true, weight: 185, reps: e.repMax, rir: 2}]));
+  assert.equal(progressionFor({program: PROGRAM, session: current, exercise: e, getRecord: id => records.get(id)}).kind, 'increase');
+});
+
+test('selected leg extension has a manual hint and cannot inherit leg-press records', () => {
+  const program = buildProgram({'3:legs-a': {quad: 'leg-extension'}});
+  const current = program.find(s => s.week === 3 && s.code === 'legs-a');
+  const exercise = current.exercises.find(e => e.id.endsWith('-legextension'));
+  const hint = estimateFor(exercise);
+  assert.equal(hint.value, null);
+  assert.match(hint.label, /Manual calibration/);
+  assert.match(hint.basis, /unconfirmed/);
+  const records = new Map();
+  for (const s of program.filter(s => s.order < current.order && s.code === current.code)) {
+    const e = s.exercises.find(e => e.id.endsWith('-legpress'));
+    e.sets.forEach((_, i) => records.set(key(s, e, i), {done: true, weight: 90, reps: 15, rir: 2}));
+  }
+  assert.equal(progressionFor({program, session: current, exercise, getRecord: id => records.get(id)}).kind, 'calibrate');
 });
 
 test('assisted pull-ups can progress assistance and bodyweight core progresses reach', () => {

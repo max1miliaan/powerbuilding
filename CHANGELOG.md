@@ -1,5 +1,16 @@
 # Changelog
 
+## [2026-11-07d] -- recovery review, consistent lower lifts and shoulder volume
+
+- Introduced `ppl-v3` and archived the preceding prescription in `fortis-program-ppl-v2.js`; binder, PPL v1 and PPL v2 logs remain read-only history with their original sets and targets.
+- All sixty scheduled sessions now use normal work by default. Weeks 4/8/12 prompt recovery review rather than an automatic deload. An explicit pre-log lighter-session choice gives two main-lift sets and one accessory set at 4+ RIR; prescription choices lock when logging starts.
+- Kept back squat and conventional floor deadlift as defaults throughout twelve weeks. Optional pre-log SSB box squat or paused-deadlift selection replaces its slot with separate calibration/IDs; sustained deliberate blocks replace automatic middle-block variation.
+- Increased Push B seated DB shoulder press to three sets and reduced fly to one, keeping thirteen work sets. Planned chest volume is ten sets per rotation (8.3/week), shoulder pressing three (2.5/week); other normal counts remain unchanged. Default twelve-week averages now equal normal-rotation averages unless lighter sessions or cuts are selected.
+- Protected all prescribed quad and hamstring-curl work and main-lift rests under the time budget; trim calves first and improve station efficiency. The hour remains a planning cap, not a busy-gym completion guarantee.
+- Kept default leg press. A separately identified 2×10–15 leg-extension replacement requires explicit confirmation that the machine exists and a pre-log selection; no machine is assumed available.
+- Preserved trial-load provenance/confidence, complete-evidence progression guards and manual account-scoped rest-timer rules. Added recovery guidance: repeated decline across several lifts with poor recovery can justify roughly five lighter workouts; adjust an isolated stall locally.
+
+
 ## [2026-11-07c] -- labelled trial loads, evidence-based suggestions and rest timer
 
 - Added `fortis-loads.js` with low-confidence historical-binder and very-low-confidence coaching trial estimates. Hints remain separate from chosen targets and performed sets; explicit application affects session targets only. Ambiguous row/rear-delt loading conventions and leg press require manual calibration. Lighter weeks do not inherit numeric normal-work estimates.

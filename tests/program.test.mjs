@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { PROGRAM, GUIDANCE, PROGRAM_ID, ROTATION, TRAINING_DAYS } from '../fortis-program.js';
+import { PROGRAM, GUIDANCE, PROGRAM_ID, ROTATION, TRAINING_DAYS, buildProgram } from '../fortis-program.js';
 import { PROGRAM as LEGACY_PROGRAM } from '../fortis-program-legacy.js';
 
 const expectedRotation = ['push-a', 'pull-a', 'legs-a', 'push-b', 'pull-b', 'legs-b'];
@@ -11,7 +11,7 @@ const normalCounts = {
   'push-a': [3, 3, 3, 2],
   'pull-a': [3, 3, 2, 3],
   'legs-a': [3, 3, 2, 3, 2],
-  'push-b': [3, 2, 2, 2, 2, 2],
+  'push-b': [3, 3, 1, 2, 2, 2],
   'pull-b': [3, 3, 2, 3],
   'legs-b': [2, 3, 3, 3, 2],
 };
@@ -21,7 +21,7 @@ const setCount = (sessions, pattern) => sessions.flatMap(s => s.exercises)
   .filter(e => pattern.test(e.name)).reduce((n, e) => n + e.sets.length, 0);
 
 test('five training days continue the PPL rotation across all twelve weeks and lighter weeks', () => {
-  assert.equal(PROGRAM_ID, 'ppl-v2');
+  assert.equal(PROGRAM_ID, 'ppl-v3');
   assert.deepEqual(ROTATION, expectedRotation);
   assert.deepEqual(TRAINING_DAYS, expectedDays);
   assert.equal(PROGRAM.length, 60);
@@ -31,7 +31,8 @@ test('five training days continue the PPL rotation across all twelve weeks and l
     assert.equal(s.day, expectedDays[i % 5]);
     assert.equal(s.week, Math.floor(i / 5) + 1);
     assert.equal(s.block, Math.ceil(s.week / 4));
-    assert.equal(s.light, s.week % 4 === 0);
+    assert.equal(s.light, false);
+    assert.equal(s.review, s.week % 4 === 0);
     assert.equal(s.exposure, ++exposures[s.code]);
   });
   assert.deepEqual(Object.values(exposures), [10, 10, 10, 10, 10, 10]);
@@ -93,7 +94,8 @@ test('normal volume and lighter-week reductions preserve strength and avoid extr
     assert(!s.exercises.some(e => /jump|plyo|\bRDL\b|Romanian|front squat/i.test(e.name)));
     assert(!s.code.includes('optional'));
   }
-  assert.equal(PROGRAM.filter(s => s.light).length, 15);
+  assert.equal(PROGRAM.filter(s => s.light).length, 0);
+  assert.equal(PROGRAM.filter(s => s.review).length, 15);
   // Deadlifts belong to Legs B, never the pull session directly before a leg day.
   const deadlifts = PROGRAM.flatMap(s => s.exercises.filter(e => /deadlift/i.test(e.name)).map(e => [s.code, e]));
   assert.equal(deadlifts.length, 10);
@@ -164,19 +166,60 @@ test('GitHub Pages entrypoints remain byte-identical', async () => {
 });
 
 
-test('compound blocks preserve specificity and isolate histories for different variations', () => {
-  const main = (week,code) => PROGRAM.find(s=>s.week===week&&s.code===code)?.exercises.find(e=>e.isMain);
-  for(const s of PROGRAM){
-    const e=s.exercises.find(e=>e.isMain);if(!e)continue;
-    if(s.code==='push-a')assert.equal(e.variation,'bench');
-    if(s.code==='push-b')assert.equal(e.variation,'paused-bench');
-    if(s.code==='legs-a')assert.equal(e.variation,s.block===2?'ssb-box-squat':'back-squat');
-    if(s.code==='legs-b')assert.equal(e.variation,s.block===2?'paused-deadlift':'conventional-deadlift');
+test('default compound anchors remain stable; only validated explicit selections change variations', () => {
+  const settings = {'5:legs-a': {variation: 'ssb-box-squat'}, '5:legs-b': {variation: 'paused-deadlift'}};
+  const selected = buildProgram(settings);
+  for (const s of PROGRAM) {
+    const e = s.exercises.find(e => e.isMain); if (!e) continue;
+    const expected = {'push-a': 'bench', 'push-b': 'paused-bench', 'legs-a': 'back-squat', 'legs-b': 'conventional-deadlift'};
+    assert.equal(e.variation, expected[s.code]);
     assert(s.warmup.toLowerCase().includes(e.name.toLowerCase()));
-    assert(e.sets.every(x=>x.weight===null));
+    assert(e.sets.every(x => x.weight === null));
   }
-  assert.notEqual(main(1,'legs-a').id,main(5,'legs-a').id);
-  assert.equal(main(1,'legs-a').id,main(9,'legs-a').id);
+  for (const [code, variation] of [['legs-a', 'ssb-box-squat'], ['legs-b', 'paused-deadlift']]) {
+    const changed = selected.find(s => s.week === 5 && s.code === code);
+    const original = PROGRAM.find(s => s.week === 5 && s.code === code);
+    const e = changed.exercises.find(e => e.isMain);
+    assert.equal(e.variation, variation);
+    assert.notEqual(e.id, original.exercises[0].id);
+    assert(changed.warmup.toLowerCase().includes(e.name.toLowerCase()));
+    assert.match(e.cue, /multiple exposures/);
+  }
+  assert.deepEqual(buildProgram({'5:legs-a': {variation: 'paused-deadlift'}, '5:legs-b': {variation: 'ssb-box-squat'}, '1:push-a': {variation: 'ssb-box-squat'}}), PROGRAM);
+});
+
+test('review points never deload automatically; explicit lighter choices reduce only selected sessions', () => {
+  const settings = Object.fromEntries(PROGRAM.filter(s => s.review).map(s => [`${s.week}:${s.code}`, {light: true}]));
+  settings['5:legs-a'] = {light: true, variation: 'ssb-box-squat'};
+  const selected = buildProgram(settings);
+  assert.equal(selected.filter(s => s.light).length, 16);
+  for (const s of selected) {
+    assert.equal(s.review, s.week % 4 === 0);
+    for (const e of s.exercises) {
+      assert.equal(e.sets.length, s.light ? e.isMain ? 2 : 1 : normalCounts[s.code][s.exercises.indexOf(e)]);
+      assert(e.sets.every(x => s.light ? x.rir === '4+' : x.rir !== '4+'));
+    }
+    if (s.light) assert(!s.warmup.includes('second round'));
+  }
+  assert.equal(selected.find(s => s.week === 5 && s.code === 'legs-a').exercises[0].variation, 'ssb-box-squat');
+  assert.deepEqual(buildProgram({'1:push-a': {light: 'true'}, '1:pull-a': {light: 1}}), PROGRAM);
+  assert.deepEqual(buildProgram(null), PROGRAM);
+  assert.deepEqual(PROGRAM, buildProgram(), 'building choices must not mutate default prescriptions');
+});
+
+test('optional leg extension preserves quad work with separate calibration and identifiers', () => {
+  const selected = buildProgram({'1:legs-a': {quad: 'leg-extension'}, '2:legs-b': {quad: 'leg-extension'}, '1:push-a': {quad: 'leg-extension'}});
+  const s = selected.find(s => s.week === 1 && s.code === 'legs-a');
+  const extension = s.exercises.find(e => e.id.endsWith('-legextension'));
+  assert(extension);
+  assert.equal(extension.sets.length, 2);
+  assert.deepEqual([extension.repMin, extension.repMax], [10, 15]);
+  assert.equal(extension.restSec, 75);
+  assert(extension.sets.every(x => x.weight === null));
+  assert.match(extension.cue, /confirming/);
+  assert(!s.exercises.some(e => e.id.endsWith('-legpress')));
+  assert.equal(selected.flatMap(s => s.exercises).filter(e => e.id.endsWith('-legextension')).length, 1);
+  assert.deepEqual(buildProgram({'1:legs-a': {quad: 'unknown'}}), PROGRAM);
 });
 
 test('required core covers three patterns and preparation cannot replace it', () => {
@@ -196,4 +239,10 @@ test('required core covers three patterns and preparation cannot replace it', ()
 test('first PPL archive stays unchanged for existing history', async () => {
   const source=await readFile(new URL('../fortis-program-ppl-v1.js',import.meta.url));
   assert.equal(createHash('sha256').update(source).digest('hex'),'360af7069d22ae939205825c5e1a2fba2d09f7410430e51236df94d6c21f9727');
+});
+
+
+test('second PPL archive preserves the exact pre-audit source for read-only history', async () => {
+  const source = await readFile(new URL('../fortis-program-ppl-v2.js', import.meta.url));
+  assert.equal(createHash('sha256').update(source).digest('hex'), '071681b4f2d931a2f0a398bb79465849fca7d4f1bdfb3c761100637ad26d155c');
 });

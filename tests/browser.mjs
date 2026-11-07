@@ -15,6 +15,7 @@ try {
     if(!localStorage.getItem(legacy))localStorage.setItem(legacy,JSON.stringify({value:{weight:205,reps:5,rir:2,done:true},revision:0,dirty:true,changeId:'synthetic-legacy',conflict:null}));
     for(const [id,value] of [['1:D:D-jump:0',{bestCm:180,reps:2,done:true}],['1:D:D-sled:0',{weight:90,distance:15,effort:6,done:true}]]){const idKey='fortis-v1:guest:'+encodeURIComponent(id);if(!localStorage.getItem(idKey))localStorage.setItem(idKey,JSON.stringify({value,revision:0,dirty:true,changeId:'synthetic-legacy',conflict:null}));}
     const oldPpl='fortis-v1:guest:'+encodeURIComponent('ppl-v1:1:push-a:push-a-main:0');if(!localStorage.getItem(oldPpl))localStorage.setItem(oldPpl,JSON.stringify({value:{weight:195,reps:6,done:true},revision:0,dirty:true,changeId:'synthetic-old-ppl',conflict:null}));
+    const v2='fortis-v1:guest:'+encodeURIComponent('ppl-v2:5:legs-a:legs-a-main-ssb-box-squat:0');if(!localStorage.getItem(v2))localStorage.setItem(v2,JSON.stringify({value:{weight:195,reps:5,rir:2,done:true},revision:0,dirty:true,changeId:'synthetic-v2',conflict:null}));
     if(!localStorage.getItem('fortis-view-v1'))localStorage.setItem('fortis-view-v1',JSON.stringify({week:3,code:'D'}));
   });
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -33,6 +34,7 @@ try {
   await main.getByRole('button',{name:'Set estimated target',exact:true}).click();
   assert.equal(await main.locator('[data-field=weight]').first().inputValue(),'');
   assert.match(await main.locator('.set-target').first().innerText(),/Est. 185/);
+  assert.equal(await page.locator('#light-session').isDisabled(),true,'target entry freezes prescription');
   await main.locator('.adjust summary').click();
   await main.locator('[data-adjust=load]').fill('185');await main.locator('[data-adjust=load]').press('Tab');
   assert.match(await main.innerText(),/185 lb × 4–6/);
@@ -47,6 +49,11 @@ try {
   assert.match(await main.innerText(),/185 lb × 4–6/,'actual reps must not change targets');
   await page.locator('#history-button').click();
   assert.equal(await page.locator('[data-history="1:push-a"]').count(),1);
+  await page.locator('[data-legacy="ppl-v2|5:legs-a"]').click();
+  assert.match(await page.locator('#panel-body').innerText(),/Safety-bar box squat/);
+  assert.match(await page.locator('#panel-body').innerText(),/195 lb ×|195 lb · 5 reps/);
+  assert.equal(await page.locator('#panel-body input').count(),0);
+  await page.locator('#back-history').click();
   await page.locator('[data-legacy="ppl-v1|1:push-a"]').click();
   assert.match(await page.locator('#panel-body').innerText(),/195 lb · 6 reps/);
   await page.locator('#back-history').click();
@@ -77,20 +84,49 @@ try {
   assert.equal(await page.locator('#days button').count(),5);
   await page.locator('#days button').first().click();
   assert.match(await page.locator('#workout h2').innerText(),/Push B/);
+  assert.equal(await page.locator('[data-ex="push-b-main-paused-bench"] .set-row').count(),3,'week4 is a review, not an automatic deload');
+  assert.equal(await page.locator('[data-ex="push-b-shoulder"] .set-row').count(),3);
+  assert.equal(await page.locator('[data-ex="push-b-fly"] .set-row').count(),1);
+  await page.locator('#light-session').click();
   assert.equal(await page.locator('[data-ex="push-b-main-paused-bench"] .set-row').count(),2);
   assert.equal(await page.locator('[data-ex="push-b-lateral"] .set-row').count(),1);
   assert.match(await page.locator('.warmup').innerText(),/One easy round/);
   assert.match(await page.locator('.set-target').first().innerText(),/4\+ RIR/);
+  await page.reload();await page.waitForSelector('.exercise');
+  assert.equal(await page.locator('[data-ex="push-b-main-paused-bench"] .set-row').count(),2,'explicit lighter choice survives reload');
   await page.locator('#week').selectOption('5');await page.locator('[data-day="legs-a"]').click();
+  assert.equal(await page.locator('[data-ex="legs-a-main-back-squat"]').count(),1,'middle block retains regular squat');
+  if(!await page.locator('.session-setup').evaluate(el=>el.open))await page.locator('.session-setup summary').click();
+  await page.locator('[data-setup=variation]').selectOption('ssb-box-squat');
   assert.match(await page.locator('#workout').innerText(),/Safety-bar box squat/);
   assert.match(await page.locator('.warmup').innerText(),/safety-bar box squat/);
+  await page.locator('[data-setup=quad]').selectOption('leg-extension');
+  assert.equal(await page.locator('[data-setup=quad]').inputValue(),'leg-press','extension requires equipment confirmation');
+  await page.locator('#confirm-leg-extension').check();
+  await page.locator('[data-setup=quad]').selectOption('leg-extension');
+  await page.locator('#confirm-leg-extension').uncheck();
+  assert.equal(await page.locator('[data-ex="legs-a-legextension"]').count(),0,'removing confirmation restores leg press before logging');
+  assert.equal(await page.locator('[data-setup=quad]').inputValue(),'leg-press');
+  await page.locator('#confirm-leg-extension').check();
+  await page.locator('[data-setup=quad]').selectOption('leg-extension');
+  const extension=page.locator('[data-ex="legs-a-legextension"]');
+  assert.equal(await extension.locator('.set-row').count(),2);
+  assert.equal(await page.locator('[data-ex="legs-a-legpress"]').count(),0);
+  assert.equal(await extension.locator('[data-field=weight]').first().getAttribute('placeholder'),'');
+  await extension.locator('[data-field=weight]').first().fill('15');
+  assert.equal(await page.locator('[data-setup=variation]').isDisabled(),true,'actual entry freezes exercise choices');
+  await page.reload();await page.waitForSelector('.exercise');
+  assert.equal(await page.locator('[data-ex="legs-a-main-ssb-box-squat"]').count(),1);
+  assert.equal(await extension.locator('[data-field=weight]').first().inputValue(),'15');
+  assert.equal(await page.locator('#light-session').isDisabled(),true);
+
   await page.locator('[data-day="push-b"]').click();
   assert.equal(await page.locator('[data-ex="push-b-crunch"] .set-row').count(),2);
   await page.locator('#account-button').click();
   assert.equal(await page.locator('#auth-form').count(),0);
   const downloadPromise=page.waitForEvent('download');await page.locator('#export').click();
   const download=await downloadPromise,backup=JSON.parse(await readFile(await download.path(),'utf8'));
-  assert(backup.records['1:A:A-main:0']);assert(backup.records['ppl-v2:1:push-a:push-a-main-bench:0']);
+  assert(backup.records['1:A:A-main:0']);assert(backup.records['ppl-v3:1:push-a:push-a-main-bench:0']);assert(backup.records['ppl-v2:5:legs-a:legs-a-main-ssb-box-squat:0']);assert(backup.records['ppl-v3:prescription:5:legs-a']);
   await page.locator('#close-panel').click();await page.locator('#rest-button').click();await page.getByRole('button',{name:'90 sec',exact:true}).click();
   await page.waitForTimeout(1100);assert.match(await page.locator('#rest-button').innerText(),/1:[23]\d rest/);
   await page.locator('#timer-pause').click();
@@ -123,11 +159,14 @@ try {
   await page.locator('#timer-add').click();
   assert.equal(await page.locator('#timer-status').innerText(),'Paused');
   assert.equal(await page.locator('#timer-number').innerText(),'0:30');
-  assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('fortis-rest-v1:guest')).context),'5:push-b');
+  assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('fortis-rest-v1:guest')).context),'ppl-v3:5:push-b');
   await page.locator('#close-panel').click();
   await page.locator('#finish-button').click();await page.locator('#finish-skipped').click();
   assert.equal(await page.evaluate(()=>sessionStorage.getItem('fortis-rest-v1:guest')),null,'finishing clears idle-added rest for this session');
   await mkdir('/workspace/scratch/ppl-preview',{recursive:true});
+  await page.locator('#week').selectOption('5');await page.locator('[data-day="legs-a"]').click();
+  if(!await page.locator('.session-setup').evaluate(el=>el.open))await page.locator('.session-setup summary').click();
+  await page.locator('.session-setup').screenshot({path:'/workspace/scratch/ppl-preview/setup.png'});
   for(const width of [320,390,1280]){
     await page.setViewportSize({width,height:900});
     for(const week of ['1','2','4']){
@@ -146,5 +185,5 @@ try {
     for(let i=0;i<5;i++){await page.locator('#days button').nth(i).click();assert(await page.locator('.exercise').count()>=4);}
   }
   assert.deepEqual(errors,[],'no browser errors');
-  console.log('Browser checks passed: all 60 sessions, 320/390/1280px layouts, calibration, actual/target separation, persistence, assistance, unilateral inputs, rolling navigation, lighter weeks, legacy history, export and timer.');
+  console.log('Browser checks passed: all 60 sessions, 320/390/1280px layouts, calibration, actual/target separation, persistence, assistance, unilateral inputs, rolling navigation, explicit recovery, equipment confirmation, locked prescriptions, all three archives, export and timer.');
 } finally {await browser?.close();await new Promise(resolve=>server.close(resolve));}

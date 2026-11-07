@@ -1,6 +1,6 @@
 # Fortis rolling five-day PPL plan
 
-This is the active program. It combines barbell strength work, dumbbell presses, and the cables and machines identified at Fortis. The former 57-session binder plan is archived in `fortis-program-legacy.js`, and the first PPL prescription is archived in `fortis-program-ppl-v1.js`. The binder archive supplies labelled historical references for conservative first-trial estimates. Those prescriptions are not evidence of actual performance; neither archive silently supplies confirmed targets or actuals.
+This is the active program. It combines barbell strength work, dumbbell presses, and the cables and machines identified at Fortis. The former 57-session binder plan is archived in `fortis-program-legacy.js`, and the earlier PPL prescriptions are archived in `fortis-program-ppl-v1.js` and `fortis-program-ppl-v2.js`. The binder archive supplies labelled historical references for conservative first-trial estimates. Those prescriptions are not evidence of actual performance; none of the archives silently supplies confirmed targets or actuals.
 
 ## Schedule
 
@@ -14,7 +14,7 @@ Train five days per week, suggested **Monday / Tuesday / Thursday / Friday / Sat
 
 The 12-week schedule contains 60 sessions: ten appearances of every variant. Each push/pull/legs pattern averages 1.67 exposures per week. A particular A or B variant usually recurs every eight or nine days. Missed days move the sequence forward when training resumes; do not cram workouts to meet calendar targets.
 
-Weeks **4, 8 and 12** are lighter calendar weeks. Continue the same sequence; a lighter exposure does not earn a load increase.
+All **60 sessions use normal work by default**. Weeks **4, 8 and 12** are recovery review points, not automatic lighter weeks. Select a lighter session explicitly before logging when recovery calls for it; continue the same sequence. A lighter exposure does not earn a load increase.
 
 ## Prescriptions
 
@@ -30,14 +30,14 @@ Listed sets are work sets, excluding circuits and ramps. Reps are per side where
 | | Fortis chest-supported row | 3 × 8–12 |
 | | Rear-delt machine or cable reverse fly | 2 × 12–20 |
 | | Cable curl | 3 × 10–15 |
-| Legs A | Back squat; SSB box squat in weeks 5–8 | 3 × 4–6 |
+| Legs A | Back squat; optional explicitly selected SSB box squat | 3 × 4–6 |
 | | Atlantis kneeling leg curl | 3 × 10–15 per side |
-| | Fortis leg press | 2 × 10–15 |
+| | Fortis leg press; optional confirmed-machine leg extension | 2 × 10–15 |
 | | Standing dumbbell calf raise | 3 × 12–20 |
 | | Ab wheel | 2 × 8–12 |
 | Push B | 1-second paused barbell bench press | 3 × 6–8 |
-| | Seated dumbbell shoulder press | 2 × 8–12 |
-| | Cable fly | 2 × 10–15 |
+| | Seated dumbbell shoulder press | 3 × 8–12 |
+| | Cable fly | 1 × 10–15 |
 | | Cable lateral raise | 2 × 12–20 |
 | | Overhead cable triceps extension | 2 × 10–15 |
 | | Cable crunch, after the other work | 2 × 10–15 |
@@ -45,7 +45,7 @@ Listed sets are work sets, excluding circuits and ramps. Reps are per side where
 | | Supported row or seated cable row | 3 × 8–12 |
 | | Rear-delt machine or cable reverse fly | 2 × 12–20 |
 | | Rope hammer curl | 3 × 10–15 |
-| Legs B | Conventional deadlift; 1-second paused floor deadlift in weeks 5–8 | 2 × 3–5 |
+| Legs B | Conventional deadlift; optional explicitly selected 1-second paused floor deadlift | 2 × 3–5 |
 | | Wenning belt squat | 3 × 8–12 |
 | | Atlantis kneeling leg curl | 3 × 10–15 per side |
 | | Seated calf raise | 3 × 12–15 |
@@ -55,23 +55,26 @@ Main bench, squat and deadlift sets stop at about **2 RIR**, with **three minute
 
 The two deadlift work sets are the default. A third is unnecessary for completing the prescription and should not displace hamstring curls or main-lift rest. There are no drop sets, plyometrics, explosive Olympic lifts, RDLs or front squats. Put deadlifts on Legs B rather than on Pull immediately before another lower session. Use supported rows to limit unnecessary lower-back fatigue.
 
-## Compound variations: stable blocks
+## Compound practice and deliberate variations
 
-| Main-lift slot | Weeks 1–4 | Weeks 5–8 | Weeks 9–12 |
-| --- | --- | --- | --- |
-| Push A, 3 × 4–6 | Regular bench press | Regular bench press | Regular bench press |
-| Push B, 3 × 6–8 | 1-second paused bench | 1-second paused bench | 1-second paused bench |
-| Legs A, 3 × 4–6 | Back squat | SSB box squat | Back squat |
-| Legs B, 2 × 3–5 | Conventional floor deadlift | 1-second paused conventional floor deadlift | Conventional floor deadlift |
+| Slot | Default throughout all twelve weeks | Optional replacement chosen before logging |
+| --- | --- | --- |
+| Push A, 3 × 4–6 | Regular bench press | No automatic variation |
+| Push B, 3 × 6–8 | 1-second paused bench press | No automatic variation |
+| Push B, 3 × 8–12 | Seated DB shoulder press | Distinct from standing barbell OHP |
+| Legs A, 3 × 4–6 | Back squat | SSB box squat |
+| Legs B, 2 × 3–5 | Conventional floor deadlift | 1-second paused conventional floor deadlift |
 
-Use the same variation throughout its block, including the lighter final week. These replace existing work; they do not add compound sets. Regular Push A bench remains the consistent strength anchor. The paused secondary bench adds controlled chest contact without changing every exposure. Each lower variant has only about two or three normal loading exposures in a four-week block, so more frequent variation would leave little time to establish repeatable performance. The block length is a practical programming choice, not a claim that research has proved this exact schedule superior.
+The default keeps squat and deadlift practice consistent rather than changing them automatically after only two or three normal exposures. Bench and shoulder pressing are present, but the overhead movement is **seated dumbbell pressing**, not a standing barbell OHP prescription. Each lower main lift still appears about every eight or nine days; this rolling schedule is a practical compromise, not a guarantee of maximal competition-lift strength development.
+
+Use an optional variation for a deliberate sustained block with enough repeatable exposures to calibrate and assess it, rather than switching randomly whenever a session opens. Choices apply to the selected session only; repeat your planned variation on subsequent exposures. Choose the variation **before entering targets or recording any work for that session**; the app locks prescription choices once logging has started. It replaces the existing main lift, without adding sets. A different variation has its own exercise identifier, target calibration and performance comparisons; old logged work must not be relabelled.
 
 - **Paused bench:** settle motionless on the chest for about one second while staying braced; do not sink, relax or bounce. Use a separate load from regular bench.
-- **SSB box squat:** use the actual Fortis SSB and count its actual bar weight rather than assuming 45 lb. Set a stable box height that allows a repeatable controlled position, retain bracing during contact, and never drop, rock or relax on the box. Standardize bar, box height, stance and depth. If the safe setup or technique is unavailable, retain a familiar squat rather than improvising. Any different exercise requires fresh calibration and a clear record of what was actually performed.
-- **Paused floor deadlift:** pause for about one second just clear of the floor without losing the starting position; finish smoothly and reset on the floor between reps. It remains a floor-height lift, not a deficit pull or an extra top set.
-- **Deficit deadlift is not the default.** A coach/setup-checked deficit of roughly one inch can be considered only with a stable platform supporting the full foot and controlled positioning throughout. It is not an app variation selector or an automatically relabelled workout. If choosing this separately, record it in a separate training log that explicitly names the deficit variation; this app currently has no selector for it. Do not record it as the programmed floor or paused deadlift. Do not build an unstable stack or assume blocks are available.
+- **SSB box squat:** count the actual SSB bar weight rather than assuming 45 lb. Standardize bar, stance and a stable box height that permits controlled contact. Stay braced and never drop, rock or relax on the box. If a suitable setup or technique is unavailable, keep the familiar back squat.
+- **Paused floor deadlift:** pause for one second just clear of the floor without losing position, finish smoothly and reset between reps. This remains a floor-height lift, not a deficit pull.
+- **Deficit deadlift is not a default or app selector.** A separately coached, setup-checked low-deficit option requires a stable full-foot platform and controlled positioning. Record it separately by its actual name rather than under a floor or paused-deadlift prescription; do not improvise unstable stacks.
 
-Recalibrate when a variation changes. No standard-bench, squat or deadlift percentage determines the correct paused/SSB/deficit load. Separate main-lift identifiers include the variation so the app's LAST display does not present a different variation as equivalent performance. When returning to a familiar variation, use its own previous performance as context and reassess it conservatively rather than advancing automatically.
+No standard-bench, squat or deadlift percentage determines a correct paused/SSB/deficit load. Recalibrate every change, retain the chosen setup and compare the exact variation's own previous performance. Returning to a familiar variant does not earn an automatic increase.
 
 ## Wenning-inspired warm-up
 
@@ -84,11 +87,11 @@ This is a **scaled adaptation** of Wenning’s variable high-repetition circuits
 | Legs A | Light kneeling curl 10–12 each side; bodyweight squat 8–10; dead bug 4 each side |
 | Legs B | Light kneeling curl 10–12 each side; unloaded glute bridge 10; bird dog 4 each side |
 
-A second upper-body round is optional only if you still need it, it leaves subsequent lifting performance unaffected, and **all preparation stays within 10–12 minutes**. It is never a quota. One round is the lighter-week default too. The lower-day circuit stays one round because unilateral curls take setup and repetition time.
+A second upper-body round is optional only if you still need it, it leaves subsequent lifting performance unaffected, and **all preparation stays within 10–12 minutes**. It is never a quota. One round is the selected lighter-session default too. The lower-day circuit stays one round because unilateral curls take setup and repetition time.
 
 Use brief transitions and enough rest to keep the circuit comfortable. Use nearby free stations; choose an easy band equivalent when a cable is busy rather than reserving several stations. The revised circuit avoids high-repetition curls before pull-up work and removes warm-up cable flies before pressing to limit unnecessary local fatigue.
 
-Follow with progressive, non-fatiguing ramps for the first lift: an empty bar or very light load for 8–10, then a few increasing sets of roughly 5, 3 and 1–2 reps toward the chosen work load. Do not use an untested max to calculate ramps. **Match the programmed variation during the ramps**: practise the chest pause on Push B, use the actual SSB/box setup in the middle squat block, and practise the just-off-floor pause in the middle deadlift block. Deadlift ramps use normal floor-height plates or an equivalent safe setup. Pull-ups need an easy assisted/bodyweight preparation set. Add a lighter preparation set before a later unfamiliar press or machine where useful.
+Follow with progressive, non-fatiguing ramps for the first lift: an empty bar or very light load for 8–10, then a few increasing sets of roughly 5, 3 and 1–2 reps toward the chosen work load. Do not use an untested max to calculate ramps. **Match the programmed variation during the ramps**: practise the chest pause on Push B, use the actual SSB/box setup if explicitly selected, and practise the just-off-floor pause if that deadlift variation is selected. Deadlift ramps use normal floor-height plates or an equivalent safe setup. Pull-ups need an easy assisted/bodyweight preparation set. Add a lighter preparation set before a later unfamiliar press or machine where useful.
 
 Budget **10–12 minutes total for circuit plus ramps**, including a short easy walk/row if needed. If the circuit makes the first work set weaker, reduce circuit load or volume; do not push through fatigue to satisfy a warm-up quota. The classic full warm-up can consume too much of a 60-minute session.
 
@@ -101,7 +104,7 @@ Budget **10–12 minutes total for circuit plus ramps**, including a short easy 
 5. Pull-ups: increase assistance or remove added weight to meet the range. Reduce assistance before adding external weight. For unilateral work, use the same setup/load, start with the harder side, and match its clean reps with the other side; do not add extra stronger-side reps.
 6. Ab wheel progresses controlled reps first, then reach only when trunk position remains steady. Pallof press uses the listed reps per side; raise resistance only after all sets remain controlled at the intended effort. Cable crunch follows its 10–15 rep range at 2–3 RIR; use controlled trunk flexion rather than turning it into a hip hinge or pulling with the arms. It comes after the other Push B work so trunk fatigue does not precede pressing.
 
-Actual performed loads/reps/RIR are the evidence for progression; session targets are a separate editable plan. Suggestions do not automatically write weights. No automatic loading is inferred from dates, completed sessions or a lighter week's easier work. Typical proposed increments are 5 lb total for barbells, 2.5–5 lb added for pull-ups, and the smallest available increment for dumbbells or stacks; confirm what the equipment permits. Bodyweight core progresses controlled reps or reach rather than automatically adding load. Keep machine context consistent yourself: matching exercise names alone cannot prove that two stations are equivalent.
+Actual performed loads/reps/RIR are the evidence for progression; session targets are a separate editable plan. Suggestions do not automatically write weights. No automatic loading is inferred from dates, completed sessions or a selected lighter session's easier work. Typical proposed increments are 5 lb total for barbells, 2.5–5 lb added for pull-ups, and the smallest available increment for dumbbells or stacks; confirm what the equipment permits. Bodyweight core progresses controlled reps or reach rather than automatically adding load. Keep machine context consistent yourself: matching exercise names alone cannot prove that two stations are equivalent.
 
 ## First-trial estimates and source limits
 
@@ -119,6 +122,7 @@ Every number below is **lb**, and every non-bodyweight estimate has **low or ver
 | Kneeling leg curl | 20 each leg | Historical 25, same station only; low |
 | Standing DB calf raise | 25 each hand | Historical 30 each; low |
 | Ab wheel | Bodyweight | Calibrate controlled reach; no added load |
+| Optional leg extension | Choose a light trial after confirming the machine | No verified station or load; calibrate independently |
 | One-second paused bench | 155 total | Conservative coaching trial below historical regular secondary bench 175; very low |
 | Seated DB shoulder press | 35 each hand | Historical 45 each; low |
 | Cable fly | 10 per stack | Generic coaching trial, no personal reference; very low |
@@ -135,19 +139,21 @@ Every number below is **lb**, and every non-bodyweight estimate has **low or ver
 
 Machine ambiguities stay explicit. For rows, **40 on a cable stack OR 45 plates added on a plate-loaded row** are alternative very-low-confidence calibration hints, not equivalent loads and not a single automatically applicable target. Rear-delt work similarly offers **5 per cable stack OR 20 on the machine** as distinct generic hints. Check the actual station and loading convention before entering either manually. Start leg-press calibration with the **empty apparatus and, if appropriate, small plates**; carriage mass and geometry prevent a meaningful universal number. None of these ambiguous hints silently selects a machine or applies a target.
 
-On lighter weeks, only bodyweight movements retain a numeric zero-added-load estimate. Other loads remain **choose a load for 4+ RIR**; neither a normal trial estimate nor a fixed percentage is automatically applied. Warm-up circuits use very light resistance at roughly 8+ RIR, and need no failure test or mandatory numeric load. After ramps, lower any trial load that misses the rep/effort target; raise it conservatively if clearly too easy. The displayed confidence concerns the estimate, not a measurement of your strength.
+On explicitly selected lighter sessions, only bodyweight movements retain a numeric zero-added-load estimate. Other loads remain **choose a load for 4+ RIR**; neither a normal trial estimate nor a fixed percentage is automatically applied. Warm-up circuits use very light resistance at roughly 8+ RIR, and need no failure test or mandatory numeric load. After ramps, lower any trial load that misses the rep/effort target; raise it conservatively if clearly too easy. The displayed confidence concerns the estimate, not a measurement of your strength.
 
 ## Using the rest timer
 
 Exercise chips show exact **m:ss** defaults. Start rest manually so unilateral and paired work can be completed before the countdown begins; checking a set does not start it. The timer identifies its source exercise/session, offers presets including 1:15, 1:30, 2:00, 2:30, 3:00 and 4:00, and accepts a custom **15–900 seconds**. Pause/resume and +30 seconds preserve the current running or paused mode. A completed countdown stays visible until cleared or restarted.
 
-Timer state is saved in **sessionStorage for the current account and browser tab**. Reloading that tab restores the countdown or pause state; another account or tab has separate state. It is not a cloud-synced timer or a promise of background alerts. Finishing the timer’s source session clears it; finishing a different session must not clear another session’s timer. Keep the 60-minute session cap by trimming prescribed accessory sets when necessary, while preserving main-lift rests and hamstring work.
+Timer state is saved in **sessionStorage for the current account and browser tab**. Reloading that tab restores the countdown or pause state; another account or tab has separate state. It is not a cloud-synced timer or a promise of background alerts. Finishing the timer’s source session clears it; finishing a different session must not clear another session’s timer. Keep the 60-minute session cap by trimming calf work first when necessary, while preserving main-lift rests and all prescribed quad and hamstring-curl work.
 
-## Lighter weeks and recovery
+## Recovery review and optional lighter sessions
 
-During calendar weeks **4, 8 and 12**, keep rolling through the session variants. Keep the block’s programmed variation and use **two sets for each main lift**, including SSB box squat and deadlift, and **one set for every accessory**, including cable crunch. Use the lower end of the rep range at **4+ RIR**, usually with less load; select the load from actual recent performance rather than a fixed percentage or an old printed target. Use one easy circuit round and appropriate ramps. No progress is earned from these deliberately easier sessions.
+Weeks **4, 8 and 12** prompt a recovery review. They do **not** automatically change sets, loads, effort or exercise variants. All 60 scheduled sessions remain normal unless you explicitly choose otherwise.
 
-Return conservatively to the last successful normal-exposure load for that exact variation after a lighter week, reducing further if needed. A new variation requires fresh calibration. If performance repeatedly drops across several lifts with poor recovery, bring a lighter period forward. A single stalled exercise normally calls for a local adjustment. Stop a movement that causes new pain and choose an appropriate alternative rather than treating this written plan as an injury diagnosis.
+Before entering targets or logging any work, select a lighter session when needed. This gives **two sets per main lift**, including deadlift, and **one set per accessory**, including cable crunch, at the lower end of the rep range and **4+ RIR**. Select resistance from current performance rather than a fixed percentage or normal first-trial estimate. Keep one easy circuit round, appropriate ramps and the selected exercise variant. Once a target, actual entry or completion is saved, the prescription is locked so recorded work cannot silently acquire different sets or targets. Lighter work does not earn a progression increase.
+
+A single stalled exercise calls for a local load or rep adjustment. If **several lifts decline across repeated exposures alongside poor recovery**, consider selecting lighter work for roughly the **next five workouts**, then reassess rather than forcing an automatic calendar deload. This is a recovery option, not a diagnosis or an automatic trigger. Resume normal work conservatively using the last successful performance for that exact exercise/variant. Stop new pain and choose an appropriate alternative.
 
 ## The 60-minute cap
 
@@ -155,32 +161,32 @@ The cap includes circuits, ramps, working sets, all rests and equipment transiti
 
 A workable budget is 10–12 minutes for preparation, 12–16 for the first lift, and the remaining 32–38 for accessories and transitions. These are planning estimates, not guaranteed completion times in a busy gym. Lower-day unilateral curls make those sessions the tightest.
 
-- Preserve main-lift rest and hamstring curls. On Legs A, trim the final leg-press or calf set if behind; on Legs B, trim the final belt-squat or calf set.
+- Protect main-lift rests and **all prescribed quad and hamstring-curl work**. Trim calf work first if behind, then improve station/setup efficiency and reconsider non-priority accessories rather than repeatedly deleting quad or curl sets. Do not rush compounds or reserve multiple busy machines to force the schedule.
 - On Push B, complete cable crunch after the other work; trim a final fly or arm set if needed to fit, rather than rushing the main lift. Core work is prescribed, not an optional finisher.
 - Pair only nearby free isolation/core stations. Never rely on occupying two popular machines at once to meet the schedule.
 - Do not add mandatory sleds, carries, finishers or extra exercises on top of this plan. Keep the sequence sustainable before adding optional work.
 
 ## Muscle coverage and imbalance review
 
-The previous four-core-day plan already trained the major muscle groups, but dedicated rear-delt work depended on optional E and horizontal rowing had only four weekly sets. The revised plan puts rear delts in both mandatory pull variants and retains rows alongside vertical pulling. Direct core work now includes anti-extension (ab wheel), controlled flexion (cable crunch), and anti-rotation (Pallof), with six work sets per full rotation. One Push B lateral-raise set was removed to help fund that addition within the time cap. It keeps direct knee flexion on both lower variants rather than counting deadlifts as a substitute for curls.
+The previous four-core-day plan already trained the major muscle groups, but dedicated rear-delt work depended on optional E and horizontal rowing had only four weekly sets. The revised plan puts rear delts in both mandatory pull variants and retains rows alongside vertical pulling. Direct core work now includes anti-extension (ab wheel), controlled flexion (cable crunch), and anti-rotation (Pallof), with six work sets per full rotation. Push B now trades one fly set for a third DB shoulder-press set while keeping thirteen total work sets. Direct knee flexion remains on both lower variants; deadlifts do not substitute for curls.
 
 | Emphasis | Sets per complete six-session rotation | Average per five-session week |
 | --- | --- | --- |
-| Chest: bench, incline press, fly | 11 | 9.2 |
+| Chest: bench, incline press, fly | 10 | 8.3 |
 | Vertical pulls | 6 | 5 |
 | Horizontal rows | 6 | 5 |
 | Dedicated rear delts | 4 | 3.3 |
 | Lateral delts | 5 | 4.2 |
-| Shoulder press | 2 | 1.7 |
+| Seated DB shoulder press | 3 | 2.5 |
 | Direct biceps | 6 | 5 |
 | Direct triceps | 4 | 3.3 |
 | Quad-dominant squat, leg press, belt squat | 8 | 6.7 |
 | Knee-flexion hamstring curls | 6 | 5 |
-| Conventional/paused deadlift | 2 | 1.7 |
+| Conventional deadlift; paused if selected | 2 | 1.7 |
 | Calves | 6 | 5 |
 | Direct core: ab wheel, cable crunch, Pallof | 6 | 5 |
 
-These describe **normal loading sessions**, before lighter-week reductions or time-cap cuts. The weekly average multiplies rotation sets by five-sixths; any individual calendar week will differ. Unilateral sets are counted once per trained side, not doubled into a false muscle-volume total. Muscle contributions overlap: pressing also trains triceps/anterior delts; pulling trains biceps; squats, belt squats and deadlifts load glutes; deadlifts also load spinal erectors. These counts do not assign every overlapping set full credit to every muscle.
+These describe **normal loading sessions**. With no selected lighter sessions or time-cap cuts, all six sessions appear ten times, totaling **720 prescribed work sets** over twelve weeks, and the actual planned twelve-week average equals the normal-rotation average. The weekly average multiplies rotation sets by five-sixths; individual calendar weeks differ. Explicit lighter sessions or trimmed sets reduce actual delivered volume; the app does not claim that every group is in a universal optimal range. Unilateral sets are counted once per trained side, not doubled into a false muscle-volume total. Muscle contributions overlap: pressing also trains triceps/anterior delts; pulling trains biceps; squats, belt squats and deadlifts load glutes; deadlifts also load spinal erectors. These counts do not assign every overlapping set full credit to every muscle.
 
 Glutes and spinal erectors have meaningful compound exposure, so no extra hinge is added. Dedicated adductor/abductor, neck, forearm and shrug work is not included by default; this does not establish a deficiency. Grip works during pulls and deadlifts. Front-deltoid isolation is unnecessary given pressing volume. No muscle group depends on an optional sixth session.
 
@@ -188,7 +194,7 @@ A written program can show differences in **training emphasis**, but cannot esta
 
 ## Equipment and evidence
 
-Equipment choices use the [Fortis equipment list](https://fortisfitness.ca/our-equipment/) and [Fortis East location](https://fortisfitness.ca/locations/fortis-fitness-east/): supported rows, leg press, Atlantis kneeling curl and Wenning belt squat are the intended stations. Incline and shoulder presses remain dumbbell movements; standing calves remain dumbbell work. No seated leg-curl, incline/shoulder-press machine or standing-calf machine is assumed. Check the actual station's setup before calibrating. Use the rear-delt machine if present, otherwise the listed cable reverse fly.
+Equipment choices use the [Fortis equipment list](https://fortisfitness.ca/our-equipment/) and [Fortis East location](https://fortisfitness.ca/locations/fortis-fitness-east/): supported rows, leg press, Atlantis kneeling curl and Wenning belt squat are the intended stations. Incline and shoulder presses remain dumbbell movements; standing calves remain dumbbell work. The leg-extension machine is **not confirmed**. The default remains leg press; only after you confirm that an appropriate machine is actually available may the Legs A selector replace its two sets with leg extension **2×10–15**, independently calibrated and separately identified before logging. The option does not add sets or prove equivalent muscle-region stimulus. No seated leg-curl, incline/shoulder-press machine or standing-calf machine is assumed. Check the actual station's setup before calibrating. Use the rear-delt machine if present, otherwise the listed cable reverse fly.
 
 Machines and free weights can both produce strength and muscle growth. An eight-week study of 38 resistance-trained men found similar assessed muscle growth and overall strength improvements, with the strongest strength improvements in the trained modality. This supports retaining barbell strength practice while choosing useful machine/cable accessories; it does not prove every machine is safer or every substitution equivalent. [Hernández-Belmonte et al., 2023](https://pubmed.ncbi.nlm.nih.gov/37535335/).
 
@@ -198,18 +204,24 @@ The circuits above are our time-limited adaptation of the Wenning approach, not 
 
 Independent reviews challenged the plan’s specificity, fatigue, equipment assumptions, core coverage and record handling. The resulting changes are:
 
-- **Specificity and variation:** keep regular bench as an anchor, use paused bench consistently, and restrict lower-lift changes to a middle four-week block. No unsupported claims that a variation fixes a personal weak point or guarantees joint protection.
+- **Specificity and variation:** keep regular bench and paused bench consistent, retain back squat and conventional deadlift throughout by default, and make optional lower variations explicit pre-log choices for sustained blocks. No unsupported claims that a variation fixes a personal weak point or guarantees joint protection.
 - **Preparation fatigue:** reduce every circuit to one easy default round at 8+ RIR; allow a second upper round only when useful and within the time cap. Lift-specific ramps rehearse the actual variation.
 - **Core coverage:** add cable crunch after Push B, retain ab wheel and Pallof, and trade one lateral-raise set rather than simply adding work to every day. The counts describe training coverage, not a diagnosis of weak abs or a universal optimum.
-- **Practicality:** do not make deficit pulls mandatory or assume deadlift blocks. Use the confirmed SSB/box equipment with a standardized setup; a bar labelled “safety” is not a guarantee of safety for a particular lifter.
+- **Practicality:** protect quad/curl work and trim calves first when necessary; do not assume a leg-extension machine or deadlift blocks, and do not make deficit pulls mandatory. Use the confirmed SSB/box equipment with a standardized setup; a bar labelled “safety” is not a guarantee of safety for a particular lifter.
 - **Progress and records:** separate each main-lift variation in identifiers and comparisons, and preserve both previous programs as read-only history. Old work is not silently relabelled as performed evidence. Historical binder targets may supply explicitly labelled low-confidence calibration hints, separate from chosen targets and actuals.
 
 An acute SSB study examined squat mechanics and muscle activity in 12 competitive powerlifters; it does not establish long-term injury protection or a universal loading ratio. [Hecker et al.](https://pubmed.ncbi.nlm.nih.gov/30363042/). Juggernaut’s coaching manual notes that excessive deficits change the pulling position and may reduce specificity; the conditional low-deficit option here is a coaching choice, not an established requirement for strength or hypertrophy. [Juggernaut deadlift manual](https://cdn.jtsstrength.com/wp-content/uploads/2022/11/22065452/JTS_DEADLIFT_MANUAL_2020_LR.pdf).
 
 ## Load and timer review decisions
 
-The load review separates three things: a historical or generic estimate, a target you explicitly choose, and an actual performed set. No machine equivalence or variation percentage is presented as established personal strength. Progression requires complete, effort-qualified evidence from the latest relevant normal exposure; partial records and missing RIR do not earn an increase. The timer review makes rest durations exact, keeps paired/unilateral starts manual, and preserves paused, running and completed states across a same-tab reload. These interface additions do not change work-set prescriptions or the `ppl-v2` record namespace, and do not rewrite existing logs.
+The load review separates three things: a historical or generic estimate, a target you explicitly choose, and an actual performed set. No machine equivalence or variation percentage is presented as established personal strength. Progression requires complete, effort-qualified evidence from the latest relevant normal exposure; partial records and missing RIR do not earn an increase. The timer review makes rest durations exact, keeps paired/unilateral starts manual, and preserves paused, running and completed states across a same-tab reload. These rules continue in `ppl-v3`; the preceding load/timer-only revision did not alter its `ppl-v2` prescriptions. Existing logged records are never rewritten.
+
+## Audit decisions and remaining limits
+
+The whole-plan audit found that compulsory lighter weeks reduced normal-effort volume and that automatic middle-block variants allowed little repeatable squat/deadlift practice. The revision makes recovery reviews advisory, protects default squat/deadlift continuity, raises shoulder pressing from two to three sets, and funds it by reducing fly work to one set. Other normal work-set counts remain unchanged. It preserves the time-limited Wenning-inspired preparation, complete-evidence progression rules and explicit rest timers.
+
+Coverage is not the same as individual optimal dosing. Quad, hamstring, calf and delt volumes remain moderate, indirect compound contributions overlap, and no universal set range proves that every muscle or region will grow optimally. Assess repeatable strength, reps, recovery and physique priorities before adding further work. Increasing every group simultaneously under a strict hour would require redistributing the plan rather than promising unlimited additions.
 
 ## Records and legacy history
 
-The previous 57-session Fortis binder prescription and the first PPL program remain archived in `fortis-program-legacy.js` and `fortis-program-ppl-v1.js`. Their workout logs remain visible as read-only history and stay in the existing `fortis-v1` account-isolated store. This revision uses the **`ppl-v2` record-ID namespace**; prior `ppl-v1` records are never interpreted as the new prescriptions. The selected PPL view remains separate from binder view state. Main-lift identifiers include their variation, so a paused lift is not treated as the regular lift in LAST comparisons. No old workout entries, targets or loads are rewritten or silently imported. Export periodically and keep workout records out of repository commits.
+The binder and both prior PPL prescriptions remain archived in `fortis-program-legacy.js`, `fortis-program-ppl-v1.js` and `fortis-program-ppl-v2.js`. Their workout logs remain read-only history in the existing account-isolated `fortis-v1` store. This revision uses **`ppl-v3` record IDs**: prior `ppl-v1`/`ppl-v2` sets retain their original prescriptions and are not silently imported or reinterpreted. Per-session recovery/equipment choices must be made before logging and frozen thereafter. Variation identifiers keep unlike exercises separate in targets and comparisons. Export periodically and keep workout records out of repository commits.

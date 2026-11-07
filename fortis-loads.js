@@ -41,6 +41,9 @@ export function estimateFor(exercise, {light = false} = {}) {
   if (suffix === 'rear') return estimate(null,
     'Cable stacks and rear-delt machines are different exercises with different resistance; these are trial options, not equivalent loads.',
     'Trial: 5 lb per cable stack or 20 lb on machine; calibrate');
+  if (suffix === 'legextension') return estimate(null,
+    'Equipment is unconfirmed. After confirming the machine, calibrate its own marked loading convention; no conversion from leg press is assumed.',
+    'Manual calibration: confirm the leg-extension machine and choose a light trial setting');
   if (suffix === 'legpress') return estimate(null,
     'Carriage mass, angle and marked load conventions differ. No squat-to-leg-press conversion is assumed.',
     'Trial: empty carriage, then small plates; record marked loading convention');

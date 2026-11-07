@@ -7,17 +7,18 @@ A mobile-first, static training log for a rolling five-day Push / Pull / Legs pl
 ## Use
 
 - Train on Monday, Tuesday, Thursday, Friday and Saturday, or equivalent days with two rest days. Continue **Push A → Pull A → Legs A → Push B → Pull B → Legs B** across week boundaries. Do not restart at Push A every Monday.
+- Regular bench remains on Push A; Push B uses a 1-second pause. Weeks 5–8 use SSB box squat and paused floor deadlift in the lower main-lift slots. Other blocks retain back squat and conventional floor deadlift. Ab wheel, cable crunch and Pallof cover core work.
 - Weeks 4, 8 and 12 are lighter. Keep the rotation moving; all six variants appear ten times in 60 scheduled sessions.
-- Start with the short Wenning-inspired circuit, then exercise-specific ramps. The **60-minute cap includes all warm-up, ramps, rests and setup**. There are no plyometrics, RDLs or front squats.
+- Start with one easy Wenning-inspired circuit round at 8+ RIR, then ramps matching that day’s lift variation. The **60-minute cap includes all warm-up, ramps, rests and setup**. There are no plyometrics, RDLs or front squats.
 - **Calibrate every lift manually.** No old binder weights carry into the new plan. Enter actual load, reps and RIR separately from session targets. Increase load only after successful performed exposures at the prescribed effort; a date or checkmark never increases it.
 - Unilateral curls and Pallof presses record reps per side. Dumbbell loads are per hand; machine and cable settings are specific to that station.
-- History, a manual rest timer and JSON export are included. Previous Fortis sessions remain available as read-only history. No bodyweight, sleep or session-note inputs.
+- History, a manual rest timer and JSON export are included. Previous Fortis binder and first-version PPL sessions remain available as read-only history. No bodyweight, sleep or session-note inputs.
 
 See [PPL_PROGRAM.md](PPL_PROGRAM.md) for prescriptions, circuits, progression, timing, muscle coverage and equipment assumptions.
 
 ## Storage and sync
 
-The existing `fortis-v1` browser storage and account isolation are preserved. New PPL record IDs use `ppl-v1` so they do not collide with previous Fortis workout records. The selected PPL view uses `fortis-ppl-view-v1`. Legacy logs are not rewritten as PPL workouts.
+The existing `fortis-v1` browser storage and account isolation are preserved. This revision uses `ppl-v2` record IDs so it does not collide with either previous Fortis binder or `ppl-v1` workouts. Main-lift identifiers also distinguish variations for performance comparisons. Previous records and their targets are not rewritten as new workouts; PPL view selection remains separate from binder view state.
 
 Entries save locally as you type. Browser storage can be removed by private mode, clearing site data or storage limits; export a backup periodically. Workout entries and account credentials do not belong in GitHub commits.
 
@@ -42,7 +43,8 @@ Browser checks use the bundled Chromium, or set `BROWSER_PATH` to an installed C
 
 - `fortis-program.js`: active rolling PPL sessions and guidance.
 - `PPL_PROGRAM.md`: human-readable active plan and review rationale.
-- `fortis-program-legacy.js`: archived 57-session Fortis binder prescription, retained for historical interpretation.
+- `fortis-program-legacy.js`: archived 57-session Fortis binder prescription.
+- `fortis-program-ppl-v1.js`: archived first PPL prescription; both archives support read-only history.
 - `fortis-app.js`, `fortis.css`: interface, targets and session logging.
 - `fortis-store.js`: existing account-isolated persistence, sync queue and conflicts.
 - `fortis-config.js`: public cloud configuration, empty until provisioned.

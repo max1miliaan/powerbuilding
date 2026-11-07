@@ -1,5 +1,14 @@
 # Changelog
 
+## [2026-11-07b] -- red-team revision: core, stable variations and lighter circuits
+
+- Added Push B cable crunch after the other work and reduced its lateral raises to two sets: six core sets per full rotation, thirteen total work sets on Push B.
+- Kept regular Push A bench and introduced consistent one-second paused Push B bench. Weeks 5–8 substitute SSB box squat and paused floor deadlift into existing lower slots; weeks 1–4/9–12 retain back squat and conventional deadlift. No extra compound sets or inherited variant loads.
+- Reduced every Wenning-inspired circuit to one easy round at 8+ RIR, with a conditional second upper round only within the preparation budget. Ramps match the actual main-lift variation.
+- Kept lighter weeks 4/8/12 and the current block’s variation. Documented controlled SSB/box setup, actual bar weight and a nondefault, separately recorded, setup-checked low-deficit option.
+- Moved current records to `ppl-v2`, archived the first PPL program in `fortis-program-ppl-v1.js`, and retained both previous programs as read-only history. Main-lift IDs distinguish variations; account-isolated storage/auth is unchanged.
+- Documented the red-team decisions, revised muscle counts and supporting source limits in `PPL_PROGRAM.md`.
+
 ## [2026-11-07] -- rolling five-day Push / Pull / Legs
 
 - Replaced the active four-core-day binder schedule with 60 sessions across twelve weeks: a continuous Push A / Pull A / Legs A / Push B / Pull B / Legs B rotation, five training days per week. Calendar weeks 4, 8 and 12 stay lighter without resetting the rotation.

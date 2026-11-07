@@ -11,7 +11,7 @@ const normalCounts = {
   'push-a': [3, 3, 3, 2],
   'pull-a': [3, 3, 2, 3],
   'legs-a': [3, 3, 2, 3, 2],
-  'push-b': [3, 2, 2, 3, 2],
+  'push-b': [3, 2, 2, 2, 2, 2],
   'pull-b': [3, 3, 2, 3],
   'legs-b': [2, 3, 3, 3, 2],
 };
@@ -21,7 +21,7 @@ const setCount = (sessions, pattern) => sessions.flatMap(s => s.exercises)
   .filter(e => pattern.test(e.name)).reduce((n, e) => n + e.sets.length, 0);
 
 test('five training days continue the PPL rotation across all twelve weeks and lighter weeks', () => {
-  assert.equal(PROGRAM_ID, 'ppl-v1');
+  assert.equal(PROGRAM_ID, 'ppl-v2');
   assert.deepEqual(ROTATION, expectedRotation);
   assert.deepEqual(TRAINING_DAYS, expectedDays);
   assert.equal(PROGRAM.length, 60);
@@ -68,7 +68,7 @@ test('logging schema uses rep ranges and fresh calibration instead of inherited 
           `${s.week} ${e.id}: a replacement movement must not inherit an old target`);
         assert.equal(x.distance, null);
         assert.equal(x.optional, false);
-        assert.equal(x.rir, s.light ? '4+' : s.code === 'push-b' && e.id.endsWith('-main') ? '2–3' : '2');
+        assert.equal(x.rir, s.light ? '4+' : s.code === 'push-b' && (e.isMain || e.kind === 'core') ? '2–3' : '2');
         assert.doesNotMatch(x.label, /drop|top|back-off/i);
       }
       if (e.kind === 'pullup') assert.equal(e.unit, 'added lb');
@@ -79,12 +79,13 @@ test('logging schema uses rep ranges and fresh calibration instead of inherited 
 test('normal volume and lighter-week reductions preserve strength and avoid extra sessions', () => {
   for (const s of PROGRAM) {
     const expected = s.light
-      ? s.exercises.map(e => e.id === `${s.code}-main` ? 2 : 1)
+      ? s.exercises.map(e => e.isMain ? 2 : 1)
       : normalCounts[s.code];
     assert.deepEqual(s.exercises.map(e => e.sets.length), expected, `${s.week} ${s.code}`);
     if (mainRanges[s.code]) {
       const main = s.exercises[0];
-      assert.equal(main.id, `${s.code}-main`);
+      assert(main.isMain);
+      assert(main.id.startsWith(`${s.code}-main`));
       assert.equal(main.restSec, 180);
       assert.deepEqual([main.repMin, main.repMax], mainRanges[s.code]);
     }
@@ -105,7 +106,7 @@ test('both variants cover required muscle groups without depending on an optiona
   const legs = ['legs-a', 'legs-b'].map(normalSession);
   for (const s of push) {
     assert(setCount([s], /bench/i) >= 3, `${s.code} retains bench practice`);
-    assert(setCount([s], /lateral/i) >= 3);
+    assert(setCount([s], /lateral/i) >= 2);
     assert(setCount([s], /pressdown|triceps/i) >= 2);
   }
   for (const s of pull) {
@@ -160,4 +161,39 @@ test('GitHub Pages entrypoints remain byte-identical', async () => {
     readFile(new URL('../powerbuilding.html', import.meta.url)),
   ]);
   assert(index.equals(alias));
+});
+
+
+test('compound blocks preserve specificity and isolate histories for different variations', () => {
+  const main = (week,code) => PROGRAM.find(s=>s.week===week&&s.code===code)?.exercises.find(e=>e.isMain);
+  for(const s of PROGRAM){
+    const e=s.exercises.find(e=>e.isMain);if(!e)continue;
+    if(s.code==='push-a')assert.equal(e.variation,'bench');
+    if(s.code==='push-b')assert.equal(e.variation,'paused-bench');
+    if(s.code==='legs-a')assert.equal(e.variation,s.block===2?'ssb-box-squat':'back-squat');
+    if(s.code==='legs-b')assert.equal(e.variation,s.block===2?'paused-deadlift':'conventional-deadlift');
+    assert(s.warmup.toLowerCase().includes(e.name.toLowerCase()));
+    assert(e.sets.every(x=>x.weight===null));
+  }
+  assert.notEqual(main(1,'legs-a').id,main(5,'legs-a').id);
+  assert.equal(main(1,'legs-a').id,main(9,'legs-a').id);
+});
+
+test('required core covers three patterns and preparation cannot replace it', () => {
+  const normal=expectedRotation.map(normalSession);
+  const core=normal.flatMap(s=>s.exercises.filter(e=>e.kind==='core'));
+  assert.deepEqual(core.map(e=>e.name).sort(),['Ab wheel rollout','Kneeling cable crunch','Pallof press'].sort());
+  assert.equal(core.reduce((n,e)=>n+e.sets.length,0),6);
+  assert(!normalSession('pull-b').exercises.some(e=>e.kind==='core'));
+  for(const s of PROGRAM){
+    assert.match(s.warmup,/8\+ RIR/);
+    assert.doesNotMatch(s.warmup,/cable curl|cable fly/);
+    if(s.light)assert(!s.warmup.includes('second round'));
+  }
+});
+
+
+test('first PPL archive stays unchanged for existing history', async () => {
+  const source=await readFile(new URL('../fortis-program-ppl-v1.js',import.meta.url));
+  assert.equal(createHash('sha256').update(source).digest('hex'),'360af7069d22ae939205825c5e1a2fba2d09f7410430e51236df94d6c21f9727');
 });

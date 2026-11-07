@@ -14,6 +14,7 @@ try {
     const legacy='fortis-v1:guest:'+encodeURIComponent('1:A:A-main:0');
     if(!localStorage.getItem(legacy))localStorage.setItem(legacy,JSON.stringify({value:{weight:205,reps:5,rir:2,done:true},revision:0,dirty:true,changeId:'synthetic-legacy',conflict:null}));
     for(const [id,value] of [['1:D:D-jump:0',{bestCm:180,reps:2,done:true}],['1:D:D-sled:0',{weight:90,distance:15,effort:6,done:true}]]){const idKey='fortis-v1:guest:'+encodeURIComponent(id);if(!localStorage.getItem(idKey))localStorage.setItem(idKey,JSON.stringify({value,revision:0,dirty:true,changeId:'synthetic-legacy',conflict:null}));}
+    const oldPpl='fortis-v1:guest:'+encodeURIComponent('ppl-v1:1:push-a:push-a-main:0');if(!localStorage.getItem(oldPpl))localStorage.setItem(oldPpl,JSON.stringify({value:{weight:195,reps:6,done:true},revision:0,dirty:true,changeId:'synthetic-old-ppl',conflict:null}));
     if(!localStorage.getItem('fortis-view-v1'))localStorage.setItem('fortis-view-v1',JSON.stringify({week:3,code:'D'}));
   });
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -21,7 +22,7 @@ try {
   assert.match(await page.locator('#workout h2').innerText(),/Push A/);
   assert.equal(await page.locator('#days button').count(),5);
   assert.equal(await page.locator('.exercise').count(),4);
-  const main=page.locator('[data-ex="push-a-main"]');
+  const main=page.locator('[data-ex="push-a-main-bench"]');
   assert.match(await main.innerText(),/Choose load × 4–6/);
   assert.equal(await main.locator('[data-field=weight]').first().inputValue(),'');
   await main.getByRole('button',{name:'Use target'}).first().click();
@@ -41,6 +42,9 @@ try {
   assert.match(await main.innerText(),/185 lb × 4–6/,'actual reps must not change targets');
   await page.locator('#history-button').click();
   assert.equal(await page.locator('[data-history="1:push-a"]').count(),1);
+  await page.locator('[data-legacy="ppl-v1|1:push-a"]').click();
+  assert.match(await page.locator('#panel-body').innerText(),/195 lb · 6 reps/);
+  await page.locator('#back-history').click();
   await page.locator('[data-legacy="1:A"]').click();
   assert.match(await page.locator('#panel-body').innerText(),/205 lb · 5 reps/);
   assert.equal(await page.locator('#panel-body input').count(),0,'legacy is read-only');
@@ -68,15 +72,20 @@ try {
   assert.equal(await page.locator('#days button').count(),5);
   await page.locator('#days button').first().click();
   assert.match(await page.locator('#workout h2').innerText(),/Push B/);
-  assert.equal(await page.locator('[data-ex="push-b-main"] .set-row').count(),2);
+  assert.equal(await page.locator('[data-ex="push-b-main-paused-bench"] .set-row').count(),2);
   assert.equal(await page.locator('[data-ex="push-b-lateral"] .set-row').count(),1);
   assert.match(await page.locator('.warmup').innerText(),/One easy round/);
   assert.match(await page.locator('.set-target').first().innerText(),/4\+ RIR/);
+  await page.locator('#week').selectOption('5');await page.locator('[data-day="legs-a"]').click();
+  assert.match(await page.locator('#workout').innerText(),/Safety-bar box squat/);
+  assert.match(await page.locator('.warmup').innerText(),/safety-bar box squat/);
+  await page.locator('[data-day="push-b"]').click();
+  assert.equal(await page.locator('[data-ex="push-b-crunch"] .set-row').count(),2);
   await page.locator('#account-button').click();
   assert.equal(await page.locator('#auth-form').count(),0);
   const downloadPromise=page.waitForEvent('download');await page.locator('#export').click();
   const download=await downloadPromise,backup=JSON.parse(await readFile(await download.path(),'utf8'));
-  assert(backup.records['1:A:A-main:0']);assert(backup.records['ppl-v1:1:push-a:push-a-main:0']);
+  assert(backup.records['1:A:A-main:0']);assert(backup.records['ppl-v2:1:push-a:push-a-main-bench:0']);
   await page.locator('#close-panel').click();await page.locator('#rest-button').click();await page.getByRole('button',{name:'90 sec',exact:true}).click();
   await page.waitForTimeout(1100);assert.match(await page.locator('#rest-button').innerText(),/1:[23]\d rest/);
   await page.locator('#close-panel').click();

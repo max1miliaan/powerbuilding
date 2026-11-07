@@ -8,3 +8,5 @@
 
 .days button small{display:block;font-size:9px;font-weight:500;margin-bottom:3px}.progression-note{font-size:12px;line-height:1.6}.days button{font-size:12px;padding:8px 10px}
 @media(max-width:600px){.days button{font-size:11px;padding:6px 3px}.days button small{font-size:9px}.session-head>div{min-width:0}.session-meta{flex-shrink:0}}
+
+.load-guidance{margin:0 20px 14px;padding:10px 12px;background:var(--pale);border-radius:8px;font-size:12px;line-height:1.5}.load-guidance p{margin:4px 0 8px}.load-guidance button{font-size:11px}.load-guidance .muted{font-size:11px}@media(max-width:600px){.load-guidance{margin:0 14px 12px}}

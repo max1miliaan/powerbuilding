@@ -1,3 +1,5 @@
+import { RestTimer, formatDuration } from './fortis-timer.js';
+import { estimateFor, progressionFor } from './fortis-loads.js';
 import { PROGRAM, GUIDANCE, PROGRAM_ID } from './fortis-program.js';
 import { PROGRAM as PPL_V1_PROGRAM } from './fortis-program-ppl-v1.js';
 import { PROGRAM as LEGACY_PROGRAM } from './fortis-program-legacy.js';
@@ -7,8 +9,11 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './fortis-config.js';
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const store = new FortisStore({url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY});
-let week=1, code=PROGRAM[0].code, timerEnd=0, timerPaused=0, toastTimeout, currentPanel='';
+let week=1, code=PROGRAM[0].code, toastTimeout, currentPanel='';
 try { const saved=JSON.parse(localStorage.getItem('fortis-ppl-view-v2')||'null'); if(saved && PROGRAM.some(p=>p.week===saved.week&&p.code===saved.code)){week=saved.week;code=saved.code;} } catch {}
+let timerStorage;try{timerStorage=sessionStorage;}catch{}
+const accountTimer=uid=>new RestTimer({storage:timerStorage,key:`fortis-rest-v1:${uid||'guest'}`});
+let restTimer=accountTimer(null);
 const session = () => PROGRAM.find(p=>p.week===week&&p.code===code);
 const key = (e,i,w=week,c=code) => `${PROGRAM_ID}:${w}:${c}:${e.id}:${i}`;
 const metaKey = () => `${PROGRAM_ID}:session:${week}:${code}`;
@@ -25,9 +30,15 @@ function target(e,s){
   const load=targetWeight(e,s), override=adjustment(e).reps;
   const reps=override??(e.repMin===e.repMax?e.repMin:`${e.repMin}–${e.repMax}`);
   const w=e.unit==='bodyweight'?'BW':load===null?'Choose load':e.kind==='pullup'?(load===0?'BW':load>0?`BW + ${load} lb`:`${Math.abs(load)} lb assistance`):`${load} lb`;
-  return `${w} × ${reps}${e.unilateral?' / side':''}`;
+  return `${adjustment(e).loadSource==='estimate'?'Est. ':''}${w} × ${reps}${e.unilateral?' / side':''}`;
 }
-function placeholder(e,s,f){return f==='weight'?(targetWeight(e,s)??''):f==='reps'||f==='left'||f==='right'?targetReps(e,s):'';}
+function placeholder(e,s,f){return f==='weight'?(targetWeight(e,s)??estimateFor(e,{light:session().light}).value??''):f==='reps'||f==='left'||f==='right'?targetReps(e,s):'';}
+function loadGuidance(e){
+  const p=progressionFor({program:PROGRAM,session:session(),exercise:e,getRecord:id=>store.get(id)});
+  const estimate=estimateFor(e,{light:session().light});
+  const unchosen=adjustment(e).load==null;
+  return `<div class="load-guidance"><p><strong>Progression:</strong> ${esc(p.text)}</p>${unchosen&&p.kind==='calibrate'?`<p><strong>Estimated first trial:</strong> ${esc(estimate.label)}. ${esc(estimate.basis)}</p>${estimate.value!==null&&e.unit!=='bodyweight'?'<button data-estimate="'+esc(e.id)+'">Set estimated target</button>':''}`:''}${unchosen&&p.load!==null&&!session().light?`<button data-previous="${esc(e.id)}">Use previous load as target</button>`:''}<p class="muted">Confirm the same equipment, setup and loading convention before comparing. Actual fields stay separate from targets.</p></div>`;
+}
 function adjustmentHTML(e){
   const a=adjustment(e),fields=[];
   if(e.unit!=='bodyweight')fields.push(['load','Working load (lb)',a.load??'']);
@@ -44,7 +55,8 @@ function render(){
   const finished=store.get(metaKey())?.finishedAt;
   $('#workout').innerHTML=`<div class="session-head"><div><p class="eyebrow">SESSION ${p.order} / BLOCK ${p.block}</p><h2>${esc(p.title)}</h2><p>${p.day} · ${p.light?'Lighter week · 4+ reps in reserve':'Exposure '+p.exposure+' · continue the rolling PPL sequence.'}</p></div><span class="session-meta">${finished?'COMPLETED':p.light?'LIGHTER WEEK':'60 MIN CAP'}</span></div>
     <div class="callout">${esc(p.cue)}</div><p class="muted progression-note">Choose loads from current performance. No automatic weight increases. <a href="https://github.com/max1miliaan/powerbuilding/blob/main/PPL_PROGRAM.md">Full plan</a></p><details class="warmup" open><summary>Warm-up & session instructions</summary><p>${esc(p.warmup)}</p><p>Warm-up sets do not count as work sets. Pair matching groups only when stations are nearby and free. RIR means clean reps left.</p></details>
-    ${p.exercises.map((e,ei)=>`<article class="exercise" data-ex="${esc(e.id)}"><div class="exercise-head"><div><div class="exercise-number">${String(ei+1).padStart(2,'0')}${e.pair?' / PAIR '+esc(e.pair):''}</div><h3>${esc(e.name)}</h3><p>${esc(e.unit)}${e.unilateral?' · each side; harder-side RIR':''}${e.cue?' · '+esc(e.cue):''}</p></div><button class="rest-chip" data-rest="${e.restSec}">${e.restSec>=60?Math.round(e.restSec/60*10)/10+' min':e.restSec+' sec'} rest</button></div>
+    ${p.exercises.map((e,ei)=>`<article class="exercise" data-ex="${esc(e.id)}"><div class="exercise-head"><div><div class="exercise-number">${String(ei+1).padStart(2,'0')}${e.pair?' / PAIR '+esc(e.pair):''}</div><h3>${esc(e.name)}</h3><p>${esc(e.unit)}${e.unilateral?' · each side; harder-side RIR':''}${e.cue?' · '+esc(e.cue):''}</p></div><button class="rest-chip" data-rest="${e.restSec}">${formatDuration(e.restSec)} ${e.pair?'pair rest':e.unilateral?'after both sides':'rest'}</button></div>
+      ${loadGuidance(e)}
       ${e.sets.map((s,i)=>{const r=store.get(key(e,i))||{};return `<div class="set-row ${r.done?'done':''}" data-index="${i}"><div class="set-target"><span class="set-label">${esc(s.label)}${s.optional?' · optional':''}</span><strong>${esc(target(e,s))}${s.rir?' · '+esc(s.rir)+' RIR':''}</strong><button class="fill-target" data-fill="${i}">Use target</button></div><div class="fields">${actualFields(e).map(f=>`<label class="field"><span>${names[f]}</span><input type="number" inputmode="decimal" step="${['reps','left','right'].includes(f)?'1':'.5'}" min="${f==='weight'&&e.kind==='pullup'?'-500':'0'}" max="${f==='rir'||f==='effort'?'10':f==='weight'?'2000':'999'}" aria-label="${esc(e.name)} ${esc(s.label)} actual ${names[f]}" data-field="${f}" value="${esc(r[f]??'')}" placeholder="${esc(placeholder(e,s,f))}"></label>`).join('')}</div><button class="done-button" aria-pressed="${!!r.done}" aria-label="${r.done?'Unmark':'Complete'} ${esc(e.name)} ${esc(s.label)}" data-done="${i}">${r.done?'✓':'○'}</button></div>`;}).join('')}
       ${lastPerformance(e)?`<p class="last-performance">LAST · ${esc(lastPerformance(e))}</p>`:''}
       ${!['jump','sled','carry'].includes(e.kind)?adjustmentHTML(e):''}</article>`).join('')}`;
@@ -59,7 +71,7 @@ function completeSet(button){const a=button.closest('[data-ex]'),e=session().exe
   store.set(id,{...next,done:true,performedAt:new Date().toISOString()});render();
 }
 function finish(){const p=session();if(store.get(metaKey())?.finishedAt){let ix=PROGRAM.findIndex(x=>x.week===week&&x.code===code);let next=PROGRAM[ix+1];if(next){week=next.week;code=next.code;render();window.scrollTo(0,0);}else notify('You’ve reached the end of the 12-week program.');return;}const n=counts();if(n.done<n.total){openPanel('Finish this session?',`<p>You completed ${n.done} of ${n.total} required sets. Unchecked sets will remain uncompleted.</p><div class="button-row"><button class="primary" id="finish-skipped">Finish with skipped sets</button><button id="continue-session">Keep training</button></div>`,'finish');return;}markFinished();}
-function markFinished(){store.set(metaKey(),{finishedAt:new Date().toISOString(),completed:counts().done,required:counts().total});$('#panel').close();render();notify('Session saved. Good work.');}
+function markFinished(){if(restTimer.context===`${week}:${code}`)restTimer.clear();store.set(metaKey(),{finishedAt:new Date().toISOString(),completed:counts().done,required:counts().total});$('#panel').close();render();notify('Session saved. Good work.');}
 const legacyKey=(p,e,i,prefix='')=>`${prefix?prefix+':':''}${p.week}:${p.code}:${e.id}:${i}`;
 function history(){
   const rows=PROGRAM.map(p=>{let done=0;for(const e of p.exercises)for(let i=0;i<e.sets.length;i++)if(store.get(key(e,i,p.week,p.code))?.done)done++;return{p,done,meta:store.get(`${PROGRAM_ID}:session:${p.week}:${p.code}`)};}).filter(x=>x.done||x.meta?.finishedAt);
@@ -78,21 +90,29 @@ function account(){const s=store.state;const conflicts=store.conflicts||[];openP
   ${s.user?`<p>Signed in as <strong>${esc(s.user.email)}</strong></p><div class="button-row"><button id="sync-now">Sync now</button><button id="import-guest">Import this device’s guest log</button><button id="signout">Sign out</button></div><p class="muted">Signing out keeps unsynced entries saved under this account on this device. Sign back in to sync them.</p>`:''}
   ${conflicts.length?`<h3>Resolve simultaneous edits</h3><p>Both devices changed the same record. Choose which version to keep.</p>${conflicts.map(c=>`<div class="conflict"><strong>${esc(c.id)}</strong><p>This device</p><pre>${esc(JSON.stringify(c.local,null,2))}</pre><p>Cloud</p><pre>${esc(JSON.stringify(c.remote,null,2))}</pre><button data-conflict="${esc(c.id)}" data-choice="local">Keep this device</button> <button data-conflict="${esc(c.id)}" data-choice="remote">Keep cloud</button></div>`).join('')}`:''}
   <hr/><h3>Backup</h3><p class="muted">Download a private copy of the current log. No workout entries are stored in GitHub.</p><button id="export">Export log</button>`,'account');}
-function timer(){openPanel('Rest timer',`<div class="timer-number" id="timer-number">${timerText()}</div><div class="button-row"><button data-timer="60">1 min</button><button data-timer="90">90 sec</button><button data-timer="120">2 min</button><button data-timer="180">3 min</button></div><div class="button-row"><button id="timer-pause">Pause / resume</button><button id="timer-add">+30 sec</button><button id="timer-clear">Clear</button></div><p class="muted">For supersets, start rest after both exercises and both sides. Timer remains accurate when you return to the app; background alerts are not guaranteed.</p>`,'timer');}
-const remaining=()=>timerEnd?Math.max(0,Math.ceil((timerEnd-Date.now())/1000)):timerPaused;
-function timerText(){const s=remaining();return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
-function startTimer(sec){timerEnd=Date.now()+sec*1000;timerPaused=0;notify(`${sec} seconds rest started`);}
+function timer(){openPanel('Rest timer',`<p id="timer-context">${esc(restTimer.label||'Choose a rest duration')}</p><div class="timer-number" id="timer-number">${timerText()}</div><p id="timer-status" role="status"></p><div class="button-row">${[60,75,90,120,150,180,240,300].map(n=>`<button data-timer="${n}">${n===90?'90 sec':formatDuration(n)}</button>`).join('')}</div><label class="field"><span>Custom rest (seconds)</span><input id="timer-seconds" type="number" required min="15" max="900" step="1" value="${restTimer.remaining||90}"></label><button id="timer-custom">Start custom rest</button><div class="button-row"><button id="timer-pause">Pause / resume</button><button id="timer-add">+30 sec</button><button id="timer-clear">Clear</button></div><p class="muted">For pairs, start one rest after both exercises and both sides. Timers survive reload in this tab. The countdown uses elapsed time; background alerts are not guaranteed.</p>`,'timer');updateTimer();}
+function timerText(){return formatDuration(restTimer.remaining);}
+function updateTimer(){
+  if(restTimer.tick())notify('Rest complete');
+  $('#rest-button').textContent=restTimer.completed?'Rest complete':restTimer.running||restTimer.paused?timerText()+(restTimer.paused?' paused':' rest'):'Rest timer';
+  if($('#timer-number'))$('#timer-number').textContent=timerText();
+  if($('#timer-context'))$('#timer-context').textContent=restTimer.label||'Choose a rest duration';
+  if($('#timer-status'))$('#timer-status').textContent=restTimer.completed?'Rest complete':restTimer.paused?'Paused':restTimer.running?'Running':'Ready';
+  if($('#timer-pause'))$('#timer-pause').textContent=restTimer.running?'Pause':restTimer.paused?'Resume':'Pause / resume';
+}
+function startTimer(sec,label='Manual rest',context=`${week}:${code}`){restTimer.start(Number(sec),label,context);updateTimer();notify(`${formatDuration(Number(sec))} rest started`);}
 function exportLog(){const blob=new Blob([JSON.stringify(store.exportData(),null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`fortis-log-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 async function auth(signup=false){const form=$('#auth-form');if(!form.reportValidity())return;const email=$('#email').value,password=$('#password').value;const btns=[...form.querySelectorAll('button')];btns.forEach(b=>b.disabled=true);try{const result=signup?await store.signUp(email,password):await store.signIn(email,password);if(result?.confirmationRequired){$('#auth-message').textContent='Check your email to confirm your account, then sign in.';$('#password').value='';}else{render();account();}}catch(e){$('#auth-message').textContent=e.message;}finally{btns.forEach(b=>b.disabled=false);}}
 document.addEventListener('input',ev=>{try{if(ev.target.matches('[data-field]'))saveSet(ev.target);}catch(e){notify(`Could not save: ${e.message}`);}});
-document.addEventListener('change',ev=>{try{if(ev.target.id==='week'){week=Number(ev.target.value);if(!PROGRAM.some(p=>p.week===week&&p.code===code))code=PROGRAM.find(p=>p.week===week).code;render();}if(ev.target.matches('[data-adjust]')){const val=ev.target.value===''?null:Number(ev.target.value),isRep=ev.target.dataset.adjust.toLowerCase().includes('reps');if(val!==null&&(!Number.isFinite(val)||Math.abs(val)>2000||!ev.target.validity.valid||(isRep&&(!Number.isInteger(val)||val<1)))){notify('Use a valid load, or a positive whole-number rep target.');return;}const e=session().exercises.find(e=>e.id===ev.target.closest('[data-ex]').dataset.ex);store.set(`${PROGRAM_ID}:adjust:${week}:${code}:${e.id}`,{...adjustment(e),[ev.target.dataset.adjust]:val});render();}}catch(e){notify(e.message);}});
+document.addEventListener('change',ev=>{try{if(ev.target.id==='week'){week=Number(ev.target.value);if(!PROGRAM.some(p=>p.week===week&&p.code===code))code=PROGRAM.find(p=>p.week===week).code;render();}if(ev.target.matches('[data-adjust]')){const val=ev.target.value===''?null:Number(ev.target.value),isRep=ev.target.dataset.adjust.toLowerCase().includes('reps');if(val!==null&&(!Number.isFinite(val)||Math.abs(val)>2000||!ev.target.validity.valid||(isRep&&(!Number.isInteger(val)||val<1)))){notify('Use a valid load, or a positive whole-number rep target.');return;}const e=session().exercises.find(e=>e.id===ev.target.closest('[data-ex]').dataset.ex);store.set(`${PROGRAM_ID}:adjust:${week}:${code}:${e.id}`,{...adjustment(e),[ev.target.dataset.adjust]:val,...(ev.target.dataset.adjust==='load'?{loadSource:'manual'}:{})});render();}}catch(e){notify(e.message);}});
 document.addEventListener('focusin',ev=>{if(ev.target.matches('input[type=number]'))ev.target.select();});
 document.addEventListener('submit',ev=>{if(ev.target.id==='auth-form'){ev.preventDefault();auth();}});
 document.addEventListener('click',async ev=>{const b=ev.target.closest('button');if(!b)return;try{
   if(b.dataset.day){code=b.dataset.day;render();}
   else if(b.dataset.done!==undefined)completeSet(b);
   else if(b.dataset.fill!==undefined){const e=session().exercises.find(e=>e.id===b.closest('[data-ex]').dataset.ex),i=Number(b.dataset.fill),s=e.sets[i],id=key(e,i),r={...(store.get(id)||{}),done:false};if(targetWeight(e,s)===null){notify('Choose a working load in this session’s targets before using target.');return;}for(const f of actualFields(e))if(!['rir','effort','bestCm'].includes(f))r[f]=placeholder(e,s,f);store.set(id,r);invalidateFinish();render();}
-  else if(b.dataset.rest){startTimer(Number(b.dataset.rest));}
+  else if(b.dataset.rest){const e=session().exercises.find(e=>e.id===b.closest('[data-ex]').dataset.ex);startTimer(Number(b.dataset.rest),`${session().label} · ${e.pair?'Pair '+e.pair:e.name}${e.unilateral?' · after both sides':''}`);}
+  else if(b.dataset.estimate||b.dataset.previous){const id=b.dataset.estimate||b.dataset.previous,e=session().exercises.find(e=>e.id===id);const load=b.dataset.estimate?estimateFor(e,{light:session().light}).value:progressionFor({program:PROGRAM,session:session(),exercise:e,getRecord:id=>store.get(id)}).load;if(load===null)return;store.set(`${PROGRAM_ID}:adjust:${week}:${code}:${e.id}`,{...adjustment(e),load,loadSource:b.dataset.estimate?'estimate':'previous'});render();notify('Target set. Calibrate during ramps; actual sets are still entered separately.');}
   else if(b.dataset.timer){startTimer(Number(b.dataset.timer));}
   else if(b.dataset.legacy){legacyHistory(b.dataset.legacy);}
   else if(b.id==='back-history'){history();}
@@ -103,17 +123,18 @@ document.addEventListener('click',async ev=>{const b=ev.target.closest('button')
     case 'rest-button':timer();break;case 'finish-button':finish();break;case 'finish-skipped':markFinished();break;case 'continue-session':$('#panel').close();break;
     case 'signup':await auth(true);break;case 'signout':await store.signOut();render();account();break;case 'sync-now':await store.sync();render();account();break;
     case 'import-guest':await store.importGuest();render();account();break;case 'export':exportLog();break;
-    case 'timer-pause':if(timerEnd){timerPaused=remaining();timerEnd=0;}else if(timerPaused)startTimer(timerPaused);break;
-    case 'timer-add':startTimer(remaining()+30);break;case 'timer-clear':timerEnd=0;timerPaused=0;break;
+    case 'timer-pause':restTimer.toggle();updateTimer();break;
+    case 'timer-add':if(!restTimer.running&&!restTimer.paused){restTimer.start(30,'Manual rest',`${week}:${code}`);restTimer.toggle();}else restTimer.add(30);updateTimer();break;case 'timer-clear':restTimer.clear();updateTimer();break;
+    case 'timer-custom':{const input=$('#timer-seconds'),seconds=Number(input.value);if(input.reportValidity()&&Number.isFinite(seconds)&&seconds>=15&&seconds<=900)startTimer(seconds);break;}
   }
 }catch(e){notify(e.message||'Unable to save. Try again.');updateStatus();}});
 let previousUser=null, previousStatus='', refreshPending=false;
 function refreshFromCloud(){if(document.activeElement.matches('input'))refreshPending=true;else render();}
-store.addEventListener('change',()=>{const s=store.state,uid=s.user?.id||null;if(uid!==previousUser){previousUser=uid;timerEnd=0;timerPaused=0;$('#panel').close();render();}else if(previousStatus==='syncing'&&s.status!=='syncing')refreshFromCloud();previousStatus=s.status;updateStatus();});
+store.addEventListener('change',()=>{const s=store.state,uid=s.user?.id||null;if(uid!==previousUser){previousUser=uid;restTimer=accountTimer(uid);updateTimer();$('#panel').close();render();}else if(previousStatus==='syncing'&&s.status!=='syncing')refreshFromCloud();previousStatus=s.status;updateStatus();});
 window.addEventListener('storage',ev=>{if(ev.key?.startsWith('fortis-v1:'))refreshFromCloud();});
 document.addEventListener('focusout',()=>{if(refreshPending)setTimeout(()=>{if(!document.activeElement.matches('input')){refreshPending=false;render();}},0);});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')store.sync().then(()=>{if(!document.activeElement.matches('input'))render();}).catch(e=>notify(e.message));});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){updateTimer();}if(document.visibilityState==='visible')store.sync().then(()=>{if(!document.activeElement.matches('input'))render();}).catch(e=>notify(e.message));});
 window.addEventListener('online',()=>store.sync().then(()=>render()).catch(e=>notify(e.message)));
-setInterval(()=>{if(timerEnd&&remaining()===0){timerEnd=0;notify('Rest complete');}$('#rest-button').textContent=timerEnd||timerPaused?timerText()+' rest':'Rest timer';if($('#timer-number'))$('#timer-number').textContent=timerText();},500);
+setInterval(updateTimer,250);
 setInterval(()=>{if(document.visibilityState==='visible'&&store.state.user)store.sync().then(()=>{if(!document.activeElement.matches('input')&&!$('#panel').open)render();}).catch(()=>{});},30000);
 try{await store.init();render();}catch(e){render();notify(`Storage unavailable: ${e.message}. Entries may not persist.`);}

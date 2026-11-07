@@ -1,6 +1,6 @@
 # Fortis rolling five-day PPL plan
 
-This is the active program. It combines barbell strength work, dumbbell presses, and the cables and machines identified at Fortis. The former 57-session binder plan is archived in `fortis-program-legacy.js`, and the first PPL prescription is archived in `fortis-program-ppl-v1.js`. Neither archive supplies starting loads for this revision.
+This is the active program. It combines barbell strength work, dumbbell presses, and the cables and machines identified at Fortis. The former 57-session binder plan is archived in `fortis-program-legacy.js`, and the first PPL prescription is archived in `fortis-program-ppl-v1.js`. The binder archive supplies labelled historical references for conservative first-trial estimates. Those prescriptions are not evidence of actual performance; neither archive silently supplies confirmed targets or actuals.
 
 ## Schedule
 
@@ -51,7 +51,7 @@ Listed sets are work sets, excluding circuits and ramps. Reps are per side where
 | | Seated calf raise | 3 × 12–15 |
 | | Pallof press | 2 × 10 per side |
 
-Main bench, squat and deadlift sets stop at about **2 RIR**, with **three minutes rest**. Push B paused bench stays at **2–3 RIR**, with three minutes rest. Accessories stay near **2 RIR**; cable crunch stays at **2–3 RIR**. For rest, use 90–120 seconds for presses, rows, pulldowns, leg press, belt squat and curls when needed, and about 60–90 seconds for small isolation/core exercises. Allow time for both legs before resting after kneeling curls. Keep pull-ups at two to three minutes if needed to preserve performance.
+Main bench, squat and deadlift sets stop at about **2 RIR**, with **three minutes rest**. Push B paused bench stays at **2–3 RIR**, with three minutes rest. Accessories stay near **2 RIR**; cable crunch stays at **2–3 RIR**. Timer defaults are **3:00 for main lifts**, **2:30 for pull-ups**, **2:00 for other multi-joint presses, rows, pulldowns, leg press and belt squat**, **1:30 after both legs of kneeling curls**, and **1:15 for standalone isolation/core or a complete accessory pair**. Start a paired timer after both exercises and all sides. These are starting rest periods, not limits: add time when needed to preserve clean performance.
 
 The two deadlift work sets are the default. A third is unnecessary for completing the prescription and should not displace hamstring curls or main-lift rest. There are no drop sets, plyometrics, explosive Olympic lifts, RDLs or front squats. Put deadlifts on Legs B rather than on Pull immediately before another lower session. Use supported rows to limit unnecessary lower-back fatigue.
 
@@ -94,14 +94,54 @@ Budget **10–12 minutes total for circuit plus ramps**, including a short easy 
 
 ## Calibration and progression
 
-1. **Choose every starting load manually**, including familiar barbell lifts. Begin at the lower end of the rep range at the prescribed RIR. Warm up and adjust conservatively; the app does not know your starting strength. Do not inherit binder targets or convert dumbbell loads to machine loads.
-2. Use the same load while gradually increasing clean reps within the range. When **all prescribed work sets** reach the upper end at the intended RIR, increase by the smallest practical increment at the next normal exposure of that exercise/session variant, and return toward the lower end of the range.
+1. **Choose every starting load manually**, including familiar barbell lifts. Begin at the lower end of the rep range at the prescribed RIR. The labelled trial estimates below provide a starting point for calibration, not a statement of current strength. Applying a hint requires an explicit action and changes only this session’s target; it does not write performed sets. Do not convert dumbbell loads to machine loads.
+2. Use the same load while gradually increasing clean reps within the range. Suggestions inspect the latest prior normal exposure with any recorded sets for the same exercise/session variant. Increase only when **all prescribed work sets** are completed at the upper end with recorded RIR meeting the target. A partial latest exposure or missing RIR blocks an increase; the app must not skip it to find an older successful exposure. After success, suggest the smallest practical increment and a return to the lower end of the rep range. Confirm the suggestion manually after checking that the machine, seat, grip, range and setup still match.
 3. If an increment is too large to retain the minimum reps and effort, keep the previous load and accumulate comfortable reps. A stack setting is specific to its machine, seat, grip and range; changing equipment requires recalibration.
 4. A missed rep range or effort target means hold or reduce that exercise. Repeat the last successful load/reps; do not advance because a week passed or a checkbox was completed. Regular and paused bench exposures have separate loads, exercise identifiers and rep ranges. Squat and deadlift variations also require separate comparisons.
 5. Pull-ups: increase assistance or remove added weight to meet the range. Reduce assistance before adding external weight. For unilateral work, use the same setup/load, start with the harder side, and match its clean reps with the other side; do not add extra stronger-side reps.
 6. Ab wheel progresses controlled reps first, then reach only when trunk position remains steady. Pallof press uses the listed reps per side; raise resistance only after all sets remain controlled at the intended effort. Cable crunch follows its 10–15 rep range at 2–3 RIR; use controlled trunk flexion rather than turning it into a hip hinge or pulling with the arms. It comes after the other Push B work so trunk fatigue does not precede pressing.
 
-Actual performed loads/reps/RIR are the evidence for progression; session targets are a separate editable plan. No automatic loading is inferred from dates, completed sessions or a lighter week's easier work.
+Actual performed loads/reps/RIR are the evidence for progression; session targets are a separate editable plan. Suggestions do not automatically write weights. No automatic loading is inferred from dates, completed sessions or a lighter week's easier work. Typical proposed increments are 5 lb total for barbells, 2.5–5 lb added for pull-ups, and the smallest available increment for dumbbells or stacks; confirm what the equipment permits. Bodyweight core progresses controlled reps or reach rather than automatically adding load. Keep machine context consistent yourself: matching exercise names alone cannot prove that two stations are equivalent.
+
+## First-trial estimates and source limits
+
+Every number below is **lb**, and every non-bodyweight estimate has **low or very low confidence**. The binder contains printed prescriptions, not verified completed workouts. Its week-one references include bench 205 top/185 back-off, squat 275/245 and deadlift 305/275. Old Gymbox one-repetition maximums are historical too and do not establish current Fortis strength. Estimates deliberately start below or near those early references; they are not a weekly loading schedule.
+
+| Exercise | Normal-exposure first trial | Reference and confidence |
+| --- | --- | --- |
+| Regular bench | 185 total | Historical 185 back-off; low |
+| Incline DB press | 55 each hand | Historical 65 each; low |
+| Cable lateral raise | 7.5 per stack | Historical 10, only comparable on the same stack; low |
+| Cable pressdown | 30 | Historical 40, same stack only; low |
+| Weighted/assisted pull-up | Bodyweight, 0 added | Historical BW volume and +10 strength work; calibrate assistance |
+| Back squat | 245 total | Historical 245 back-off; low |
+| SSB box squat | 185 total, including actual SSB bar | Conservative coaching trial, no confirmed personal loading ratio; very low |
+| Kneeling leg curl | 20 each leg | Historical 25, same station only; low |
+| Standing DB calf raise | 25 each hand | Historical 30 each; low |
+| Ab wheel | Bodyweight | Calibrate controlled reach; no added load |
+| One-second paused bench | 155 total | Conservative coaching trial below historical regular secondary bench 175; very low |
+| Seated DB shoulder press | 35 each hand | Historical 45 each; low |
+| Cable fly | 10 per stack | Generic coaching trial, no personal reference; very low |
+| Overhead cable triceps | 20 | Historical 30, same stack only; low |
+| Cable crunch | 20 | Generic coaching trial, no personal reference; very low |
+| Cable pulldown | 60 | Generic coaching trial, no personal reference; very low |
+| Cable curl | 20 | Generic coaching trial, no conversion from DB curls; very low |
+| Rope hammer curl | 20 | Generic coaching trial, no conversion from DB curls; very low |
+| Conventional deadlift | 275 total | Historical 275 back-off; low |
+| One-second paused floor deadlift | 225 total | Conservative coaching trial, no confirmed personal ratio; very low |
+| Wenning belt squat | 70 plates added | Historical 90 on the intended station; low |
+| Seated calf raise | 35 plates added | Historical 45; low |
+| Pallof press | 15 | Historical 20, same stack only; low |
+
+Machine ambiguities stay explicit. For rows, **40 on a cable stack OR 45 plates added on a plate-loaded row** are alternative very-low-confidence calibration hints, not equivalent loads and not a single automatically applicable target. Rear-delt work similarly offers **5 per cable stack OR 20 on the machine** as distinct generic hints. Check the actual station and loading convention before entering either manually. Start leg-press calibration with the **empty apparatus and, if appropriate, small plates**; carriage mass and geometry prevent a meaningful universal number. None of these ambiguous hints silently selects a machine or applies a target.
+
+On lighter weeks, only bodyweight movements retain a numeric zero-added-load estimate. Other loads remain **choose a load for 4+ RIR**; neither a normal trial estimate nor a fixed percentage is automatically applied. Warm-up circuits use very light resistance at roughly 8+ RIR, and need no failure test or mandatory numeric load. After ramps, lower any trial load that misses the rep/effort target; raise it conservatively if clearly too easy. The displayed confidence concerns the estimate, not a measurement of your strength.
+
+## Using the rest timer
+
+Exercise chips show exact **m:ss** defaults. Start rest manually so unilateral and paired work can be completed before the countdown begins; checking a set does not start it. The timer identifies its source exercise/session, offers presets including 1:15, 1:30, 2:00, 2:30, 3:00 and 4:00, and accepts a custom **15–900 seconds**. Pause/resume and +30 seconds preserve the current running or paused mode. A completed countdown stays visible until cleared or restarted.
+
+Timer state is saved in **sessionStorage for the current account and browser tab**. Reloading that tab restores the countdown or pause state; another account or tab has separate state. It is not a cloud-synced timer or a promise of background alerts. Finishing the timer’s source session clears it; finishing a different session must not clear another session’s timer. Keep the 60-minute session cap by trimming prescribed accessory sets when necessary, while preserving main-lift rests and hamstring work.
 
 ## Lighter weeks and recovery
 
@@ -162,9 +202,13 @@ Independent reviews challenged the plan’s specificity, fatigue, equipment assu
 - **Preparation fatigue:** reduce every circuit to one easy default round at 8+ RIR; allow a second upper round only when useful and within the time cap. Lift-specific ramps rehearse the actual variation.
 - **Core coverage:** add cable crunch after Push B, retain ab wheel and Pallof, and trade one lateral-raise set rather than simply adding work to every day. The counts describe training coverage, not a diagnosis of weak abs or a universal optimum.
 - **Practicality:** do not make deficit pulls mandatory or assume deadlift blocks. Use the confirmed SSB/box equipment with a standardized setup; a bar labelled “safety” is not a guarantee of safety for a particular lifter.
-- **Progress and records:** separate each main-lift variation in identifiers and comparisons, and preserve both previous programs as read-only history. Old work is not silently relabelled or reused as a starting load.
+- **Progress and records:** separate each main-lift variation in identifiers and comparisons, and preserve both previous programs as read-only history. Old work is not silently relabelled as performed evidence. Historical binder targets may supply explicitly labelled low-confidence calibration hints, separate from chosen targets and actuals.
 
 An acute SSB study examined squat mechanics and muscle activity in 12 competitive powerlifters; it does not establish long-term injury protection or a universal loading ratio. [Hecker et al.](https://pubmed.ncbi.nlm.nih.gov/30363042/). Juggernaut’s coaching manual notes that excessive deficits change the pulling position and may reduce specificity; the conditional low-deficit option here is a coaching choice, not an established requirement for strength or hypertrophy. [Juggernaut deadlift manual](https://cdn.jtsstrength.com/wp-content/uploads/2022/11/22065452/JTS_DEADLIFT_MANUAL_2020_LR.pdf).
+
+## Load and timer review decisions
+
+The load review separates three things: a historical or generic estimate, a target you explicitly choose, and an actual performed set. No machine equivalence or variation percentage is presented as established personal strength. Progression requires complete, effort-qualified evidence from the latest relevant normal exposure; partial records and missing RIR do not earn an increase. The timer review makes rest durations exact, keeps paired/unilateral starts manual, and preserves paused, running and completed states across a same-tab reload. These interface additions do not change work-set prescriptions or the `ppl-v2` record namespace, and do not rewrite existing logs.
 
 ## Records and legacy history
 

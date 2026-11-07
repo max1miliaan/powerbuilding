@@ -1,5 +1,14 @@
 # Changelog
 
+## [2026-11-07c] -- labelled trial loads, evidence-based suggestions and rest timer
+
+- Added `fortis-loads.js` with low-confidence historical-binder and very-low-confidence coaching trial estimates. Hints remain separate from chosen targets and performed sets; explicit application affects session targets only. Ambiguous row/rear-delt loading conventions and leg press require manual calibration. Lighter weeks do not inherit numeric normal-work estimates.
+- Progression suggestions use the latest prior normal exposure with recorded work for the same exercise/variation. Incomplete sets, missing RIR and missed effort targets block an increase; qualifying work suggests a practical increment and a return to minimum reps. No date-based increases or automatic weight writes; machine context still requires user checking.
+- Added `fortis-timer.js` for exact m:ss rest, source labels, presets/custom 15–900 seconds, mode-preserving pause/+30, retained completed state and account-scoped same-tab sessionStorage restoration. Starts remain manual for pairs/unilateral work; finishing only the timer’s source session clears it.
+- Reviewed rest defaults: main lifts 3:00, pull-ups 2:30, other multi-joint work 2:00, kneeling curls 1:30 after both sides, standalone isolation/core and complete pairs 1:15. Preserve main-lift rests by trimming accessories under the time cap.
+- Documented estimate provenance, confidence and machine limits in `PPL_PROGRAM.md`. Kept work-set prescriptions, `ppl-v2` IDs and logged records unchanged; added focused load/timer checks.
+
+
 ## [2026-11-07b] -- red-team revision: core, stable variations and lighter circuits
 
 - Added Push B cable crunch after the other work and reduced its lateral raises to two sets: six core sets per full rotation, thirteen total work sets on Push B.

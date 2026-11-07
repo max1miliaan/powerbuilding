@@ -10,15 +10,15 @@ A mobile-first, static training log for a rolling five-day Push / Pull / Legs pl
 - Regular bench remains on Push A; Push B uses a 1-second pause. Weeks 5–8 use SSB box squat and paused floor deadlift in the lower main-lift slots. Other blocks retain back squat and conventional floor deadlift. Ab wheel, cable crunch and Pallof cover core work.
 - Weeks 4, 8 and 12 are lighter. Keep the rotation moving; all six variants appear ten times in 60 scheduled sessions.
 - Start with one easy Wenning-inspired circuit round at 8+ RIR, then ramps matching that day’s lift variation. The **60-minute cap includes all warm-up, ramps, rests and setup**. There are no plyometrics, RDLs or front squats.
-- **Calibrate every lift manually.** No old binder weights carry into the new plan. Enter actual load, reps and RIR separately from session targets. Increase load only after successful performed exposures at the prescribed effort; a date or checkmark never increases it.
+- **Calibrate every lift manually.** Labelled first-trial estimates use historical binder prescriptions or clearly identified coaching guesses; they are not confirmed current strength. Explicitly apply an estimate to this session’s targets only after checking it. Actual load, reps and RIR remain separate. Progression suggestions use prior performed sets; dates and checkmarks never increase loads.
 - Unilateral curls and Pallof presses record reps per side. Dumbbell loads are per hand; machine and cable settings are specific to that station.
-- History, a manual rest timer and JSON export are included. Previous Fortis binder and first-version PPL sessions remain available as read-only history. No bodyweight, sleep or session-note inputs.
+- History, an exercise-labelled manual rest timer and JSON export are included. The timer shows exact minutes/seconds, supports presets and a custom 15–900 seconds, and restores within this tab after reload under the same account. Set completion never starts it automatically. Previous Fortis binder and first-version PPL sessions remain available as read-only history. No bodyweight, sleep or session-note inputs.
 
 See [PPL_PROGRAM.md](PPL_PROGRAM.md) for prescriptions, circuits, progression, timing, muscle coverage and equipment assumptions.
 
 ## Storage and sync
 
-The existing `fortis-v1` browser storage and account isolation are preserved. This revision uses `ppl-v2` record IDs so it does not collide with either previous Fortis binder or `ppl-v1` workouts. Main-lift identifiers also distinguish variations for performance comparisons. Previous records and their targets are not rewritten as new workouts; PPL view selection remains separate from binder view state.
+The existing `fortis-v1` browser storage and account isolation are preserved. This revision uses `ppl-v2` record IDs so it does not collide with either previous Fortis binder or `ppl-v1` workouts. Main-lift identifiers also distinguish variations for performance comparisons. Adding estimates and timers keeps the `ppl-v2` namespace: prescriptions and logged records are not rewritten. Previous records and their targets are not rewritten as new workouts; PPL view selection remains separate from binder view state.
 
 Entries save locally as you type. Browser storage can be removed by private mode, clearing site data or storage limits; export a backup periodically. Workout entries and account credentials do not belong in GitHub commits.
 
@@ -46,6 +46,8 @@ Browser checks use the bundled Chromium, or set `BROWSER_PATH` to an installed C
 - `fortis-program-legacy.js`: archived 57-session Fortis binder prescription.
 - `fortis-program-ppl-v1.js`: archived first PPL prescription; both archives support read-only history.
 - `fortis-app.js`, `fortis.css`: interface, targets and session logging.
+- `fortis-loads.js`: sourced trial-load hints and evidence-based progression suggestions.
+- `fortis-timer.js`: account-scoped timer state and exact countdown behavior.
 - `fortis-store.js`: existing account-isolated persistence, sync queue and conflicts.
 - `fortis-config.js`: public cloud configuration, empty until provisioned.
 - `tests/`: program, interface and storage checks.

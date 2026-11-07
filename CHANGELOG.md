@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026-11-07e] -- saved warm-up checklists
+
+- Split all six session warm-ups into individually checkable circuit movements and lift-specific ramp sets, including pause/SSB setup cues and both-side instructions.
+- Label optional second rounds and final ramps separately; keep their completion outside the required warm-up total and all preparation outside hard-set counts/progression.
+- Save warm-up checks in the existing account store with separate IDs, History and export support. The first check freezes the session setup; completing/skipping steps never auto-completes work sets or starts the timer.
+- Retain `ppl-v3` work-set prescriptions, existing logs and completion records. Finish review now shows working sets and warm-up steps separately.
+
 ## [2026-11-07d] -- recovery review, consistent lower lifts and shoulder volume
 
 - Introduced `ppl-v3` and archived the preceding prescription in `fortis-program-ppl-v2.js`; binder, PPL v1 and PPL v2 logs remain read-only history with their original sets and targets.

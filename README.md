@@ -13,6 +13,7 @@ A mobile-first, static training log for a rolling five-day Push / Pull / Legs pl
 - **Calibrate every lift manually.** Labelled first-trial estimates use historical binder prescriptions or clearly identified coaching guesses; they are not confirmed current strength. Explicitly apply an estimate to this session’s targets only after checking it. Actual load, reps and RIR remain separate. Progression suggestions use prior performed sets; dates and checkmarks never increase loads.
 - Protect quad and hamstring-curl work and main-lift rests within the 60-minute budget; trim calf work first if necessary. The default leg press can be replaced by 2×10–15 leg extensions only after confirming the actual machine; none is assumed available.
 - Unilateral curls and Pallof presses record reps per side. Dumbbell loads are per hand; machine and cable settings are specific to that station.
+- Each day has a saved warm-up checklist: individual circuit movements and lift-specific ramp sets, with optional work labelled separately. Checks do not count as working sets or trigger load progression.
 - History, an exercise-labelled manual rest timer and JSON export are included. The timer shows exact minutes/seconds, supports presets and a custom 15–900 seconds, and restores within this tab after reload under the same account. Set completion never starts it automatically. Previous Fortis binder, PPL v1 and PPL v2 sessions remain available as read-only history. No bodyweight, sleep or session-note inputs.
 
 See [PPL_PROGRAM.md](PPL_PROGRAM.md) for prescriptions, circuits, progression, timing, muscle coverage and equipment assumptions.
@@ -48,6 +49,7 @@ Browser checks use the bundled Chromium, or set `BROWSER_PATH` to an installed C
 - `fortis-program-ppl-v1.js`, `fortis-program-ppl-v2.js`: archived PPL prescriptions; all archives support read-only history.
 - `fortis-app.js`, `fortis.css`: interface, targets and session logging.
 - `fortis-loads.js`: sourced trial-load hints and evidence-based progression suggestions.
+- `fortis-warmups.js`: day-specific circuit/ramp checklists, optional steps and separate completion counts.
 - `fortis-session.js`: saved session choices and frozen prescriptions that preserve logged work.
 - `fortis-timer.js`: account-scoped timer state and exact countdown behavior.
 - `fortis-store.js`: existing account-isolated persistence, sync queue and conflicts.

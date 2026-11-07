@@ -23,6 +23,24 @@ try {
   assert.match(await page.locator('#workout h2').innerText(),/Push A/);
   assert.equal(await page.locator('#days button').count(),5);
   assert.equal(await page.locator('.exercise').count(),4);
+  assert.equal(await page.locator('#warmup-count').innerText(),'0 / 6 steps');
+  const warmup=page.locator('[data-warmup="circuit-1-row"]');
+  await warmup.click();
+  assert.equal(await warmup.getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('#warmup-count').innerText(),'1 / 6 steps');
+  assert.match(await page.locator('#set-count').innerText(),/^0 \/ 11/,'warm-ups never inflate work-set totals');
+  assert.equal(await page.locator('#rest-button').innerText(),'Rest timer','checking a warm-up does not start rest');
+  await page.reload();await page.waitForSelector('.exercise');
+  assert.equal(await warmup.getAttribute('aria-pressed'),'true','warm-up checks survive reload');
+  await page.locator('#history-button').click();
+  assert.match(await page.locator('#panel-body').innerText(),/0 work sets · 1\/6 warm-up steps/,'warm-up-only sessions appear in history');
+  await page.locator('#close-panel').click();
+  await warmup.focus();await warmup.press('Space');
+  assert.equal(await warmup.getAttribute('aria-pressed'),'false','keyboard can uncheck a step');
+  await page.locator('.warmup-repeat summary').click();
+  await page.locator('[data-warmup="circuit-2-row"]').click();
+  assert.equal(await page.locator('#warmup-count').innerText(),'0 / 6 steps + 1 optional');
+  await warmup.click();
   const main=page.locator('[data-ex="push-a-main-bench"]');
   assert.match(await main.innerText(),/Choose load × 4–6/);
   assert.equal(await main.locator('[data-field=weight]').first().inputValue(),'');
@@ -77,7 +95,9 @@ try {
   assert.equal(await page.locator('[data-ex="legs-a-legcurl"] [data-field=left]').count(),3);
   assert.equal(await page.locator('[data-ex="legs-a-legcurl"] [data-field=right]').count(),3);
   await page.getByRole('button',{name:'Sat: Pull B',exact:true}).click();
-  await page.locator('#finish-button').click();await page.locator('#finish-skipped').click();await page.locator('#finish-button').click();
+  await page.locator('#finish-button').click();
+  assert.match(await page.locator('#panel-body').innerText(),/working sets and 0 of 6 warm-up steps/);
+  await page.locator('#finish-skipped').click();await page.locator('#finish-button').click();
   assert.equal(await page.locator('#week').inputValue(),'2');
   assert.match(await page.locator('#workout h2').innerText(),/Legs B/,'next session crosses Monday without resetting');
   await page.locator('#week').selectOption('4');
@@ -92,6 +112,7 @@ try {
   assert.equal(await page.locator('[data-ex="push-b-lateral"] .set-row').count(),1);
   assert.match(await page.locator('.warmup').innerText(),/One easy round/);
   assert.match(await page.locator('.set-target').first().innerText(),/4\+ RIR/);
+  assert.equal(await page.locator('.warmup-repeat').count(),0,'lighter sessions have only one circuit round');
   await page.reload();await page.waitForSelector('.exercise');
   assert.equal(await page.locator('[data-ex="push-b-main-paused-bench"] .set-row').count(),2,'explicit lighter choice survives reload');
   await page.locator('#week').selectOption('5');await page.locator('[data-day="legs-a"]').click();
@@ -99,7 +120,7 @@ try {
   if(!await page.locator('.session-setup').evaluate(el=>el.open))await page.locator('.session-setup summary').click();
   await page.locator('[data-setup=variation]').selectOption('ssb-box-squat');
   assert.match(await page.locator('#workout').innerText(),/Safety-bar box squat/);
-  assert.match(await page.locator('.warmup').innerText(),/safety-bar box squat/);
+  assert.match(await page.locator('.warmup').innerText(),/safety-bar box squat/i);
   await page.locator('[data-setup=quad]').selectOption('leg-extension');
   assert.equal(await page.locator('[data-setup=quad]').inputValue(),'leg-press','extension requires equipment confirmation');
   await page.locator('#confirm-leg-extension').check();
@@ -126,7 +147,7 @@ try {
   assert.equal(await page.locator('#auth-form').count(),0);
   const downloadPromise=page.waitForEvent('download');await page.locator('#export').click();
   const download=await downloadPromise,backup=JSON.parse(await readFile(await download.path(),'utf8'));
-  assert(backup.records['1:A:A-main:0']);assert(backup.records['ppl-v3:1:push-a:push-a-main-bench:0']);assert(backup.records['ppl-v2:5:legs-a:legs-a-main-ssb-box-squat:0']);assert(backup.records['ppl-v3:prescription:5:legs-a']);
+  assert(backup.records['1:A:A-main:0']);assert(backup.records['ppl-v3:1:push-a:push-a-main-bench:0']);assert(backup.records['ppl-v2:5:legs-a:legs-a-main-ssb-box-squat:0']);assert(backup.records['ppl-v3:prescription:5:legs-a']);assert(backup.records['ppl-v3:warmup:1:push-a:circuit-1-row'].done);
   await page.locator('#close-panel').click();await page.locator('#rest-button').click();await page.getByRole('button',{name:'90 sec',exact:true}).click();
   await page.waitForTimeout(1100);assert.match(await page.locator('#rest-button').innerText(),/1:[23]\d rest/);
   await page.locator('#timer-pause').click();
@@ -178,12 +199,13 @@ try {
     }
     await page.locator('#week').selectOption('1');await page.locator('#days button').first().click();
     await page.screenshot({path:`/workspace/scratch/ppl-preview/${width}.png`,fullPage:true});
+    if(width===390)await page.locator('.warmup').screenshot({path:'/workspace/scratch/ppl-preview/warmup.png'});
   }
   // All 60 session routes render without stale-code failures, including weeks missing the selected variant.
   for(let w=1;w<=12;w++){
     await page.locator('#week').selectOption(String(w));
-    for(let i=0;i<5;i++){await page.locator('#days button').nth(i).click();assert(await page.locator('.exercise').count()>=4);}
+    for(let i=0;i<5;i++){await page.locator('#days button').nth(i).click();assert(await page.locator('.exercise').count()>=4);assert(await page.locator('[data-warmup]').count()>=6);}
   }
   assert.deepEqual(errors,[],'no browser errors');
-  console.log('Browser checks passed: all 60 sessions, 320/390/1280px layouts, calibration, actual/target separation, persistence, assistance, unilateral inputs, rolling navigation, explicit recovery, equipment confirmation, locked prescriptions, all three archives, export and timer.');
+  console.log('Browser checks passed: all 60 sessions, 320/390/1280px layouts, calibration, actual/target separation, persistence, assistance, unilateral inputs, rolling navigation, explicit recovery, equipment confirmation, locked prescriptions, warm-up checklists and separate totals, all three archives, export and timer.');
 } finally {await browser?.close();await new Promise(resolve=>server.close(resolve));}

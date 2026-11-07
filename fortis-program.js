@@ -101,7 +101,7 @@ export function buildProgram(settings = {}) {
       };
     });
     let warmup='Scaled Wenning-inspired circuit. '+circuits[t.circuit]+ ' Keep effort 3–4/10 and roughly 8+ RIR; never chase a burn. '+(!light&&['push','pull'].includes(t.circuit)?'A second round is optional only if readiness improves and time permits. ':'');
-    warmup+='Then 3–4 non-fatiguing exercise-specific ramps. Aim for 10–12 min of preparation, allowing extra time when needed. ';
+    warmup+=(t.code==='pull-a'?'Then 2–3 easy pull-up preparation sets. ':'Then 3–4 non-fatiguing exercise-specific ramps. ')+'Aim for 10–12 min of preparation, allowing extra time when needed. ';
     warmup+=variant ? `Ramp with today’s ${variant[1].toLowerCase()}: practise its exact bar, pause and setup before work sets. ` : 'Start pull-ups with easy assisted/bodyweight reps, or ramp the pulldown with light sets. ';
     if(t.code==='legs-b')warmup+='Use normal floor height, including paused deadlift ramps; no deficit is prescribed.';
     return {week,block,code:t.code,label:t.label,day:TRAINING_DAYS[index%5],order:index+1,

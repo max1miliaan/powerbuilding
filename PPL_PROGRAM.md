@@ -87,11 +87,24 @@ This is a **scaled adaptation** of Wenning’s variable high-repetition circuits
 | Legs A | Light kneeling curl 10–12 each side; bodyweight squat 8–10; dead bug 4 each side |
 | Legs B | Light kneeling curl 10–12 each side; unloaded glute bridge 10; bird dog 4 each side |
 
+The tracker breaks this into individual completion controls, matching the working-set check buttons. Check a unilateral step only after both sides. Each circuit movement and ramp has its own saved state for that session; optional second-round movements and the final ramp are excluded from the main warm-up completion total. Warm-up-only sessions appear in History and checks are included in exports. They never increase working-set counts or earn load progression. Checking the first warm-up locks that session’s recovery/exercise choices, so choose those before starting. Existing completed sessions are not retroactively marked unfinished by the new checklist.
+
+| Day | First-lift ramp checklist |
+| --- | --- |
+| Push A | Regular bench: very light 8–10; increasing easy sets of 5 and 3; optional final 1–2 |
+| Pull A | Assisted/bodyweight pull-up: easy 5, then easy 3 with appropriate assistance; optional final 1–2 |
+| Legs A | Selected back squat or SSB box squat: very light 8–10, then 5 and 3; optional final 1–2 |
+| Push B | One-second paused bench: very light 8–10, then 5 and 3; optional final 1–2; rehearse the pause throughout |
+| Pull B | Pulldown: very light 8–10, then 5 and 3; optional final 1–2 if another step is useful |
+| Legs B | Selected conventional or paused deadlift: very light 5 from normal floor height, then increasing easy sets of 5 and 3; optional final 1–2 |
+
+Loads are chosen from readiness, without fixed percentages or mandatory numeric warm-up targets. Increase only as needed and keep preparation non-fatiguing. The final ramp and second circuit round are options, not volume quotas. Finishing a workout with unchecked warm-up steps offers the same explicit finish-with-skipped-items flow as incomplete work sets; nothing is checked automatically.
+
 A second upper-body round is optional only if you still need it, it leaves subsequent lifting performance unaffected, and **all preparation stays within 10–12 minutes**. It is never a quota. One round is the selected lighter-session default too. The lower-day circuit stays one round because unilateral curls take setup and repetition time.
 
 Use brief transitions and enough rest to keep the circuit comfortable. Use nearby free stations; choose an easy band equivalent when a cable is busy rather than reserving several stations. The revised circuit avoids high-repetition curls before pull-up work and removes warm-up cable flies before pressing to limit unnecessary local fatigue.
 
-Follow with progressive, non-fatiguing ramps for the first lift: an empty bar or very light load for 8–10, then a few increasing sets of roughly 5, 3 and 1–2 reps toward the chosen work load. Do not use an untested max to calculate ramps. **Match the programmed variation during the ramps**: practise the chest pause on Push B, use the actual SSB/box setup if explicitly selected, and practise the just-off-floor pause if that deadlift variation is selected. Deadlift ramps use normal floor-height plates or an equivalent safe setup. Pull-ups need an easy assisted/bodyweight preparation set. Add a lighter preparation set before a later unfamiliar press or machine where useful.
+Follow with progressive, non-fatiguing ramps for the first lift: an empty bar or very light load for 8–10 (five reps at normal floor height for deadlifts), then a few increasing sets of roughly 5, 3 and 1–2 reps toward the chosen work load. Do not use an untested max to calculate ramps. **Match the programmed variation during the ramps**: practise the chest pause on Push B, use the actual SSB/box setup if explicitly selected, and practise the just-off-floor pause if that deadlift variation is selected. Deadlift ramps use normal floor-height plates or an equivalent safe setup. Pull-ups need an easy assisted/bodyweight preparation set. Add a lighter preparation set before a later unfamiliar press or machine where useful.
 
 Budget **10–12 minutes total for circuit plus ramps**, including a short easy walk/row if needed. If the circuit makes the first work set weaker, reduce circuit load or volume; do not push through fatigue to satisfy a warm-up quota. The classic full warm-up can consume too much of a 60-minute session.
 

@@ -25,6 +25,7 @@ export function sessionStarted(records, session) {
     id === prescriptionKey(week, code)
     || id.startsWith(`${PROGRAM_ID}:${week}:${code}:`)
     || id.startsWith(`${PROGRAM_ID}:adjust:${week}:${code}:`)
+    || id.startsWith(`${PROGRAM_ID}:warmup:${week}:${code}:`)
     || (id === `${PROGRAM_ID}:session:${week}:${code}` && records[id]?.finishedAt));
 }
 

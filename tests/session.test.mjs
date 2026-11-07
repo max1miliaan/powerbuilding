@@ -41,6 +41,7 @@ test('setup locks for all session records including hidden variants, targets and
   for (const [id, value] of [
     ['ppl-v3:5:legs-a:legs-a-main-ssb-box-squat:2', {weight: 100}],
     ['ppl-v3:adjust:5:legs-a:legs-a-legextension', {load: 20}],
+    ['ppl-v3:warmup:5:legs-a:circuit-1-legcurl', {done: true}],
     ['ppl-v3:session:5:legs-a', {finishedAt: '2026-11-07'}],
     [prescriptionKey(5, 'legs-a'), {version: 1}],
   ]) assert.equal(sessionStarted({[id]: value}, session), true, id);
